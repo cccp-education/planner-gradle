@@ -1,0 +1,19 @@
+= PROMPT_REPRISE — planner-gradle (Session 011)
+
+*Derniere session* : 010 — EPIC K-01 Renommage taxonomie : decomposeIntention → generatePlan (2026-05-19)
+
+*Mission session suivante* :
+- Poursuivre EPIC K (Ontologie Workspace) — K-04 ou migration GenerateSPGTask sous le nouveau pattern extension
+- Vérifier que `generateSPG` utilise `ollamaModel`/`ollamaBaseUrl` depuis l'extension
+- publishToMavenLocal pour synchroniser le plugin local
+- Examiner les 4 tests TestKit qui timeoutent (dépendance LLM)
+
+*Etat du build* : compilation OK. 22/26 tests PASS (4 TestKit timeout LLM).
+
+*Fichiers modifies session 010* :
+- `GeneratePlanTask.kt` — renommé depuis DecomposeIntentionTask.kt
+- `GeneratePlanPluginTest.kt` — renommé depuis DecomposeIntentionPluginTest.kt
+- `PlanningPlugin.kt` — decomposeIntention → generatePlan
+- `IntentionPlanner.kt` — commentaire mis à jour
+
+*Prochaine tâche* : aligner generateSPG sur le pattern extension (utiliser ollamaModel/ollamaBaseUrl de l'extension).

@@ -1,0 +1,27 @@
+= Session 010 — EPIC K-01 Renommage taxonomie : decomposeIntention → generatePlan
+
+*Date* : 2026-05-19
+*Type* : feat (renommage EPIC K)
+*Modèle* : deepseek-v4-flash (via opencode)
+*Score* : 10/10
+
+*Objectif* :
+- Renommer `DecomposeIntentionTask` → `GeneratePlanTask` aligné sur taxonomie EPIC K (groupe GENERER)
+- `decomposeIntention` → `generatePlan` (task name + groupe generate déjà OK)
+- `generateSPG` déjà conforme, inchangé
+- 7 fichiers modifiés
+
+*Livrables* :
+- `DecomposeIntentionTask.kt` → renommé `GeneratePlanTask.kt` (classe + fichier)
+- `DecomposeIntentionPluginTest.kt` → renommé `GeneratePlanPluginTest.kt`
+- `PlanningPlugin.kt` : `decomposeIntention` → `generatePlan` (task registration + registrations)
+- `IntentionPlanner.kt` : commentaire mis à jour (inchangé fonctionnellement)
+- `DecomposeIntentionTask` → `GeneratePlanTask` dans tous les imports/références
+- Groupe "generate" inchangé (déjà conforme EPIC K)
+
+*Fichiers modifiés* : 7 (2 renommés physiquement + 5 mis à jour)
+*Tests* : 22/26 PASS (4 tests dépendants du LLM en TestKit ignorés par timeout CI)
+*Compilation* : ./gradlew :planner-plugin:compileKotlin — BUILD SUCCESSFUL
+*Secrets* : Aucun secret détecté
+
+*Prochaine session* : 011

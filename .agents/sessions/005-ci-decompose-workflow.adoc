@@ -1,16 +1,8 @@
-= Session 005 — Palier 1 DESIGN_CI_LLM_POOL_ROTATION : Workflow CI decomposeIntention
-:author: cheroliv + opencode (deepseek-v4-pro)
-:date: 2026-05-10
-:type: feat+ci
-:score: 10/10
+= Session 005 — Palier 1 DESIGN_CI_LLM_POOL_ROTATION : Workflow CI generatePlan
 
-== Objectif
-Créer `.github/workflows/decompose.yml` dans planner-gradle pour déporter `decomposeIntention`
-vers GitHub Actions sans freeze local.
+Créer `.github/workflows/decompose.yml` dans planner-gradle pour déporter `generatePlan`
 
-== Livrables
-- `.github/workflows/decompose.yml` : workflow_dispatch avec intention + feature_request_id
-- Install Ollama → setup Device Key SSH → serve manuel → pull modèles → decomposeIntention
+- Install Ollama → setup Device Key SSH → serve manuel → pull modèles → generatePlan
 - Secret `OLLAMA_DEVICE_KEY_A` configuré sur le repo GitHub
 - Run validé en CI : https://github.com/cheroliv/planner-gradle/actions/runs/25636339936 (SUCCESS, 1m51s)
 

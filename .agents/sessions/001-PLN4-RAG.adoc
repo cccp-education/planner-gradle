@@ -19,7 +19,7 @@ modele DeepSeek-v4-pro.
 - buildPrompt injecte le contenu des specs via SpecReader.toPromptContext()
 - PlanningPlugin expose la property Gradle `specsDir` (optionnelle)
 - 6 tests unitaires SpecReader, plus PlanTest existant → 7/7 PASS
-- Test manuel : `./gradlew decomposeIntention -Pintention="..." -PspecsDir="specs"` OK
+- Test manuel : `./gradlew generatePlan -Pintention="..." -PspecsDir="specs"` OK
 
 == Fichiers modifies/crees
 

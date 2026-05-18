@@ -6,6 +6,8 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
@@ -13,11 +15,18 @@ import org.gradle.work.DisableCachingByDefault
 abstract class DecomposeIntentionTask : DefaultTask() {
 
     @get:Input
-    val intention: Property<String> = project.objects.property(String::class.java)
+    abstract val intention: Property<String>
 
     @get:Optional
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputDirectory
-    val specsDir: DirectoryProperty = project.objects.directoryProperty()
+    abstract val specsDir: DirectoryProperty
+
+    @get:Input
+    abstract val ollamaModel: Property<String>
+
+    @get:Input
+    abstract val ollamaBaseUrl: Property<String>
 
     @TaskAction
     fun decompose() {
@@ -28,7 +37,14 @@ abstract class DecomposeIntentionTask : DefaultTask() {
             emptyList()
         }
         val context = PlanningContext(intention = intent)
-        val plan = IntentionPlanner.plan(intent, context, specContents, logger)
+        val plan = IntentionPlanner.plan(
+            intention = intent,
+            context = context,
+            specContents = specContents,
+            logger = logger,
+            ollamaModel = ollamaModel.get(),
+            ollamaBaseUrl = ollamaBaseUrl.get()
+        )
         val output = StdoutFormatter.format(plan)
         println(output)
     }

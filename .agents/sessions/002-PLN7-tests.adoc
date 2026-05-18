@@ -30,7 +30,7 @@ et DecomposeIntentionTask via TestKit.
   - chatModel() non null
   - toString contient le model name
 - DecomposeIntentionPluginTest (3 tests PASS via TestKit) :
-  - task decomposeIntention enregistree dans groupe planning
+  - task generatePlan enregistree dans groupe generate
   - stdout contient [PLAN] avec intention valide
   - pas de crash sans intention explicite
 - Total : 24/24 ALL PASS

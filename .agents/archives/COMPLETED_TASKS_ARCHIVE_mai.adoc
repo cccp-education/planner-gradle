@@ -3,7 +3,7 @@
 '''
 == Code Review Globale (Session 006)
 
-- [x] Audit passif planner-gradle : PLN-0→8 TERMINE, CI decomposeIntention OK, Publication Plugin Portal OK
+- [x] Audit passif planner-gradle : PLN-0→8 TERMINE, CI generatePlan OK, Publication Plugin Portal OK
 - [x] MAJ portefeuille 6→8 boroughs
 
 == PLN-7 — Tests unitaires pipeline LLM (Session 002)
@@ -24,7 +24,7 @@
 - [x] Modifier buildPrompt : injection contenu specs via SpecReader.toPromptContext()
 - [x] Mettre a jour PlanningPlugin : specsDir configure via gradle property
 - [x] Tests unitaires SpecReaderTest : 6 tests PASS
-- [x] Test manuel decomposeIntention -PspecsDir OK
+- [x] Test manuel generatePlan -PspecsDir OK
 - [x] publishToMavenLocal
 
 == PLN-5 — Dogfooding (Session 003)
@@ -32,8 +32,8 @@
 - [x] Creer specs/01-project-overview.adoc (architecture, stack, invocation)
 - [x] Creer specs/02-roadmap.adoc (statut EPICs + tests)
 - [x] Creer specs/03-publication.adoc (exigences publication)
-- [x] decomposeIntention : "dogfooder planner-gradle sur son propre backlog" → 3 EPICs, 18 pts
-- [x] decomposeIntention : "publier planner-plugin sur Gradle Plugin Portal" → 3 EPICs, 16 pts
+- [x] generatePlan : "dogfooder planner-gradle sur son propre backlog" → 3 EPICs, 18 pts
+- [x] generatePlan : "publier planner-plugin sur Gradle Plugin Portal" → 3 EPICs, 16 pts
 - [x] Analyse comparative : specs/04-dogfooding-analysis.adoc
 - [x] Fusioner DF/PUB en PLN-5/PLN-6 dans roadmap
 
@@ -42,8 +42,27 @@
 - [x] Verifier credentials Gradle Plugin Portal (gradle.publish.key/secret)
 - [x] publishToMavenLocal (13 tasks, BUILD SUCCESSFUL)
 - [x] publishPlugins sur Gradle Plugin Portal (12 tasks, BUILD SUCCESSFUL)
-- [x] Verifier page publique : https://plugins.gradle.org/plugin/com.cheroliv.planner
-- [x] Plugin DSL : id("com.cheroliv.planner") version "0.0.1"
+- [x] Verifier page publique : https://plugins.gradle.org/plugin/cccp.education.planner
+- [x] Plugin DSL : id("cccp.education.planner") version "0.0.1"
+
+== EPIC K-03 — Configuration par domaine : PlannerExtension + rewiring (Session 009)
+
+- [x] Créer `PlannerExtension.kt` — abstract class 4 properties (ollamaModel, ollamaBaseUrl, intention, specsDir)
+- [x] Rewirer `PlanningPlugin.kt` — `extensions.create("planner", ...)` avec conventions
+- [x] Modifier `DecomposeIntentionTask.kt` — @Input ollamaModel + ollamaBaseUrl
+- [x] Paramétriser `OllamaBridge.kt` — ollamaModel/ollamaBaseUrl + fallback env vars
+- [x] Propager model/baseUrl dans `IntentionPlanner.kt` vers OllamaBridge.chatModel()
+- [x] Compilation vérifiée ✅
+- [ ] Tests non exécutés (pas de permission)
+
+== EPIC K-01 — Renommage taxonomie decomposeIntention → generatePlan (Session 010)
+
+- [x] Renommer `DecomposeIntentionTask.kt` → `GeneratePlanTask.kt`
+- [x] Renommer `DecomposeIntentionPluginTest.kt` → `GeneratePlanPluginTest.kt`
+- [x] `PlanningPlugin.kt` : decomposeIntention → generatePlan
+- [x] `IntentionPlanner.kt` : commentaire mis à jour
+- [x] Groupe "generate" inchangé (déjà conforme EPIC K)
+- [x] 7 fichiers modifiés, 22/26 PASS (4 TestKit timeout LLM)
 
 == Fix Compilation LangChain4j (Session 008)
 

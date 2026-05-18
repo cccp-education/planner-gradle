@@ -1,3 +1,1 @@
-plugins {
-    id("com.cheroliv.planner") version "0.0.1"
-}
+// Temporairement vide pour permettre le publishToMavenLocal du sous-projet

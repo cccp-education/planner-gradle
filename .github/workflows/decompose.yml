@@ -45,9 +45,9 @@ jobs:
           ollama pull qwen3.5:397b-cloud
           ollama pull deepseek-v4-pro:cloud
 
-      - name: Decompose Intention
+      - name: Generate Plan
         run: >
-          ./gradlew decomposeIntention
+          ./gradlew generatePlan
           -Pintention="${{ github.event.inputs.intention }}"
           -Pfeature.request.id="${{ github.event.inputs.feature_request_id }}"
         env:

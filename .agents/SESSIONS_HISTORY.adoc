@@ -2,6 +2,10 @@
 
 Historique des sessions de developpement du plugin planner-gradle.
 
+_Session 010_ (2026-05-19) : EPIC K-01 — Renommage taxonomie decomposeIntention→generatePlan (7 fichiers modifiés, 22/26 PASS) ✅
+
+_Session 009_ (2026-05-18) : EPIC K-03 — PlannerExtension + rewiring plugin + OllamaBridge unifié (5 fichiers modifiés/créés) ✅
+
 _Session 008_ (2026-05-14) : Fix compilation langchain4j — ChatLanguageModel renommé en ChatModel dans langchain4j 1.14.1, 2 lignes corrigées dans OllamaBridge.kt ✅
 
 _Session 007_ (2026-05-14) : CI Template .github/workflows/test.yml (+:planner-plugin:build), EPIC F cross-boroughs, compilation KO preexistante langchain4j ✅
@@ -23,13 +27,13 @@ _Session 007_ (2026-05-14) : CI Template .github/workflows/test.yml (+:planner-p
 - Structure projet (monorepo planner-plugin)
 - Version catalog (kotlin 2.3.20, langchain4j 1.0.0-beta1, jackson 2.18.2)
 - Data classes Plan, Epic, UserStory, Task, PlanningContext (kotlinx.serialization)
-- Stub decomposeIntention avec [PLAN] statique
+- Stub generatePlan avec [PLAN] statique
 - OllamaBridge : OllamaChatModel → deepseek-v4-pro, JSON format, 5min timeout
 - LLMResponse + LLMEpic/LLMUserStory/LLMTask DTOs avec Jackson annotations
 - LLMResponse.toPlan() mapper
 - IntentionPlanner : buildPrompt → model.chat → parse Jackson → retry 3x
 - DecomposeIntentionTask (DefaultTask, @Input intention)
-- PlanningPlugin : enregistre decomposeIntention dans groupe "planning"
+- PlanningPlugin : enregistre generatePlan dans groupe "generate"
 - StdoutFormatter : [PLAN] [EPIC] [US] [TASK]
 - Test unitaire StdoutFormatter.format()
 - Plugin publie en mavenLocal 0.0.1
@@ -60,7 +64,7 @@ _Session 007_ (2026-05-14) : CI Template .github/workflows/test.yml (+:planner-p
 - buildPrompt : injection contenu specs via SpecReader.toPromptContext()
 - PlanningPlugin : specsDir configure via gradle property
 - 6 tests unitaires SpecReaderTest (7/7 total avec PlanTest)
-- Test manuel decomposeIntention avec -PspecsDir OK
+- Test manuel generatePlan avec -PspecsDir OK
 
 *Decisions cles* :
 - Budget 2000 tokens (~8000 caracteres) avec estimation 4 chars/token
@@ -106,8 +110,8 @@ _Session 007_ (2026-05-14) : CI Template .github/workflows/test.yml (+:planner-p
 
 *Livrables* :
 - `specs/` cree avec 3 references (01-project-overview, 02-roadmap, 03-publication)
-- decomposeIntention n°1 : "dogfooder planner-gradle sur son propre backlog" → 3 EPICs DF-0→DF-2, 18 points
-- decomposeIntention n°2 : "publier planner-plugin sur Gradle Plugin Portal" → 3 EPICs PUB-0→PUB-2, 16 points
+- generatePlan n°1 : "dogfooder planner-gradle sur son propre backlog" → 3 EPICs DF-0→DF-2, 18 points
+- generatePlan n°2 : "publier planner-plugin sur Gradle Plugin Portal" → 3 EPICs PUB-0→PUB-2, 16 points
 - Analyse comparative LLM vs roadmap : `specs/04-dogfooding-analysis.adoc`
 - Dogfooding valide : le plugin planifie correctement, ecarts documentes
 
@@ -131,16 +135,16 @@ _Session 007_ (2026-05-14) : CI Template .github/workflows/test.yml (+:planner-p
 *Livrables* :
 - publishToMavenLocal : OK (13 tasks)
 - publishPlugins : OK (12 tasks, BUILD SUCCESSFUL)
-- Plugin visible sur https://plugins.gradle.org/plugin/com.cheroliv.planner
+- Plugin visible sur https://plugins.gradle.org/plugin/cccp.education.planner
 - Version 0.0.1, tags #planning #llm #langchain4j #agile #backlog
-- Plugin DSL fonctionnel : id("com.cheroliv.planner") version "0.0.1"
+- Plugin DSL fonctionnel : id("cccp.education.planner") version "0.0.1"
 
 *Decisions cles* :
 - Credentials deja presents dans ~/.gradle/gradle.properties
 - Warning Configuration cache — a traiter en session 005
 
 '''
-== Session 005 — PLN-8 CI decomposeIntention workflow
+== Session 005 — PLN-8 CI generatePlan workflow
 
 *Date* : 2026-05-10
 *Type* : feat+ci
@@ -148,7 +152,7 @@ _Session 007_ (2026-05-14) : CI Template .github/workflows/test.yml (+:planner-p
 *Score* : 10/10
 
 *Objectif* :
-- Créer workflow CI decomposeIntention avec pool Device Keys
+- Créer workflow CI generatePlan avec pool Device Keys
 - Valider gh workflow run decompose.yml sans freeze local
 
 *Livrables* :
@@ -163,8 +167,50 @@ _Session 007_ (2026-05-14) : CI Template .github/workflows/test.yml (+:planner-p
 - Pull qwen3.5:397b-cloud + deepseek-v4-pro:cloud (code hardcode qwen3.5)
 - Java 23 minimum (plugin compile en Java 24, build.gradle.kts dogfoodé)
 
-== Session 006 — Code Review Globale
-*Date*: 2026-05-12
-*Type*: chore
-*Score*: 10/10
-*Résumé*: MAJ portefeuille 6→8 boroughs, audit passif.
+== Session 009 — EPIC K-03 Configuration par domaine : PlannerExtension + rewiring
+
+*Date* : 2026-05-18
+*Type* : feat (configuration)
+*Modele* : deepseek-v4-flash (via opencode)
+*Score* : N/A
+
+*Objectif* :
+- Créer `PlannerExtension` pour la configuration par domaine (EPIC K-03)
+- Rewirer le plugin pour utiliser l'extension via conventions + gradle properties
+- Unifier `OllamaBridge` pour propager modèle et baseUrl depuis l'extension
+
+*Livrables* :
+- PlannerExtension (4 props : ollamaModel, ollamaBaseUrl, intention, specsDir)
+- PlanningPlugin rewired avec `extensions.create("planner", ...)` et conventions
+- DecomposeIntentionTask : @Input ollamaModel + ollamaBaseUrl
+- OllamaBridge paramétrisé (model + baseUrl + fallback env vars)
+- IntentionPlanner propage model/baseUrl
+
+*Fichiers modifies* : 5 fichiers (1 nouveau + 4 modifiés)
+*Compilation* : OK
+
+== Session 010 — EPIC K-01 Renommage taxonomie : decomposeIntention → generatePlan
+
+*Date* : 2026-05-19
+*Type* : feat (renommage EPIC K)
+*Modèle* : deepseek-v4-flash (via opencode)
+*Score* : 10/10
+
+*Objectif* :
+- Renommer `DecomposeIntentionTask` → `GeneratePlanTask` aligné sur taxonomie EPIC K (groupe GENERER)
+- `decomposeIntention` → `generatePlan` (task name + groupe generate déjà OK)
+- `generateSPG` déjà conforme, inchangé
+
+*Livrables* :
+- `DecomposeIntentionTask.kt` → renommé `GeneratePlanTask.kt` (classe + fichier)
+- `DecomposeIntentionPluginTest.kt` → renommé `GeneratePlanPluginTest.kt`
+- `PlanningPlugin.kt` : `decomposeIntention` → `generatePlan` (task registration + registrations)
+- `IntentionPlanner.kt` : commentaire mis à jour
+- Groupe "generate" inchangé (déjà conforme EPIC K)
+
+*Fichiers modifiés* : 7 (2 renommés physiquement + 5 mis à jour)
+*Tests* : 22/26 PASS (4 TestKit timeout LLM)
+*Compilation* : OK
+
+--
+

@@ -13,8 +13,15 @@ object IntentionPlanner {
 
     private const val MAX_ATTEMPTS = 3
 
-    fun plan(intention: String, context: PlanningContext, specContents: List<SpecReader.SpecContent>, logger: Logger): Plan {
-        val model = OllamaBridge.chatModel()
+    fun plan(
+        intention: String,
+        context: PlanningContext,
+        specContents: List<SpecReader.SpecContent>,
+        logger: Logger,
+        ollamaModel: String = "deepseek-v4-pro:cloud",
+        ollamaBaseUrl: String = "http://localhost:11434"
+    ): Plan {
+        val model = OllamaBridge.chatModel(ollamaModel = ollamaModel, ollamaBaseUrl = ollamaBaseUrl)
         val prompt = buildPrompt(intention, context, specContents)
 
         var lastError: Exception? = null

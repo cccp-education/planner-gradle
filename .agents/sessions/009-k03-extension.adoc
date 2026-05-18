@@ -1,0 +1,35 @@
+= Session 009 — EPIC K-03 Configuration par domaine : PlannerExtension + rewiring
+
+*Date* : 2026-05-18
+*Type* : feat (configuration)
+*Modele* : deepseek-v4-flash (via opencode)
+*Score* : N/A
+
+*Objectif* :
+- Créer l'extension Gradle `PlannerExtension` pour la configuration par domaine (EPIC K-03)
+- Rewirer le plugin pour utiliser l'extension via conventions + gradle properties
+- Unifier `OllamaBridge` pour propager modèle et baseUrl depuis l'extension
+
+*Livrables* :
+- `PlannerExtension.kt` (nouveau) : abstract class avec 4 propriétés (ollamaModel, ollamaBaseUrl, intention, specsDir) — conventions : deepseek-v4-pro:cloud, http://localhost:11434
+- `PlanningPlugin.kt` (modifié) : ext.créée avec `create("planner", ...)`, conventions sur ollamaModel/ollamaBaseUrl, délégation extension pour intentions/specsDir/ollamaModel/ollamaBaseUrl
+- `DecomposeIntentionTask.kt` (modifié) : ajout propriétés ollamaModel et ollamaBaseUrl en @Input
+- `OllamaBridge.kt` (modifié) : paramètres ollamaModel + ollamaBaseUrl avec fallback env vars (OLLAMA_BASE_URL, OLLAMA_MODEL)
+- `IntentionPlanner.kt` (modifié) : propage ollamaModel et ollamaBaseUrl vers OllamaBridge.chatModel()
+
+*Pattern extension* :
+- `project.extensions.create("planner", PlannerExtension::class.java)` — DSL `planner { ollamaModel = "..." }` + `-P` properties
+- Convention over configuration : les defaults sont dans `ext.ollamaModel.convention(...)`
+- Les properties CLI `-PollamaModel=...` écrasent les conventions via `project.providers.gradleProperty(...).orElse(ext.ollamaModel)`
+
+*Fichiers modifies* :
+- `planner-plugin/src/main/kotlin/planning/PlannerExtension.kt` — NOUVEAU
+- `planner-plugin/src/main/kotlin/planning/PlanningPlugin.kt` — MODIFIÉ
+- `planner-plugin/src/main/kotlin/planning/DecomposeIntentionTask.kt` — MODIFIÉ
+- `planner-plugin/src/main/kotlin/planning/OllamaBridge.kt` — MODIFIÉ
+- `planner-plugin/src/main/kotlin/planning/IntentionPlanner.kt` — MODIFIÉ
+
+*Compilation* : ./gradlew :planner-plugin:compileKotlin — BUILD SUCCESSFUL (1s, UP-TO-DATE)
+
+*Tests* : Non exécutés (pas de permission). Compilation vérifiée ✅.
+*Secrets* : Aucun secret détecté dans les fichiers modifiés.

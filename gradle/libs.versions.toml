@@ -5,6 +5,7 @@ plugin-publish = "2.1.0"
 kotlinx-serialization = "1.7.3"
 langchain4j = "1.14.1"
 jackson = "2.18.2"
+codebase = "0.0.1"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
@@ -17,6 +18,7 @@ jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin"
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 publish = { id = "com.gradle.plugin-publish", version.ref = "plugin-publish" }
-planner = { id = "com.cheroliv.planner", version.ref = "planner" }
+planner = { id = "education.cccp.planner", version.ref = "planner" }
+codebase = { id = "education.cccp.codebase", version.ref = "codebase" }
 
 [bundles]

@@ -12,7 +12,7 @@ intention into a structured execution plan (EPICs → User Stories → Tasks) vi
 
 == Invocation
 
-  ./gradlew decomposeIntention -Pintention="description" [-PspecsDir=specs/]
+  ./gradlew generatePlan -Pintention="description" [-PspecsDir=specs/]
 
 Output: stdout in structured format `[PLAN] [EPIC] [US] [TASK]`.
 

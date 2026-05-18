@@ -8,10 +8,11 @@ plugins {
     `java-gradle-plugin`
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.publish)
+    alias(libs.plugins.codebase)
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
 }
 
-group = "com.cheroliv"
+group = "education.cccp"
 version = libs.plugins.planner.get().version
 kotlin.jvmToolchain(VERSION_24.ordinal)
 
@@ -84,9 +85,9 @@ publishing {
                     }
                     developers {
                         developer {
-                            id.set("cheroliv")
-                            name.set("cheroliv")
-                            email.set("cheroliv.developer@gmail.com")
+                            id.set("cccp-education")
+                            name.set("CCCP Education")
+                            email.set("cccp.education@gmail.com")
                         }
                     }
                     scm {

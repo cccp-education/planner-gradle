@@ -4,7 +4,7 @@
 
 - PLN-0 : Bootstrap skeleton (build.gradle.kts, settings, .agents/)
 - PLN-1 : Domain data classes (Plan, PlanningContext)
-- PLN-2 : decomposeIntention task stub (MVP without LLM)
+- PLN-2 : generatePlan task stub (MVP without LLM)
 - PLN-3 : LangChain4j + DeepSeek-v4-pro integration (OllamaBridge, IntentionPlanner, LLMResponse, Jackson parsing with 3 retries)
 - PLN-4 : RAG specs (SpecReader reads .adoc from specsDir/, injects into prompt, token budget ~2000)
 - PLN-7 : Unit tests 24/24 PASS (IntentionPlanner, OllamaBridge, LLMResponse.toPlan(), TestKit)

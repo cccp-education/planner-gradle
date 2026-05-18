@@ -10,7 +10,7 @@ Le plugin `planner` est le capital fixe du Planning Expert. Il encapsule LangCha
 
 == Invocation
 
-  ./gradlew decomposeIntention -Pintention="description du besoin"
+  ./gradlew generatePlan -Pintention="description du besoin"
 
 Sortie : stdout structure au format unifie `[PLAN] [EPIC] [US] [TASK]`.
 

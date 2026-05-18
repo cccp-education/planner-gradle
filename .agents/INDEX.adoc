@@ -4,10 +4,10 @@
 _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
-_Derniere mise a jour_ : 2026-05-14
-_Session terminee_ : 008 — Fix compilation langchain4j manquant ✅
-_Sessions precedent_ : 007/006/005 ✅ — Tous les EPICs PLN terminés
-_Prochaine session_ : 009
+_Derniere mise a jour_ : 2026-05-19
+_Session terminee_ : 010 — EPIC K-01 Renommage taxonomie (decomposeIntention→generatePlan) ✅
+_Sessions precedent_ : 009/008/007/006/005 ✅ — Tous les EPICs PLN terminés
+_Prochaine session_ : 011
 
 '''
 == REGLES ABSOLUES
@@ -23,12 +23,14 @@ _Prochaine session_ : 009
 
 |===
 | # | Date | Type | Sujet | Score
+| 010 | 2026-05-19 | feat | EPIC K-01 — Renommage taxonomie (decomposeIntention→generatePlan) | 10/10
+| 009 | 2026-05-18 | feat | EPIC K-03 — PlannerExtension + rewiring plugin + OllamaBridge unifié | N/A
 | 008 | 2026-05-14 | fix | Compilation langchain4j — ChatLanguageModel → ChatModel (2 lignes) | 10/10
 | 007 | 2026-05-14 | infra | CI Template — .github/workflows/test.yml (+:planner-plugin:build), EPIC F cross-boroughs, compilation KO preexistante | 10/10
 | 006 | 2026-05-12 | chore | Code Review Globale — Audit passif, MAJ portefeuille 6→8 boroughs | 10/10
-| 005 | 2026-05-10 | feat+ci | PLN-8 — CI decomposeIntention : workflow_dispatch + OLLAMA_DEVICE_KEY_A + serve manuel, run CI 25636339936 SUCCESS | 10/10
+| 005 | 2026-05-10 | feat+ci | PLN-8 — CI generatePlan : workflow_dispatch + OLLAMA_DEVICE_KEY_A + serve manuel, run CI 25636339936 SUCCESS | 10/10
 | 004 | 2026-05-10 | feat | PLN-6 — Publication Gradle Plugin Portal : publishPlugins, version 0.0.1, page publique | 10/10
-| 003 | 2026-05-09 | feat | PLN-5 — Dogfooding : specs/ creés, 2x decomposeIntention, analyse comparative | 10/10
+| 003 | 2026-05-09 | feat | PLN-5 — Dogfooding : specs/ creés, 2x generatePlan, analyse comparative | 10/10
 | 002 | 2026-05-07 | test | PLN-7 — Tests unitaires : IntentionPlanner(7), LLMResponse(5), OllamaBridge(2), TestKit(3) = 24/24 PASS | 10/10
 | 001 | 2026-05-07 | feat | PLN-4 — RAG sur specs existantes : SpecReader, SpecContent, token budget 2000, spec injection dans buildPrompt | 10/10
 | 000 | 2026-05-07 | init+feat | Bootstrap + PLN-0→PLN-3 : skeleton, data classes, stub, LangChain4j+DeepSeek-v4-pro, OllamaBridge | 10/10
@@ -39,10 +41,12 @@ _Prochaine session_ : 009
 
 |===
 | EPIC | Description | Statut | Priorite
-| PLN-8 | CI decomposeIntention — workflow_dispatch + OLLAMA_DEVICE_KEY_A | ✅ TERMINE | P0
+| EPIC K-01 | Renommage taxonomie — decomposeIntention→generatePlan | ✅ TERMINE | P1
+| EPIC K-03 | Configuration par domaine : PlannerExtension + rewiring | ✅ TERMINE | P1
+| PLN-8 | CI generatePlan — workflow_dispatch + OLLAMA_DEVICE_KEY_A | ✅ TERMINE | P0
 | PLN-0 | Bootstrap skeleton Gradle (build, settings, .agents/) | ✅ TERMINE | P0
 | PLN-1 | data classes Plan + PlanningContext | ✅ TERMINE | P0
-| PLN-2 | Task decomposeIntention (stub MVP) | ✅ TERMINE | P0
+| PLN-2 | Task generatePlan (stub MVP) | ✅ TERMINE | P0
 | PLN-3 | Intégration LangChain4j + DeepSeek-v4-pro (OllamaBridge, IntentionPlanner, LLMResponse, parsing Jackson, retry 3x) | ✅ TERMINE | P0
 | PLN-4 | RAG sur specs existantes pour contexte LLM | ✅ TERMINE | P1
 | PLN-5 | Dogfooding — planifier son propre backlog | ✅ TERMINE | P1

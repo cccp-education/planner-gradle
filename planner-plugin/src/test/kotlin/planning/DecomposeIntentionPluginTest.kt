@@ -10,21 +10,21 @@ import kotlin.test.assertTrue
 class DecomposeIntentionPluginTest {
 
     @Test
-    fun `plugin registers decomposeIntention task`() {
+    fun `plugin registers generatePlan task`() {
         val projectDir = createTestProject()
 
         val result = GradleRunner.create()
             .withProjectDir(projectDir)
-            .withArguments("tasks", "--group", "planning")
+            .withArguments("tasks", "--group", "generate")
             .withPluginClasspath()
             .build()
 
-        assertTrue(result.output.contains("decomposeIntention"))
+        assertTrue(result.output.contains("generatePlan"))
         assertEquals(TaskOutcome.SUCCESS, result.task(":tasks")?.outcome)
     }
 
     @Test
-    fun `decomposeIntention task belongs to planning group`() {
+    fun `generatePlan task belongs to generate group`() {
         val projectDir = createTestProject()
 
         val result = GradleRunner.create()
@@ -33,16 +33,16 @@ class DecomposeIntentionPluginTest {
             .withPluginClasspath()
             .build()
 
-        assertTrue(result.output.contains("Planning tasks"))
+        assertTrue(result.output.contains("Generate tasks"))
     }
 
     @Test
-    fun `decomposeIntention with valid intention outputs structured format`() {
+    fun `generatePlan with valid intention outputs structured format`() {
         val projectDir = createTestProject()
 
         val result = GradleRunner.create()
             .withProjectDir(projectDir)
-            .withArguments("decomposeIntention", "-Pintention=add unit tests")
+            .withArguments("generatePlan", "-Pintention=add unit tests")
             .withPluginClasspath()
             .build()
 
@@ -55,12 +55,12 @@ class DecomposeIntentionPluginTest {
     }
 
     @Test
-    fun `decomposeIntention with missing intention does not crash`() {
+    fun `generatePlan with missing intention does not crash`() {
         val projectDir = createTestProject()
 
         val result = GradleRunner.create()
             .withProjectDir(projectDir)
-            .withArguments("decomposeIntention")
+            .withArguments("generatePlan")
             .withPluginClasspath()
             .build()
 
@@ -84,7 +84,7 @@ class DecomposeIntentionPluginTest {
 
         projectDir.resolve("build.gradle.kts").writeText("""
             plugins {
-                id("com.cheroliv.planner")
+                id("cccp.education.planner")
             }
         """.trimIndent())
 

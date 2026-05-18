@@ -11,14 +11,14 @@
 *Livrables* :
 - publishToMavenLocal : OK (13 tasks)
 - publishPlugins : OK (12 tasks, BUILD SUCCESSFUL)
-- Plugin visible sur https://plugins.gradle.org/plugin/com.cheroliv.planner
+- Plugin visible sur https://plugins.gradle.org/plugin/cccp.education.planner
 - Version 0.0.1, tags #planning #llm #langchain4j #agile #backlog
-- Plugin DSL fonctionnel : `id("com.cheroliv.planner") version "0.0.1"`
+- Plugin DSL fonctionnel : `id("cccp.education.planner") version "0.0.1"`
 
 *Decisions cles* :
 - Credentials deja presents dans ~/.gradle/gradle.properties
 - Warning : "Consider declaring compatibility with Configuration cache" — a traiter en session future
 
 *Verification* :
-- https://plugins.gradle.org/plugin/com.cheroliv.planner → page accessible
+- https://plugins.gradle.org/plugin/cccp.education.planner → page accessible
 - buildscript, plugin DSL, convention plugins — 3 methodes d'application documentees

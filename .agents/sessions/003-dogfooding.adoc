@@ -16,10 +16,9 @@ Deux intentions passées au LLM, deux plans structurés produits.
   - `02-roadmap.adoc` — statut des EPICs + tests
   - `03-publication.adoc` — exigences publication Portal
 
-. `decomposeIntention` n°1 : "dogfooder planner-gradle sur son propre backlog"
-  - → 3 EPICs (DF-0/DF-1/DF-2), 18 points, 3-5 sessions
+. `generatePlan` n°1 : "dogfooder planner-gradle sur son propre backlog"
 
-. `decomposeIntention` n°2 : "publier planner-plugin sur Gradle Plugin Portal"
+. `generatePlan` n°2 : "publier planner-plugin sur Gradle Plugin Portal"
   - → 3 EPICs (PUB-0/PUB-1/PUB-2), 16 points, 3-5 sessions
 
 . Analyse comparative : LLM vs roadmap INDEX.adoc

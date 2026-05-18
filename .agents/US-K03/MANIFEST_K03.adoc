@@ -1,0 +1,16 @@
+= US-K03 — Manifeste de réalisation
+:generatedAt: 2026-05-18
+
+== Fichiers modifiés
+- `planner-plugin/src/main/kotlin/planning/PlanningPlugin.kt` — remplacement stub → GenerateSPGTask
+
+== Fichiers créés
+- `planner-plugin/src/main/kotlin/planning/GenerateSPGTask.kt` — DefaultTask avec ObjectMapper Jackson
+
+== Compilation
+- `./gradlew :planner-plugin:compileKotlin` → BUILD SUCCESSFUL (2s)
+
+== Validation fonctionnelle
+- Test par GradleRunner avec `cccp.education.planner` : generateSPG → SUCCESS
+- metadata.json généré dans `build/spg/metadata.json` — 13 lignes, 5 champs
+- spg.adoc généré dans `build/spg/spg.adoc` — format pivot AsciiDoc respecté
