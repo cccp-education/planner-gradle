@@ -1,0 +1,17 @@
+= COMPLETED_TASKS_ARCHIVE — planner-gradle — Mai 2026
+
+|===
+| Date | Tâche | Borough | Statut | Score
+| 2026-05-07 | PLN-0→PLN-3 Bootstrap + data classes + stub + Ollama + LLM pipeline | planner-gradle | ✅ | 10/10
+| 2026-05-07 | PLN-4 RAG specs existantes | planner-gradle | ✅ | 10/10
+| 2026-05-07 | PLN-7 Tests pipeline LLM (24/24 PASS) | planner-gradle | ✅ | 10/10
+| 2026-05-09 | PLN-5 Dogfooding | planner-gradle | ✅ | 10/10
+| 2026-05-10 | PLN-6 Publication Gradle Plugin Portal | planner-gradle | ✅ | 10/10
+| 2026-05-10 | PLN-8 CI generatePlan workflow | planner-gradle | ✅ | 10/10
+| 2026-05-12 | Code Review Globale — Audit passif, MAJ portefeuille | planner-gradle | ✅ | 10/10
+| 2026-05-14 | CI Template .github/workflows/test.yml | planner-gradle | ✅ | 10/10
+| 2026-05-14 | Fix compilation langchain4j ChatLanguageModel→ChatModel | planner-gradle | ✅ | 10/10
+| 2026-05-18 | EPIC K-03 PlannerExtension + rewiring + OllamaBridge unifié | planner-gradle | ✅ | N/A
+| 2026-05-19 | EPIC K-01 Renommage decomposeIntention→generatePlan | planner-gradle | ✅ | 10/10
+| 2026-05-19 | GenerateSPGTask LLM augmenté — Option B Pipeline ABC | planner-gradle | ✅ | 10/10
+|===

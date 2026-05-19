@@ -213,4 +213,6 @@ _Session 007_ (2026-05-14) : CI Template .github/workflows/test.yml (+:planner-p
 *Compilation* : OK
 
 --
++
+_Session 011_ (2026-05-19) : Pipeline N0→N3 ABC — GenerateSPGTask LLM augmenté + Contexte Composite. Stub → LLM-powered. buildSPGPrompt (6000 chars budget). composite-context.json auto-détection. Fallback template. PlanningPlugin étendu (workspaceContextFile, ollamaBaseUrl). 7/7 tests PASS (3 prompt + 2 fallback + 1 context + 1 existant). ✅
 

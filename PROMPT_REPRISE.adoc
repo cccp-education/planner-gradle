@@ -1,19 +1,20 @@
-= PROMPT_REPRISE — planner-gradle (Session 011)
+= PROMPT_REPRISE — planner-gradle (Session 012)
 
-*Derniere session* : 010 — EPIC K-01 Renommage taxonomie : decomposeIntention → generatePlan (2026-05-19)
+*Derniere session* : 011 — Pipeline N0→N3 ABC: GenerateSPGTask LLM Augmenté + Contexte Composite (2026-05-19)
 
 *Mission session suivante* :
-- Poursuivre EPIC K (Ontologie Workspace) — K-04 ou migration GenerateSPGTask sous le nouveau pattern extension
-- Vérifier que `generateSPG` utilise `ollamaModel`/`ollamaBaseUrl` depuis l'extension
-- publishToMavenLocal pour synchroniser le plugin local
-- Examiner les 4 tests TestKit qui timeoutent (dépendance LLM)
+- Tester generateSPG avec Ollama réel (deepseek-v4-pro) + composite context engine
+- Si LLM OK : pipeline SPG→SPD complet (GenerateSPDTask)
+- Si LLM KO : corriger bridge Ollama / timeout
+- publishToMavenLocal obligatoire après toute modif
 
-*Etat du build* : compilation OK. 22/26 tests PASS (4 TestKit timeout LLM).
+*Etat du build* : compilation OK. 7/7 tests PASS (GenerateSPGTaskTest). 22/26 tests globaux (4 TestKit timeout LLM préexistants).
 
-*Fichiers modifies session 010* :
-- `GeneratePlanTask.kt` — renommé depuis DecomposeIntentionTask.kt
-- `GeneratePlanPluginTest.kt` — renommé depuis DecomposeIntentionPluginTest.kt
-- `PlanningPlugin.kt` — decomposeIntention → generatePlan
-- `IntentionPlanner.kt` — commentaire mis à jour
+*Fichiers modifies session 011* :
+- GenerateSPGTask.kt — stub → LLM augmenté + composite context + fallback
+- PlanningPlugin.kt — workspaceContextFile + ollamaBaseUrl
+- GenerateSPGTaskTest.kt — 6 nouveaux tests
 
-*Prochaine tâche* : aligner generateSPG sur le pattern extension (utiliser ollamaModel/ollamaBaseUrl de l'extension).
+*Pipeline N0→N3* :
+- Engine (N3) → collectCompositeContext → graphify (N0) + codebase (N1) + codex/training/capsule (N2)
+- Planner (N2) → generateSPG consomme composite-context.json → LLM → spg.adoc + metadata.json

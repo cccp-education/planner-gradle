@@ -1,0 +1,36 @@
+= Session 011 — Pipeline N0→N3 Option B: GenerateSPGTask LLM Augmenté + Contexte Composite
+
+*Date*: 2026-05-19
+*Type*: feat + test
+*Score*: 10/10
+*Durée*: ~2h
+
+== Résumé
+
+Transformation du stub GenerateSPGTask en générateur LLM-powered consommant le contexte augmenté.
+
+== Modifications
+
+1. *GenerateSPGTask.kt* — Refonte complète :
+   - Remplace le template hardcodé par un vrai appel LLM via OllamaBridge
+   - Ajout loadWorkspaceContext() : auto-détection composite-context.json / workspace-context.txt
+   - Ajout generateSPGViaLLM() : prompt SPG AFNOR/REAC → Ollama → AsciiDoc
+   - Ajout buildSPGPrompt() : 6000 chars budget contexte, structure SPG normée
+   - Fallback generateSPGTemplate() si LLM indisponible
+   - Option workspaceContextFile pour contexte explicite
+
+2. *PlanningPlugin.kt* — Enregistrement étendu :
+   - generateSPG accepte workspaceContextFile et ollamaBaseUrl
+   - Description mise à jour
+
+3. *GenerateSPGTaskTest.kt* — 6 nouveaux tests :
+   - BuildSPGPrompt : structure AsciiDoc (3 tests)
+   - FallbackTemplate : template valide + model name (2 tests)
+   - WorkspaceContext : chargement depuis fichier (1 test)
+
+4. *buildSPGPrompt* — Fix .trimIndent() → .trimMargin()
+
+== Résultat
+- Compilation OK
+- 7/7 tests PASS (GenerateSPGTaskTest)
+- Pipeline Option B: planner LLM augmenté consomme le contexte composite (N1→N2 câblé)

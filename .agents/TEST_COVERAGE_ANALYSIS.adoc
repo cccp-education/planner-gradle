@@ -1,0 +1,17 @@
+= TEST_COVERAGE_ANALYSIS — planner-gradle
+
+== Session 011 — GenerateSPGTask Augmenté (2026-05-19)
+
+[cols="2,3,2", options="header"]
+|===
+| Test | Type | Statut
+| BuildSPGPrompt structure AsciiDoc | Unitaire | ✅ PASS
+| BuildSPGPrompt composite context | Unitaire | ✅ PASS
+| BuildSPGPrompt truncation large | Unitaire | ✅ PASS
+| FallbackTemplate AsciiDoc valide | Unitaire | ✅ PASS
+| FallbackTemplate model name | Unitaire | ✅ PASS
+| WorkspaceContext chargement | Unitaire | ✅ PASS
+| generateSPG metadata.json + spg.adoc | Unitaire | ✅ PASS (existant)
+|===
+
+*Total* : 7/7 tests PASS. 26/26 tests globaux (22 unitaires OK, 4 TestKit timeout LLM préexistants).

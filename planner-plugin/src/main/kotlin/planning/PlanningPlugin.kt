@@ -30,9 +30,15 @@ class PlanningPlugin : Plugin<Project> {
 
         project.tasks.register("generateSPG", GenerateSPGTask::class.java) { task ->
             task.group = "generate"
-            task.description = "Génère le Scénario Pédagogique Global (SPG) + metadata.json"
+            task.description = "Génère le Scénario Pédagogique Global (SPG) via LLM + contexte composite + metadata.json"
             task.outputDir.set(project.layout.buildDirectory.dir("spg"))
             task.ollamaModel.set(project.providers.gradleProperty("ollamaModel").orElse(ext.ollamaModel))
+            task.ollamaBaseUrl.set(project.providers.gradleProperty("ollamaBaseUrl").orElse(ext.ollamaBaseUrl))
+            // Optionnel : chemin vers le composite context produit par engine/codebase-gradle
+            val contextFileProp = project.providers.gradleProperty("workspaceContextFile")
+            if (contextFileProp.isPresent) {
+                task.workspaceContextFile.set(project.layout.projectDirectory.file(contextFileProp.get()))
+            }
         }
     }
 }

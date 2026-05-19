@@ -5,9 +5,9 @@ _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
 _Derniere mise a jour_ : 2026-05-19
-_Session terminee_ : 010 — EPIC K-01 Renommage taxonomie (decomposeIntention→generatePlan) ✅
-_Sessions precedent_ : 009/008/007/006/005 ✅ — Tous les EPICs PLN terminés
-_Prochaine session_ : 011
+_Session terminee_ : 011 — Pipeline N0→N3 ABC: GenerateSPGTask LLM Augmenté + Contexte Composite ✅
+_Sessions precedent_ : 010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K terminés
+_Prochaine session_ : 012 — Test LLM réel generateSPG + pipeline SPG→SPD
 
 '''
 == REGLES ABSOLUES
@@ -19,10 +19,25 @@ _Prochaine session_ : 011
 === 5. HOOK OUVERTURE — Checklist SESSION_CHECKLIST.adoc obligatoire
 
 '''
+== EPIC K — Taxonomie Workspace
+
+[cols="1,3,2,3", options="header"]
+|===
+| Phase | Livrable | Statut | Boroughs
+| K-0 | Document Jardin Secret — TAXONOMIE_WORKSPACE.adoc | ✅ 2026-05-18 | Workspace root
+| K-1 | Renommage 4 verbes (GENERER/COLLECTER/TRANSFORMER/DÉPLOYER) | ✅ 2026-05-19 | Tous N2
+| K-2 | Format pivot — Metadata.kt + metadataExpectedPath engine | ✅ 2026-05-19 | Planner, Training, Codex, Bronx
+| K-3 | Configuration par domaine — PlannerExtension | ✅ 2026-05-18 | Planner
+| K-4 | Convention over configuration SPG→SPD | ✅ 2026-05-19 | Newark (training)
+| K-5 | Documentation — MàJ INDEX.adoc boroughs | ✅ TERMINE (2026-05-19) | Gouvernance
+|===
+
+'''
 == Sessions
 
 |===
 | # | Date | Type | Sujet | Score
+| 011 | 2026-05-19 | feat+test | Pipeline N0→N3 ABC — GenerateSPGTask LLM augmenté (buildSPGPrompt + composite context + fallback). 7/7 tests PASS. | 10/10
 | 010 | 2026-05-19 | feat | EPIC K-01 — Renommage taxonomie (decomposeIntention→generatePlan) | 10/10
 | 009 | 2026-05-18 | feat | EPIC K-03 — PlannerExtension + rewiring plugin + OllamaBridge unifié | N/A
 | 008 | 2026-05-14 | fix | Compilation langchain4j — ChatLanguageModel → ChatModel (2 lignes) | 10/10
@@ -41,8 +56,12 @@ _Prochaine session_ : 011
 
 |===
 | EPIC | Description | Statut | Priorite
-| EPIC K-01 | Renommage taxonomie — decomposeIntention→generatePlan | ✅ TERMINE | P1
-| EPIC K-03 | Configuration par domaine : PlannerExtension + rewiring | ✅ TERMINE | P1
+| EPIC K-1 | Renommage 4 verbes (GENERER/COLLECTER/TRANSFORMER/DÉPLOYER) | ✅ 2026-05-19 | P1
+| EPIC K-2 | Format pivot — Metadata.kt + metadataExpectedPath engine | ✅ 2026-05-19 | P1
+| EPIC K-3 | Configuration par domaine — PlannerExtension + rewiring | ✅ 2026-05-18 | P1
+| EPIC K-4 | Convention over configuration SPG→SPD | ✅ 2026-05-19 | P1
+| EPIC ABC-B | GenerateSPGTask LLM augmenté — composite context → prompt SPG → Ollama → AsciiDoc + metadata.json | ✅ TERMINE | P0
+| EPIC K-5 | Documentation — MàJ INDEX.adoc boroughs | ✅ TERMINE (2026-05-19) | P1
 | PLN-8 | CI generatePlan — workflow_dispatch + OLLAMA_DEVICE_KEY_A | ✅ TERMINE | P0
 | PLN-0 | Bootstrap skeleton Gradle (build, settings, .agents/) | ✅ TERMINE | P0
 | PLN-1 | data classes Plan + PlanningContext | ✅ TERMINE | P0
@@ -52,6 +71,7 @@ _Prochaine session_ : 011
 | PLN-5 | Dogfooding — planifier son propre backlog | ✅ TERMINE | P1
 | PLN-6 | Publication Gradle Plugin Portal | ✅ TERMINE | P2
 | PLN-7 | Tests : IntentionPlanner, OllamaBridge, LLMResponse.toPlan(), TestKit | ✅ TERMINE | P1
+| EPIC ABC-B | GenerateSPGTask LLM augmenté — composite context → prompt SPG → Ollama → AsciiDoc + metadata.json | ✅ TERMINE | P0
 |===
 
 '''
@@ -86,3 +106,5 @@ _Prochaine session_ : 011
 | magic-stick | `foundry/OSS/magic-stick/` | 69 | 2026-05-07
 | magic-stick (doc site) | `office/sites/magic-stick/` | 4 | 2026-05-11
 |===
+
+Voir aussi : `TAXONOMIE_WORKSPACE.adoc` (racine workspace) pour l'ontologie complete.
