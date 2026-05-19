@@ -5,9 +5,9 @@ _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
 _Derniere mise a jour_ : 2026-05-19
-_Session terminee_ : 011 — Pipeline N0→N3 ABC: GenerateSPGTask LLM Augmenté + Contexte Composite ✅
-_Sessions precedent_ : 010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K terminés
-_Prochaine session_ : 012 — Test LLM réel generateSPG + pipeline SPG→SPD
+_Session terminee_ : 019 — EPIC K K-4 Convention over Configuration Manhattan ✅
+_Sessions precedent_ : 011/010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K terminés
+_Prochaine session_ : K-5 Documentation (gouvernance workspace)
 
 '''
 == REGLES ABSOLUES
@@ -28,7 +28,7 @@ _Prochaine session_ : 012 — Test LLM réel generateSPG + pipeline SPG→SPD
 | K-1 | Renommage 4 verbes (GENERER/COLLECTER/TRANSFORMER/DÉPLOYER) | ✅ 2026-05-19 | Tous N2
 | K-2 | Format pivot — Metadata.kt + metadataExpectedPath engine | ✅ 2026-05-19 | Planner, Training, Codex, Bronx
 | K-3 | Configuration par domaine — PlannerExtension | ✅ 2026-05-18 | Planner
-| K-4 | Convention over configuration SPG→SPD | ✅ 2026-05-19 | Newark (training)
+| K-4 | Convention over configuration SPG→SPD | ✅ 2026-05-19 | Newark (018) + Manhattan (019)
 | K-5 | Documentation — MàJ INDEX.adoc boroughs | ✅ TERMINE (2026-05-19) | Gouvernance
 |===
 
@@ -37,6 +37,7 @@ _Prochaine session_ : 012 — Test LLM réel generateSPG + pipeline SPG→SPD
 
 |===
 | # | Date | Type | Sujet | Score
+| 019 | 2026-05-19 | feat+doc | EPIC K-04 Manhattan — Convention over Configuration : scanFormationDir inline, PlannerExtension.formationsDir, enrichissement prompt LLM, FormationModule/FormationSession data classes. 10/10 tests GenerateSPGTaskTest PASS. K-4 termine. | 10/10
 | 011 | 2026-05-19 | feat+test | Pipeline N0→N3 ABC — GenerateSPGTask LLM augmenté (buildSPGPrompt + composite context + fallback). 7/7 tests PASS. | 10/10
 | 010 | 2026-05-19 | feat | EPIC K-01 — Renommage taxonomie (decomposeIntention→generatePlan) | 10/10
 | 009 | 2026-05-18 | feat | EPIC K-03 — PlannerExtension + rewiring plugin + OllamaBridge unifié | N/A

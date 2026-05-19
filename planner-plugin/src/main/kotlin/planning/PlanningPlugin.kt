@@ -10,6 +10,7 @@ class PlanningPlugin : Plugin<Project> {
         val ext = project.extensions.create("planner", PlannerExtension::class.java)
         ext.ollamaModel.convention("deepseek-v4-pro:cloud")
         ext.ollamaBaseUrl.convention("http://localhost:11434")
+        ext.formationsDir.convention(project.layout.projectDirectory.dir("data/formations"))
 
         project.tasks.register(
             "generatePlan",
@@ -30,10 +31,11 @@ class PlanningPlugin : Plugin<Project> {
 
         project.tasks.register("generateSPG", GenerateSPGTask::class.java) { task ->
             task.group = "generate"
-            task.description = "Génère le Scénario Pédagogique Global (SPG) via LLM + contexte composite + metadata.json"
+            task.description = "Génère le Scénario Pédagogique Global (SPG) via LLM + contexte composite + convention over configuration formationsDir + metadata.json"
             task.outputDir.set(project.layout.buildDirectory.dir("spg"))
             task.ollamaModel.set(project.providers.gradleProperty("ollamaModel").orElse(ext.ollamaModel))
             task.ollamaBaseUrl.set(project.providers.gradleProperty("ollamaBaseUrl").orElse(ext.ollamaBaseUrl))
+            task.formationsDir.set(ext.formationsDir)
             // Optionnel : chemin vers le composite context produit par engine/codebase-gradle
             val contextFileProp = project.providers.gradleProperty("workspaceContextFile")
             if (contextFileProp.isPresent) {
