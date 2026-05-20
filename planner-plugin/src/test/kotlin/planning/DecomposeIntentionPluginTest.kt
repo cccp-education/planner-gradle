@@ -84,7 +84,7 @@ class DecomposeIntentionPluginTest {
 
         projectDir.resolve("build.gradle.kts").writeText("""
             plugins {
-                id("cccp.education.planner")
+                id("education.cccp.planner")
             }
         """.trimIndent())
 

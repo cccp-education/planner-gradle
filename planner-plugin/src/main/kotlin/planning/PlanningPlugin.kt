@@ -2,7 +2,7 @@ package planning
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import planning.GenerateSPGTask
+import planning.vibecoding.VibecodingTask
 
 class PlanningPlugin : Plugin<Project> {
 
@@ -36,11 +36,22 @@ class PlanningPlugin : Plugin<Project> {
             task.ollamaModel.set(project.providers.gradleProperty("ollamaModel").orElse(ext.ollamaModel))
             task.ollamaBaseUrl.set(project.providers.gradleProperty("ollamaBaseUrl").orElse(ext.ollamaBaseUrl))
             task.formationsDir.set(ext.formationsDir)
-            // Optionnel : chemin vers le composite context produit par engine/codebase-gradle
             val contextFileProp = project.providers.gradleProperty("workspaceContextFile")
             if (contextFileProp.isPresent) {
                 task.workspaceContextFile.set(project.layout.projectDirectory.file(contextFileProp.get()))
             }
+        }
+
+        project.tasks.register(
+            "vibecode",
+            VibecodingTask::class.java
+        ) { task ->
+            task.group = "generate"
+            task.description = "Vibecoding agent — koog autonomous loop (context → plan → execute). Dry-run, maxActions 10. Audit trail JSONL."
+            task.workspaceRoot.set(project.rootDir)
+            task.intention.set(project.providers.gradleProperty("intention").orElse(""))
+            task.dryRun.set(project.providers.gradleProperty("dryRun").map { it.toBoolean() }.orElse(false))
+            task.maxActions.set(project.providers.gradleProperty("maxActions").map { it.toInt() }.orElse(10))
         }
     }
 }

@@ -8,17 +8,16 @@ plugins {
     `java-gradle-plugin`
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.publish)
-    alias(libs.plugins.codebase)
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
 }
 
 group = "education.cccp"
 version = libs.plugins.planner.get().version
-kotlin.jvmToolchain(VERSION_24.ordinal)
+kotlin.jvmToolchain(24)
 
 repositories {
+    mavenLocal()
     mavenCentral()
-    gradlePluginPortal()
 }
 
 dependencies {
@@ -30,6 +29,8 @@ dependencies {
     implementation(libs.langchain4j.ollama)
     implementation(libs.jackson.databind)
     implementation(libs.jackson.kotlin)
+    implementation(libs.koog.agents)
+    implementation(libs.codebase.plugin)
 
     testImplementation(kotlin("test-junit5"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
