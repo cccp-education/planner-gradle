@@ -1,33 +1,30 @@
-= PROMPT_REPRISE — planner-gradle (Session 049)
-:date: 2026-05-21
+= PROMPT_REPRISE — planner-gradle (Session 050 terminée)
+:date: 2026-05-22
 
-*Decision architecturale EPIC V* :
-Option A retenue — extraction des contrats partages dans workspace-bom/vibecoding-contracts (N0 partage).
-- ToolRegistry, VibecodingState, AugmentedState, Plan, CompositeContext, ContextChannel, tools
-  migres dans `education.cccp:vibecoding-contracts:0.1.0`
-- codebase (N1) conserve : VibecodingGraph, VibecodingTask, KoogAugmentedContextGraph,
-  CompositeContextBuilder (l'infra lourde Gradle/langchain4j/pgvector)
-- planner (N2) supprime ses copies locales de VibecodingTask + VibecodingGraph
-  (remplace par dependance sur vibecoding-contracts N0 + appel Gradle cross-project)
+== Session 050 terminée — Migration SPG vers training (Newark)
 
-*Etat du build* :
-- Compilation OK (a verifier apres refacto)
-- cible : 41/44 tests PASS (3 pre-existants Ollama limit)
+Le `GenerateSPGTask` + `FormationModule` + `FormationSession` + `GenerateSPGTaskTest` ont été déplacés
+de planner (Manhattan) vers training (Newark). La responsabilité métier formation
+ne vit plus dans le plugin d'ordonnancement.
 
-*Architecture N1→N2 (resolvee)* :
-- planner (N2) depend de workspace-bom/vibecoding-contracts (N0) — plus de codebase-plugin
-- codebase (N1) depend de workspace-bom/vibecoding-contracts (N0) — partage des types communs
-- Flux : generatePlan → ./gradlew :codebase-plugin:vibecode (cross-project) → outils via ToolRegistry
-- Contrats : Plan, Epic, UserStory, Task, VibecodingState, CompositeContext sont N0
+== Ce qui reste dans planner
 
-*Fichiers supprimes dans planner* :
-- planner-plugin/src/main/kotlin/planning/vibecoding/VibecodingGraph.kt (split-brain)
-- planner-plugin/src/main/kotlin/planning/vibecoding/VibecodingTask.kt (split-brain)
+- `DecomposeIntentionTask` / `generatePlan` — coeur métier planner (ordonnancement)
+- `IntentionPlanner` / `SpecReader` / `PlanningContext` / `LLMResponse` / `Plan/Epic/UserStory/Task`
+- `OllamaBridge` — conservé pour generatePlan
+- `StdoutFormatter`
+- `PlannerExtension` — simplifié (retrait de formationsDir)
 
-*Fichiers modifies* :
-- planner-plugin/build.gradle.kts — remplacer implementation(libs.codebase.plugin) par implementation(libs.vibecoding.contracts)
-- gradle/libs.versions.toml — version vibecoding-contracts
+== Ce qui a quitté planner
 
-*Prochaine etape* :
-- Session 050 planner : cabler GenerateSPGTask → CompositeContextBuilder (RAG pgvector dans le SPG)
-- Session 055 codebase : V-4 final (scenarios erreur recuperable + timeout cross-borough)
+- `GenerateSPGTask.kt` → training-plugin (Newark)
+- `FormationModule` + `FormationSession` data classes → training-plugin (FormationModels.kt)
+- `GenerateSPGTaskTest.kt` → training-plugin
+- `formationsDir` dans PlannerExtension → supprimé
+- Tâche `generateSPG` dans PlanningPlugin → supprimée
+
+== Appel SPG désormais
+
+```
+./gradlew :training-plugin:generateSPG
+```

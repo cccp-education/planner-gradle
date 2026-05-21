@@ -4,10 +4,10 @@
 _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
-_Derniere mise a jour_ : 2026-05-21
-_Session terminee_ : 049 — Resolution split-brain vibecoding (Option A: extraction N0) ✅
+_Derniere mise a jour_ : 2026-05-22
+_Session terminee_ : 050 — Migration SPG vers training (Newark) ✅
 _Sessions precedent_ : 019/011/010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K terminés
-_Prochaine session_ : 050 — Cabler GenerateSPGTask → CompositeContextBuilder (RAG pgvector dans le SPG)
+_Prochaine session_ : maintenance — generatePlan seul coeur restant
 
 '''
 == REGLES ABSOLUES
@@ -37,6 +37,7 @@ _Prochaine session_ : 050 — Cabler GenerateSPGTask → CompositeContextBuilder
 
 |===
 | # | Date | Type | Sujet | Score
+| 050 | 2026-05-22 | migration | SPG migre vers training (Newark) — GenerateSPGTask, FormationModule/FormationSession, GenerateSPGTaskTest supprimes de planner. PlannerExtension simplifie (formationsDir retire). | 10/10
 | 019 | 2026-05-19 | feat+doc | EPIC K-04 Manhattan — Convention over Configuration : scanFormationDir inline, PlannerExtension.formationsDir, enrichissement prompt LLM, FormationModule/FormationSession data classes. 10/10 tests GenerateSPGTaskTest PASS. K-4 termine. | 10/10
 | 011 | 2026-05-19 | feat+test | Pipeline N0→N3 ABC — GenerateSPGTask LLM augmenté (buildSPGPrompt + composite context + fallback). 7/7 tests PASS. | 10/10
 | 010 | 2026-05-19 | feat | EPIC K-01 — Renommage taxonomie (decomposeIntention→generatePlan) | 10/10

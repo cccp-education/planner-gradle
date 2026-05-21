@@ -12,7 +12,7 @@ import java.time.Instant
  */
 data class Metadata(
     val source: String,           // Borough producteur
-    val type: String,             // Type de contenu (SPG, SPD, corpus, pipeline, quiz, etc.)
+    val type: String,             // Type de contenu (Plan, corpus, pipeline, quiz, etc.)
     val sessions: Int,            // Métriques de production
     val generatedAt: String,      // Horodatage ISO 8601
     val model: String,            // Modèle LLM utilisé
@@ -31,21 +31,5 @@ data class Metadata(
             file.writeText(mapper.writeValueAsString(metadata))
             return file
         }
-
-        /** Construit les métadonnées standard pour Manhattan. */
-        fun forManhattan(
-            type: String = "SPG",
-            model: String,
-            sessions: Int = 24,
-            dependencies: List<String> = listOf("queens", "graphify")
-        ): Metadata = Metadata(
-            source = "manhattan",
-            type = type,
-            sessions = sessions,
-            generatedAt = Instant.now().toString(),
-            model = model,
-            version = "1.0",
-            dependencies = dependencies
-        )
     }
 }

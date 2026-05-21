@@ -8,5 +8,4 @@ abstract class PlannerExtension {
     abstract val ollamaBaseUrl: Property<String>
     abstract val intention: Property<String>
     abstract val specsDir: DirectoryProperty
-    abstract val formationsDir: DirectoryProperty
 }
