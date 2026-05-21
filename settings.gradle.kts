@@ -7,7 +7,7 @@ pluginManagement {
         mavenCentral()
     }
     plugins {
-        id("education.cccp.codebase") version "0.0.1"
+        // Aucun plugin education.cccp requis — vibecoding contracts N0, pas codebase N1
     }
 }
 

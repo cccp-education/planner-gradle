@@ -2,7 +2,6 @@ package planning
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import planning.vibecoding.VibecodingTask
 
 class PlanningPlugin : Plugin<Project> {
 
@@ -42,16 +41,8 @@ class PlanningPlugin : Plugin<Project> {
             }
         }
 
-        project.tasks.register(
-            "vibecode",
-            VibecodingTask::class.java
-        ) { task ->
-            task.group = "generate"
-            task.description = "Vibecoding agent — koog autonomous loop (context → plan → execute). Dry-run, maxActions 10. Audit trail JSONL."
-            task.workspaceRoot.set(project.rootDir)
-            task.intention.set(project.providers.gradleProperty("intention").orElse(""))
-            task.dryRun.set(project.providers.gradleProperty("dryRun").map { it.toBoolean() }.orElse(false))
-            task.maxActions.set(project.providers.gradleProperty("maxActions").map { it.toInt() }.orElse(10))
-        }
+        // NOTE: vibecode task supprimee de planner (split-brain resolution).
+        // La tache vibecode est dans codebase-gradle (N1) uniquement.
+        // Appel cross-projet: ./gradlew :codebase-plugin:vibecode --intention="..."
     }
 }

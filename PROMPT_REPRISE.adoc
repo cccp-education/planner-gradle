@@ -1,30 +1,33 @@
-= PROMPT_REPRISE — planner-gradle (Session 048)
-:date: 2026-05-20
+= PROMPT_REPRISE — planner-gradle (Session 049)
+:date: 2026-05-21
 
-*Derniere session* : 048 — Fix compilation planner + test integration vibecode.
-
-*Mission session suivante (049)* :
-- Option B (codebase) : Cleanup post-migration — supprimer physiquement
-  VibecodingGraph.kt + VibecodingTask.kt du disque codebase, nettoyer imports
-- Option C (codebase) : EPIC L finalisation — migrer tests Cucumber L-3
-  restants (pgvector down cascade), fermer EPIC L a 8/8 pts
-- Compilation + tests planner-plugin (cible 41/41 sans Ollama limit)
+*Decision architecturale EPIC V* :
+Option A retenue — extraction des contrats partages dans workspace-bom/vibecoding-contracts (N0 partage).
+- ToolRegistry, VibecodingState, AugmentedState, Plan, CompositeContext, ContextChannel, tools
+  migres dans `education.cccp:vibecoding-contracts:0.1.0`
+- codebase (N1) conserve : VibecodingGraph, VibecodingTask, KoogAugmentedContextGraph,
+  CompositeContextBuilder (l'infra lourde Gradle/langchain4j/pgvector)
+- planner (N2) supprime ses copies locales de VibecodingTask + VibecodingGraph
+  (remplace par dependance sur vibecoding-contracts N0 + appel Gradle cross-project)
 
 *Etat du build* :
-- Compilation OK. 41/44 tests PASS (3 pre-existants Ollama limit).
-- 9 tests VibecodingTaskIntegrationTest PASS (ProjectBuilder).
-- DecomposeIntentionPluginTest fixe (plugin ID education.cccp.planner).
+- Compilation OK (a verifier apres refacto)
+- cible : 41/44 tests PASS (3 pre-existants Ollama limit)
 
-*Architecture N1→N2* :
-- codebase (N1) : ToolRegistry + tools + KoogAugmentedContextGraph + VibecodingState
-- planner (N2) : VibecodingTask + VibecodingGraph (import codebase.koog.*)
-- Flux : generatePlan → vibecode → tools (codebase)
-- DryRun + audit JSONL + exec_shell + exec_gradle fonctionnels
+*Architecture N1→N2 (resolvee)* :
+- planner (N2) depend de workspace-bom/vibecoding-contracts (N0) — plus de codebase-plugin
+- codebase (N1) depend de workspace-bom/vibecoding-contracts (N0) — partage des types communs
+- Flux : generatePlan → ./gradlew :codebase-plugin:vibecode (cross-project) → outils via ToolRegistry
+- Contrats : Plan, Epic, UserStory, Task, VibecodingState, CompositeContext sont N0
 
-*Fichiers modifies session 048* :
-- planner-plugin/VibecodingTask.kt — fix smart cast line 72 (?.let)
-- planner-plugin/VibecodingGraph.kt — cree (migre depuis codebase)
-- planner-plugin/build.gradle.kts — deps koog + codebase-plugin
-- gradle/libs.versions.toml — versions koog + codebase
-- settings.gradle.kts — mavenLocal + dependencyResolutionManagement
-- DecomposeIntentionPluginTest.kt — fix plugin ID
+*Fichiers supprimes dans planner* :
+- planner-plugin/src/main/kotlin/planning/vibecoding/VibecodingGraph.kt (split-brain)
+- planner-plugin/src/main/kotlin/planning/vibecoding/VibecodingTask.kt (split-brain)
+
+*Fichiers modifies* :
+- planner-plugin/build.gradle.kts — remplacer implementation(libs.codebase.plugin) par implementation(libs.vibecoding.contracts)
+- gradle/libs.versions.toml — version vibecoding-contracts
+
+*Prochaine etape* :
+- Session 050 planner : cabler GenerateSPGTask → CompositeContextBuilder (RAG pgvector dans le SPG)
+- Session 055 codebase : V-4 final (scenarios erreur recuperable + timeout cross-borough)

@@ -4,10 +4,10 @@
 _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
-_Derniere mise a jour_ : 2026-05-19
-_Session terminee_ : 019 — EPIC K K-4 Convention over Configuration Manhattan ✅
-_Sessions precedent_ : 011/010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K terminés
-_Prochaine session_ : K-5 Documentation (gouvernance workspace)
+_Derniere mise a jour_ : 2026-05-21
+_Session terminee_ : 049 — Resolution split-brain vibecoding (Option A: extraction N0) ✅
+_Sessions precedent_ : 019/011/010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K terminés
+_Prochaine session_ : 050 — Cabler GenerateSPGTask → CompositeContextBuilder (RAG pgvector dans le SPG)
 
 '''
 == REGLES ABSOLUES

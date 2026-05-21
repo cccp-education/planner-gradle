@@ -30,7 +30,7 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.jackson.kotlin)
     implementation(libs.koog.agents)
-    implementation(libs.codebase.plugin)
+    implementation("education.cccp:vibecoding-contracts:0.1.0")
 
     testImplementation(kotlin("test-junit5"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

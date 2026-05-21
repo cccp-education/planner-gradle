@@ -1,0 +1,44 @@
+= Session 049 — Résolution split-brain vibecoding (Option A + N0 extraction)
+:date: 2026-05-21
+:session: 049
+:borough: planner-gradle (Manhattan, N2)
+
+== Résumé
+
+Décision EPIC V : Option A retenue — extraction des contrats partagés vibecoding dans `workspace-bom/vibecoding-contracts` (N0 partagé). Nettoyage du split-brain (codebase + planner avaient leurs propres VibecodingTask/VibecodingGraph).
+
+== Changements
+
+=== Module créé : workspace-bom/vibecoding-contracts (N0)
+- `cccp.vibecoding.contracts.state` : VibecodingState, AugmentedState
+- `cccp.vibecoding.contracts.plan` : Plan, Epic, UserStory, Task, PlanState
+- `cccp.vibecoding.contracts.context` : CompositeContext, CompositeContextConfig, ContextChannel, ChannelBudget
+- `cccp.vibecoding.contracts.registry` : ToolRegistry, ToolInfo, AuditEntry
+- `cccp.vibecoding.contracts.tools` : ToolkitIsMissingException, ExecShellTool, ExecGradleTool
+- 18 tests unitaires
+- Publié en mavenLocal (`education.cccp:vibecoding-contracts:0.1.0`)
+
+=== Planner-gradle (Manhattan, N2)
+- **Supprimé** : `VibecodingTask.kt`, `VibecodingGraph.kt` (split-brain)
+- **Supprimé** : `VibecodingTaskIntegrationTest.kt` (obsolète)
+- **Retiré** : `implementation(libs.codebase.plugin)` (violation DAG)
+- **Ajouté** : `implementation("education.cccp:vibecoding-contracts:0.1.0")` (N0, pas N1)
+- PlanningPlugin nettoyé (tâche `vibecode` retirée — réside dans codebase uniquement)
+- `settings.gradle.kts` nettoyé (plus de plugin education.cccp.codebase)
+- PROMPT_REPRISE mis à jour
+
+=== Codebase-gradle (Queens, N1)
+- 9 fichiers supprimés (VibecodingState, AugmentedState, ToolRegistry, ExecShellTool, ExecGradleTool, ToolkitIsMissingException, CompositeContextConfig, ContextChannel, ChannelBudget)
+- Imports mis à jour dans ~10 fichiers restants
+- Smart cast fixes cross-module
+- CompositeContextBuilder allégé (data class déplacée dans N0)
+
+== Résultats
+- planner-plugin compile ✅ (sources + tests)
+- codebase-plugin compile ✅ (sources)
+- workspace-bom/vibecoding-contracts compile + tests ✅
+- Plus de violation DAG (N2 → N0, plus N2 → N1)
+- Split-brain résolu
+
+== Prochaine session (050)
+- Câbler GenerateSPGTask → CompositeContextBuilder (RAG pgvector dans le SPG)
