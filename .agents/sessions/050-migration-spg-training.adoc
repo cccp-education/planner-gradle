@@ -1,0 +1,23 @@
+= Session 050 — Migration SPG vers training (Newark)
+:session: 050
+:date: 2026-05-22
+:type: migration
+:status: TERMINEE
+
+== Objectif
+
+- Migrer le pipeline SPG (Scenario Pedagogique Global) de planner (Manhattan) vers training (Newark)
+- Simplifier planner apres extraction du domaine formation
+
+== Changements
+
+- GenerateSPGTask supprime de planner
+- FormationModule/FormationSession supprime de planner
+- GenerateSPGTaskTest supprime
+- PlannerExtension simplifie (formationsDir retire)
+
+== Etat
+
+- generatePlan reste le seul coeur metier de planner
+- SPG desormais gere par training-plugin (Newark)
+- 0 regression compile

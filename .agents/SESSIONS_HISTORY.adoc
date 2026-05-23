@@ -19,4 +19,5 @@
 | 019 | 2026-05-19 | feat+doc | EPIC K-04 Convention over Configuration Manhattan
 | 048 | 2026-05-20 | fix | Fix compilation planner + test integration vibecode
 | 049 | 2026-05-21 | refactor | Résolution split-brain vibecoding (Option A: extraction N0, suppression split-brain)
+| 050 | 2026-05-22 | migration | SPG migre vers training (Newark) — GenerateSPGTask, FormationModule/FormationSession supprimes de planner, PlannerExtension simplifie (formationsDir retire)
 |===

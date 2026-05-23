@@ -14,7 +14,7 @@ The `planner-plugin/build.gradle.kts` already has:
 - Verify publication credentials are valid (sonatype API key, GPG key registered)
 - Publish to Gradle Plugin Portal via `./gradlew :planner-plugin:publishPlugins`
 - Publish to Maven Central via `./gradlew :planner-plugin:publishAllPublicationsToSonatypeRepository`
-- Verify the plugin is discoverable at https://plugins.gradle.org/plugin/cccp.education.planner
+- Verify the plugin is discoverable at https://plugins.gradle.org/plugin/education.cccp.planner
 - Create a release tag and GitHub release with changelog
 
 == Dependencies
@@ -22,4 +22,4 @@ The `planner-plugin/build.gradle.kts` already has:
 - All code EPICs (PLN-0→PLN-5, PLN-7) must be completed and stable
 - Plugin must have been dogfooded (PLN-5) and validated
 - GPG key must be registered on keyservers
-- Sonatype JIRA ticket must be approved (groupId cccp.education already claimed)
+- Sonatype JIRA ticket must be approved (groupId education.cccp already claimed)

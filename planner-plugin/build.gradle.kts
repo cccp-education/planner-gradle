@@ -30,7 +30,6 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.jackson.kotlin)
     implementation(libs.koog.agents)
-    implementation("education.cccp:vibecoding-contracts:0.1.0")
 
     testImplementation(kotlin("test-junit5"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -95,6 +94,23 @@ publishing {
                         connection.set(gradlePlugin.vcsUrl.get())
                         developerConnection.set(gradlePlugin.vcsUrl.get())
                         url.set(gradlePlugin.vcsUrl.get())
+                    }
+                    // RELOCATION : prépare la migration du groupId éducation.cccp →
+                    // <futur-domaine>. Activer avec -Prem relocationGroup="io.github.cccp-education"
+                    // Effet : injecte <distributionManagement><relocation><groupId>...</groupId></relocation>
+                    // dans le POM publié. Les consommateurs existants seront redirigés automatiquement
+                    // vers le nouveau groupId lors de la prochaine màj de dépendance.
+                    project.findProperty("relocationGroup")?.let { targetGroup ->
+                        withXml {
+                            val pom = asElement()
+                            val doc = pom.ownerDocument
+                            val distMgmt = doc.createElement("distributionManagement")
+                            val relocation = doc.createElement("relocation")
+                            relocation.appendChild(doc.createElement("groupId")).also { it.textContent = targetGroup.toString() }
+                            relocation.appendChild(doc.createElement("artifactId")).also { it.textContent = project.name }
+                            distMgmt.appendChild(relocation)
+                            pom.appendChild(distMgmt)
+                        }
                     }
                 }
             }

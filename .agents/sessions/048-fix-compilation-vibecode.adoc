@@ -1,0 +1,20 @@
+= Session 048 — Fix compilation planner + test integration vibecode
+:session: 048
+:date: 2026-05-20
+:type: bugfix+test
+:status: TERMINEE
+
+== Objectif
+
+- Fixer la compilation planner après migration codebase→planner (N1→N2) :
+  Smart cast line 72 (?.let)
+- Fixer DecomposeIntentionPluginTest (plugin ID mismatch)
+- Valider les tests vibecode ProjectBuilder
+
+== Livrables
+
+- Fix smart cast dans le code planner
+- DecomposeIntentionPluginTest corrige
+- 9 tests vibecode ProjectBuilder (8/8 PASS + 1 fix)
+- planner publie en mavenLocal
+- 41/44 tests planner PASS
