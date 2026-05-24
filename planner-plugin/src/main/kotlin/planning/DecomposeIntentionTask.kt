@@ -1,9 +1,9 @@
 package planning
 
-import cccp.vibecoding.contracts.context.ChannelBudget
-import cccp.vibecoding.contracts.context.CompositeContext
-import cccp.vibecoding.contracts.context.CompositeContextConfig
-import cccp.vibecoding.contracts.context.ContextChannel
+import education.cccp.contracts.context.ChannelBudget
+import education.cccp.contracts.context.CompositeContext
+import education.cccp.contracts.context.CompositeContextConfig
+import education.cccp.contracts.context.ContextChannel
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property

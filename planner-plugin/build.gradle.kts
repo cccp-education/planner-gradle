@@ -31,6 +31,9 @@ dependencies {
     implementation(libs.jackson.kotlin)
     implementation(libs.koog.agents)
 
+    // N0 codebase contracts — source unique de vérité (ContextChannel, ChannelBudget, CompositeContext, CompositeContextConfig)
+    implementation("education.cccp:codebase-contracts:0.1.0")
+
     testImplementation(kotlin("test-junit5"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

@@ -1,8 +1,8 @@
 package planning
 
-import cccp.vibecoding.contracts.context.ChannelBudget
-import cccp.vibecoding.contracts.context.CompositeContextConfig
-import cccp.vibecoding.contracts.context.ContextChannel
+import education.cccp.contracts.context.ChannelBudget
+import education.cccp.contracts.context.CompositeContextConfig
+import education.cccp.contracts.context.ContextChannel
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import java.io.File
