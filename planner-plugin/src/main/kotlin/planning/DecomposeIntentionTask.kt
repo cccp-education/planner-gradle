@@ -1,9 +1,9 @@
 package planning
 
-import education.cccp.contracts.context.ChannelBudget
-import education.cccp.contracts.context.CompositeContext
-import education.cccp.contracts.context.CompositeContextConfig
-import education.cccp.contracts.context.ContextChannel
+import contracts.context.ChannelBudget
+import contracts.context.CompositeContext
+import contracts.context.CompositeContextConfig
+import contracts.context.ContextChannel
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
