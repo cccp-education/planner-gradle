@@ -1,30 +1,12 @@
-= PROMPT_REPRISE — planner-gradle (Session 050 terminée)
-:date: 2026-05-22
+= PROMPT_REPRISE — planner-gradle (Session 051 terminée)
+:date: 2026-06-11
 
-== Session 050 terminée — Migration SPG vers training (Newark)
+== Session 051 terminée — Publication Maven Central 0.0.1
 
-Le `GenerateSPGTask` + `FormationModule` + `FormationSession` + `GenerateSPGTaskTest` ont été déplacés
-de planner (Manhattan) vers training (Newark). La responsabilité métier formation
-ne vit plus dans le plugin d'ordonnancement.
+planner-gradle publié sur Maven Central (education.cccp:planner-plugin:0.0.1).
+Changements : codebase-contracts:0.1.0→0.0.1, POM sans guard, Sonatype→nmcp, settings nmcp, wrapper temporaire.
 
-== Ce qui reste dans planner
+== Prochaine session — 052 : maintenance
 
-- `DecomposeIntentionTask` / `generatePlan` — coeur métier planner (ordonnancement)
-- `IntentionPlanner` / `SpecReader` / `PlanningContext` / `LLMResponse` / `Plan/Epic/UserStory/Task`
-- `OllamaBridge` — conservé pour generatePlan
-- `StdoutFormatter`
-- `PlannerExtension` — simplifié (retrait de formationsDir)
-
-== Ce qui a quitté planner
-
-- `GenerateSPGTask.kt` → training-plugin (Newark)
-- `FormationModule` + `FormationSession` data classes → training-plugin (FormationModels.kt)
-- `GenerateSPGTaskTest.kt` → training-plugin
-- `formationsDir` dans PlannerExtension → supprimé
-- Tâche `generateSPG` dans PlanningPlugin → supprimée
-
-== Appel SPG désormais
-
-```
-./gradlew :training-plugin:generateSPG
-```
+- generatePlan seul coeur restant
+- Aucun EPIC ouvert

@@ -1,0 +1,6 @@
+= COMPLETED_TASKS_ARCHIVE — planner-gradle — Juin 2026
+
+|===
+| Date | Tâche | Borough | Statut | Score
+| 2026-06-11 | Publication Maven Central 0.0.1 (nmcp, POM sans guard, codebase-contracts:0.0.1, settings nmcp) | planner-gradle | ✅ | 10/10
+|===

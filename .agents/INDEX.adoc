@@ -4,10 +4,10 @@
 _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
-_Derniere mise a jour_ : 2026-05-23
-_Session terminee_ : 050 — Migration SPG vers training (Newark) ✅
-_Sessions precedent_ : 049/048/019/011/010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K termines
-_Prochaine session_ : maintenance — generatePlan seul coeur restant
+_Derniere mise a jour_ : 2026-06-11
+_Session terminee_ : 051 — Publication Maven Central 0.0.1 ✅
+_Sessions precedent_ : 050/049/048/019/011/010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K termines
+_Prochaine session_ : 052 — maintenance
 
 '''
 == REGLES ABSOLUES
@@ -37,6 +37,7 @@ _Prochaine session_ : maintenance — generatePlan seul coeur restant
 
 |===
 | # | Date | Type | Sujet | Score
+| 051 | 2026-06-11 | publish | Publication Maven Central 0.0.1 — codebase-contracts:0.1.0→0.0.1, POM sans guard, Sonatype→nmcp, settings nmcp | 10/10
 | 050 | 2026-05-22 | migration | SPG migre vers training (Newark) — GenerateSPGTask, FormationModule/FormationSession, GenerateSPGTaskTest supprimes de planner. PlannerExtension simplifie (formationsDir retire). | 10/10
 | 049 | 2026-05-21 | refactor | Resolution split-brain vibecoding (Option A: extraction N0, suppression split-brain) | 10/10
 | 048 | 2026-05-20 | fix | Fix compilation planner + test integration vibecode | 10/10
@@ -75,7 +76,7 @@ _Prochaine session_ : maintenance — generatePlan seul coeur restant
 | PLN-5 | Dogfooding — planifier son propre backlog | ✅ TERMINE | P1
 | PLN-6 | Publication Gradle Plugin Portal | ✅ TERMINE | P2
 | PLN-7 | Tests : IntentionPlanner, OllamaBridge, LLMResponse.toPlan(), TestKit | ✅ TERMINE | P1
-| EPIC ABC-B | GenerateSPGTask LLM augmenté — composite context → prompt SPG → Ollama → AsciiDoc + metadata.json | ✅ TERMINE | P0
+| Publication Maven Central 0.0.1 | nmcp, POM sans guard, codebase-contracts:0.0.1, settings nmcp | ✅ 2026-06-11 | P2
 |===
 
 '''
@@ -100,7 +101,7 @@ _Prochaine session_ : maintenance — generatePlan seul coeur restant
 
 |===
 | Projet | Chemin | Sessions | Derniere maj
-| planner-gradle | `foundry/public/planner-gradle/` | 15 | 2026-05-22
+| planner-gradle | `foundry/public/planner-gradle/` | 16 | 2026-06-11
 | codex-gradle | `foundry/public/codex-gradle/` | 26 | 2026-05-22
 | codebase-gradle | `foundry/public/codebase-gradle/codebase-plugin/` | 55 | 2026-05-22
 | quizz-benchmark | `foundry/public/quizz-benchmark-gradle/quizz-benchmark-plugin/` | 6 | 2026-05-11

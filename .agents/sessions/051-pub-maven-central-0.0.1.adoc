@@ -1,0 +1,25 @@
+= Session 051 — Publication Maven Central 0.0.1
+:date: 2026-06-11
+:borough: Manhattan
+:plugin: planner-gradle
+:status: TERMINEE
+
+== Objectif
+
+Publication de planner-gradle sur Maven Central via nmcp.
+
+== Changements
+
+* `codebase-contracts:0.1.0` → `codebase-contracts:0.0.1` (version hardcodée alignée sur Central)
+* POM : suppression du guard `if(name=="pluginMaven")` — `withType<MavenPublication>` appliqué à toutes les publications
+* `Sonatype` → `nmcp` (repositories et plugin)
+* `settings.gradle.kts` : ajout `com.gradleup.nmcp.settings` version `1.5.0` + bloc `nmcpSettings { centralPortal { ... publishingType = "AUTOMATIC" } }`
+* Wrapper temporaire copié (version hardcodée 0.0.1 pour publication)
+
+== Résultat
+
+Publié avec succès sur Maven Central (education.cccp:planner-plugin:0.0.1).
+
+== Score
+
+10/10

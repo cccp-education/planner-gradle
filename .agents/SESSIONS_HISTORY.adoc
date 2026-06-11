@@ -1,23 +1,24 @@
 = HISTORIQUE DES SESSIONS — Planner Gradle
-:date: 2026-05-21
+:date: 2026-06-11
 
 [cols="2,2,3,3", options="header"]
 |===
 | Session | Date | Type | Sujet
-| 000 | 2026-05-07 | init+feat | Bootstrap + PLN-0→PLN-3 : skeleton, data classes, stub, LangChain4j+DeepSeek-v4-pro, OllamaBridge
-| 001 | 2026-05-07 | feat | PLN-4 — RAG sur specs existantes : SpecReader, SpecContent, token budget 2000, spec injection dans buildPrompt
-| 002 | 2026-05-07 | test | PLN-7 — Tests unitaires : IntentionPlanner(7), LLMResponse(5), OllamaBridge(2), TestKit(3) = 24/24 PASS
-| 003 | 2026-05-09 | feat | PLN-5 — Dogfooding : specs/ créés, 2x generatePlan, analyse comparative
-| 004 | 2026-05-10 | feat | PLN-6 — Publication Gradle Plugin Portal : publishPlugins, version 0.0.1, page publique
-| 005 | 2026-05-10 | feat+ci | PLN-8 — CI generatePlan : workflow_dispatch + OLLAMA_DEVICE_KEY_A + serve manuel
-| 006 | 2026-05-12 | chore | Code Review Globale — Audit passif, MAJ portefeuille 6→8 boroughs
-| 007 | 2026-05-14 | infra | CI Template — .github/workflows/test.yml, EPIC F cross-boroughs
-| 008 | 2026-05-14 | fix | Compilation langchain4j — ChatLanguageModel → ChatModel
-| 009 | 2026-05-18 | feat | EPIC K-03 — PlannerExtension + rewiring plugin + OllamaBridge unifié
-| 010 | 2026-05-19 | feat | EPIC K-01 — Renommage taxonomie (decomposeIntention→generatePlan)
-| 011 | 2026-05-19 | feat+test | Pipeline N0→N3 ABC — GenerateSPGTask LLM augmenté
-| 019 | 2026-05-19 | feat+doc | EPIC K-04 Convention over Configuration Manhattan
-| 048 | 2026-05-20 | fix | Fix compilation planner + test integration vibecode
-| 049 | 2026-05-21 | refactor | Résolution split-brain vibecoding (Option A: extraction N0, suppression split-brain)
+| 051 | 2026-06-11 | publish | Publication Maven Central 0.0.1 — codebase-contracts:0.1.0→0.0.1, POM sans guard, Sonatype→nmcp, settings nmcp
 | 050 | 2026-05-22 | migration | SPG migre vers training (Newark) — GenerateSPGTask, FormationModule/FormationSession supprimes de planner, PlannerExtension simplifie (formationsDir retire)
+| 049 | 2026-05-21 | refactor | Résolution split-brain vibecoding (Option A: extraction N0, suppression split-brain)
+| 048 | 2026-05-20 | fix | Fix compilation planner + test integration vibecode
+| 019 | 2026-05-19 | feat+doc | EPIC K-04 Convention over Configuration Manhattan
+| 011 | 2026-05-19 | feat+test | Pipeline N0→N3 ABC — GenerateSPGTask LLM augmenté
+| 010 | 2026-05-19 | feat | EPIC K-01 — Renommage taxonomie (decomposeIntention→generatePlan)
+| 009 | 2026-05-18 | feat | EPIC K-03 — PlannerExtension + rewiring plugin + OllamaBridge unifié
+| 008 | 2026-05-14 | fix | Compilation langchain4j — ChatLanguageModel → ChatModel
+| 007 | 2026-05-14 | infra | CI Template — .github/workflows/test.yml, EPIC F cross-boroughs
+| 006 | 2026-05-12 | chore | Code Review Globale — Audit passif, MAJ portefeuille 6→8 boroughs
+| 005 | 2026-05-10 | feat+ci | PLN-8 — CI generatePlan : workflow_dispatch + OLLAMA_DEVICE_KEY_A + serve manuel
+| 004 | 2026-05-10 | feat | PLN-6 — Publication Gradle Plugin Portal : publishPlugins, version 0.0.1, page publique
+| 003 | 2026-05-09 | feat | PLN-5 — Dogfooding : specs/ créés, 2x generatePlan, analyse comparative
+| 002 | 2026-05-07 | test | PLN-7 — Tests unitaires : IntentionPlanner(7), LLMResponse(5), OllamaBridge(2), TestKit(3) = 24/24 PASS
+| 001 | 2026-05-07 | feat | PLN-4 — RAG sur specs existantes : SpecReader, SpecContent, token budget 2000, spec injection dans buildPrompt
+| 000 | 2026-05-07 | init+feat | Bootstrap + PLN-0→PLN-3 : skeleton, data classes, stub, LangChain4j+DeepSeek-v4-pro, OllamaBridge
 |===

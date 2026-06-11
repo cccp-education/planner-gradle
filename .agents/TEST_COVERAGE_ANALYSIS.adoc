@@ -15,3 +15,7 @@
 |===
 
 *Total* : 7/7 tests PASS. 26/26 tests globaux (22 unitaires OK, 4 TestKit timeout LLM préexistants).
+
+== Session 051 — Publication Maven Central (2026-06-11)
+
+Inchangé — aucun test modifié. Publication uniquement (build -x test).
