@@ -4,6 +4,7 @@
 [cols="2,2,3,3", options="header"]
 |===
 | Session | Date | Type | Sujet
+| 052 | 2026-06-19 | fix | Fix POM developer email — cccp.education@gmail.com → cccp.edu@gmail.com
 | 051 | 2026-06-11 | publish | Publication Maven Central 0.0.1 — codebase-contracts:0.1.0→0.0.1, POM sans guard, Sonatype→nmcp, settings nmcp
 | 050 | 2026-05-22 | migration | SPG migre vers training (Newark) — GenerateSPGTask, FormationModule/FormationSession supprimes de planner, PlannerExtension simplifie (formationsDir retire)
 | 049 | 2026-05-21 | refactor | Résolution split-brain vibecoding (Option A: extraction N0, suppression split-brain)
