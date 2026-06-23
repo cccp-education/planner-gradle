@@ -2,5 +2,7 @@
 
 |===
 | Date | Tâche | Borough | Statut | Score
+| 2026-06-24 | README i18n — 10 langues × 2 guides (consommateurs + plugin) = 20 fichiers traduits, badges, markers 0.0.1, switcher, AR/UR RTL | planner-gradle | ✅ | 9/10
+| 2026-06-19 | Fix POM developer email (cccp.education@gmail.com → cccp.edu@gmail.com) | planner-gradle | ✅ | 9/10
 | 2026-06-11 | Publication Maven Central 0.0.1 (nmcp, POM sans guard, codebase-contracts:0.0.1, settings nmcp) | planner-gradle | ✅ | 10/10
 |===

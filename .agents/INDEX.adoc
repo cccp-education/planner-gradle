@@ -4,10 +4,10 @@
 _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
-_Derniere mise a jour_ : 2026-06-19
-_Session terminee_ : 052 — Fix POM developer email (cccp.education@gmail.com → cccp.edu@gmail.com) ✅
-_Sessions precedent_ : 051/050/049/048/019/011/010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K termines
-_Prochaine session_ : 053 — maintenance
+_Derniere mise a jour_ : 2026-06-24
+_Session terminee_ : 053 — README i18n (10 langues × 2 guides = 20 fichiers) ✅
+_Sessions precedent_ : 052/051/050/049/048/019/011/010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K termines
+_Prochaine session_ : 054 — maintenance
 
 '''
 == REGLES ABSOLUES
@@ -37,6 +37,7 @@ _Prochaine session_ : 053 — maintenance
 
 |===
 | # | Date | Type | Sujet | Score
+| 053 | 2026-06-24 | doc | README i18n — 10 langues × 2 guides (consommateurs + plugin) = 20 fichiers, badges/shields, markers 0.0.1, switcher i18n, AR/UR RTL | 9/10
 | 052 | 2026-06-19 | fix | Fix POM developer email — cccp.education@gmail.com → cccp.edu@gmail.com | 9/10
 | 051 | 2026-06-11 | publish | Publication Maven Central 0.0.1 — codebase-contracts:0.1.0→0.0.1, POM sans guard, Sonatype→nmcp, settings nmcp | 10/10
 | 050 | 2026-05-22 | migration | SPG migre vers training (Newark) — GenerateSPGTask, FormationModule/FormationSession, GenerateSPGTaskTest supprimes de planner. PlannerExtension simplifie (formationsDir retire). | 10/10
@@ -102,7 +103,7 @@ _Prochaine session_ : 053 — maintenance
 
 |===
 | Projet | Chemin | Sessions | Derniere maj
-| planner-gradle | `foundry/public/planner-gradle/` | 16 | 2026-06-11
+| planner-gradle | `foundry/public/planner-gradle/` | 17 | 2026-06-24
 | codex-gradle | `foundry/public/codex-gradle/` | 26 | 2026-05-22
 | codebase-gradle | `foundry/public/codebase-gradle/codebase-plugin/` | 55 | 2026-05-22
 | quizz-benchmark | `foundry/public/quizz-benchmark-gradle/quizz-benchmark-plugin/` | 6 | 2026-05-11

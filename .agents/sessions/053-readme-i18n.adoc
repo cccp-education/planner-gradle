@@ -1,0 +1,102 @@
+= Session 053 — README i18n (10 langues × 2 guides)
+:date: 2026-06-24
+:type: doc
+:score: 9/10
+
+== Résumé
+
+Création de 20 fichiers README traduits en 10 langues pour les deux guides du projet :
+
+- `README.consommateurs/` — Guide Consommateur (10 fichiers : README.md master EN + 9 traductions)
+- `README.plugin/` — Guide Plugin Internals (10 fichiers : README.md master EN + 9 traductions)
+
+Total : 20 fichiers, couvrant 10 langues (EN master + AR, BN, ES, FR, HI, PT, RU, UR, ZH).
+
+== Langues couvertes
+
+| Code | Langue | Script | RTL |
+|===|===|===|===
+| `md`    | English (master)   | Latin    | non |
+| `fr.md` | Français           | Latin    | non |
+| `es.md` | Español            | Latin    | non |
+| `pt.md` | Português          | Latin    | non |
+| `hi.md` | हिन्दी              | Devanagari | non |
+| `bn.md` | বাংলা              | Bengali  | non |
+| `zh.md` | 中文               | Han      | non |
+| `ru.md` | Русский            | Cyrillic | non |
+| `ar.md` | العربية            | Arabic   | *oui* |
+| `ur.md` | اردو               | Arabic   | *oui* |
+
+== Conventions appliquées
+
+=== Marqueur de version
+Chaque fichier traduit porte l'en-tête :
+```
+<!-- translated from README.md rev 0.0.1 -->
+```
+Le master EN conserve le commentaire `<!-- master source — other languages are translations of this file -->`.
+
+=== Badges
+Identiques sur les 20 fichiers (3 badges shields.io) :
+- Maven Central : `education.cccp/planner-plugin`
+- Gradle Plugin Portal : `education.cccp.planner`
+- CI : `cheroliv/planner-gradle` workflow `test.yml`
+- Licence : lien relatif `../LICENSE`
+
+=== Markers version 0.0.1
+Ligne metadata uniforme sur les 20 fichiers :
+```
+- **Version**: `0.0.1` · **Group**: `education.cccp` · **Plugin ID**: `education.cccp.planner`
+```
+(traduite dans chaque langue).
+
+=== Switcher i18n
+Le master EN pointe vers FR uniquement (`**EN** | [Français](README.fr.md)`).
+Les 9 traductions portent un switcher complet à 10 liens listant toutes les langues,
+avec la langue courante en gras sans lien.
+
+=== RTL (ar, ur)
+Le contenu AR et UR est écrit de droite à gauche.
+Le source Markdown reste en logical order (pas de bidirectional markup),
+le rendu GitHub/AsciiDoc gère le RTL nativement via la détection Unicode.
+
+== Arborescence créée
+
+```
+planner-gradle/
+├── README.consommateurs/
+│   ├── README.md       (EN master)
+│   ├── README.fr.md
+│   ├── README.es.md
+│   ├── README.pt.md
+│   ├── README.hi.md
+│   ├── README.bn.md
+│   ├── README.zh.md
+│   ├── README.ru.md
+│   ├── README.ar.md     (RTL)
+│   └── README.ur.md     (RTL)
+└── README.plugin/
+    ├── README.md        (EN master)
+    ├── README.fr.md
+    ├── README.es.md
+    ├── README.pt.md
+    ├── README.hi.md
+    ├── README.bn.md
+    ├── README.zh.md
+    ├── README.ru.md
+    ├── README.ar.md     (RTL)
+    └── README.ur.md     (RTL)
+```
+
+== Constats / améliorations possibles (non traitées cette session)
+
+- Le switcher du master EN n'inclut que le lien FR ; pour cohérence il
+  pourrait lister les 10 langues comme les traductions.
+- Aucune validation build/lint appliquée aux .md (Markdown statique, pas
+  de compilation).
+- Pas de test automatisé de cohérence traductions (à envisager via
+  `document-gradle` ou une tâche Cucumber future).
+
+== Prochaine session
+
+054 — maintenance (aucun EPIC ouvert).

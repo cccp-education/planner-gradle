@@ -1,12 +1,14 @@
-= PROMPT_REPRISE — planner-gradle (Session 051 terminée)
-:date: 2026-06-11
+= PROMPT_REPRISE — planner-gradle (Session 053 terminée)
+:date: 2026-06-24
 
-== Session 051 terminée — Publication Maven Central 0.0.1
+== Session 053 terminée — README i18n (10 langues × 2 guides)
 
-planner-gradle publié sur Maven Central (education.cccp:planner-plugin:0.0.1).
-Changements : codebase-contracts:0.1.0→0.0.1, POM sans guard, Sonatype→nmcp, settings nmcp, wrapper temporaire.
+20 fichiers README créés sous `README.consommateurs/` et `README.plugin/`
+(10 langues : EN master + AR, BN, ES, FR, HI, PT, RU, UR, ZH).
+Badges shields.io, markers version 0.0.1, switcher i18n 10 liens, AR/UR RTL.
 
-== Prochaine session — 052 : maintenance
+== Prochaine session — 054 : maintenance
 
 - generatePlan seul coeur restant
 - Aucun EPIC ouvert
+- Pistes laissées : switcher master EN à harmoniser, tests cohérence traduc.
