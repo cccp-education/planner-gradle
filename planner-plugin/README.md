@@ -12,7 +12,7 @@
 - **Toolchain**: Java 24 · Kotlin 2.3.20 · Gradle 9.5 (foojay-resolver-convention 1.0.0)
 - **Build**: `./gradlew :planner-plugin:build -x test` · **Tests**: `./gradlew :planner-plugin:test`
 
-🌐 Languages: **EN** | [Français](README.fr.md)
+🌐 Languages: **EN** | [中文](README.plugin/README.zh.md) | [हिन्दी](README.plugin/README.hi.md) | [Español](README.plugin/README.es.md) | [Français](README.plugin/README.fr.md) | [العربية](README.plugin/README.ar.md) | [বাংলা](README.plugin/README.bn.md) | [Português](README.plugin/README.pt.md) | [Русский](README.plugin/README.ru.md) | [اردو](README.plugin/README.ur.md)
 
 ---
 

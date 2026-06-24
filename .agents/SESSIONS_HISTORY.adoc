@@ -4,6 +4,7 @@
 [cols="2,2,3,3", options="header"]
 |===
 | Session | Date | Type | Sujet
+| 054 | 2026-06-24 | refactor README | Architecture README Plugin + Consommateur — déplacement README.plugin → planner-plugin/, README.consommateurs → racine, liens i18n recréés (10 langues)
 | 053 | 2026-06-24 | doc | README i18n — 10 langues × 2 guides (consommateurs + plugin) = 20 fichiers, badges/shields, markers 0.0.1, switcher i18n, AR/UR RTL
 | 052 | 2026-06-19 | fix | Fix POM developer email — cccp.education@gmail.com → cccp.edu@gmail.com
 | 051 | 2026-06-11 | publish | Publication Maven Central 0.0.1 — codebase-contracts:0.1.0→0.0.1, POM sans guard, Sonatype→nmcp, settings nmcp

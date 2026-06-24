@@ -5,9 +5,9 @@ _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
 _Derniere mise a jour_ : 2026-06-24
-_Session terminee_ : 053 — README i18n (10 langues × 2 guides = 20 fichiers) ✅
-_Sessions precedent_ : 052/051/050/049/048/019/011/010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K termines
-_Prochaine session_ : 054 — maintenance
+_Session terminee_ : 054 — Architecture README Plugin + Consommateur (déplacement README.plugin → planner-plugin/, README.consommateurs → racine, liens i18n recréés) ✅
+_Sessions precedent_ : 053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅ — Tous les EPICs PLN + EPIC K termines
+_Prochaine session_ : 055 — maintenance
 
 '''
 == REGLES ABSOLUES

@@ -1,13 +1,13 @@
-= PROMPT_REPRISE — planner-gradle (Session 053 terminée)
+= PROMPT_REPRISE — planner-gradle (Session 054 terminée)
 :date: 2026-06-24
 
-== Session 053 terminée — README i18n (10 langues × 2 guides)
+== Session 054 terminée — Architecture README Plugin + Consommateur
 
-20 fichiers README créés sous `README.consommateurs/` et `README.plugin/`
-(10 langues : EN master + AR, BN, ES, FR, HI, PT, RU, UR, ZH).
-Badges shields.io, markers version 0.0.1, switcher i18n 10 liens, AR/UR RTL.
+Déplacement README.plugin → planner-plugin/README.plugin/ (README.md master
+remonté à racine plugin). Déplacement README.consommateurs → racine borough.
+Liens i18n recréés (10 langues).
 
-== Prochaine session — 054 : maintenance
+== Prochaine session — 055 : maintenance
 
 - generatePlan seul coeur restant
 - Aucun EPIC ouvert
