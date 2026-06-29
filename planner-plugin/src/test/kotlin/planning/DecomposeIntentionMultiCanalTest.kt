@@ -25,7 +25,7 @@ class DecomposeIntentionMultiCanalTest {
 
         val result = GradleRunner.create()
             .withProjectDir(projectDir)
-            .withArguments("generatePlan", "-Pintention=test backward compat")
+            .withArguments("generatePlan", "-Pintention=test backward compat", "-PollamaBaseUrl=http://localhost:1")
             .withPluginClasspath()
             .build()
 
@@ -42,7 +42,8 @@ class DecomposeIntentionMultiCanalTest {
             .withArguments(
                 "generatePlan",
                 "-Pintention=test eager channel",
-                "-PeagerContext=EPIC TEST-0: verify eager propagation"
+                "-PeagerContext=EPIC TEST-0: verify eager propagation",
+                "-PollamaBaseUrl=http://localhost:1"
             )
             .withPluginClasspath()
             .build()
@@ -62,7 +63,8 @@ class DecomposeIntentionMultiCanalTest {
                 "-PeagerContext=eager governance data here",
                 "-PragContext=rag semantic chunks here",
                 "-PgraphifyContext=graph relations here",
-                "-PdocsContext=codex corpus docs here"
+                "-PdocsContext=codex corpus docs here",
+                "-PollamaBaseUrl=http://localhost:1"
             )
             .withPluginClasspath()
             .build()
@@ -83,7 +85,8 @@ class DecomposeIntentionMultiCanalTest {
             .withArguments(
                 "generatePlan",
                 "-Pintention=test docs only",
-                "-PdocsContext=AFNOR Chapitre 2: Competences professionnelles"
+                "-PdocsContext=AFNOR Chapitre 2: Competences professionnelles",
+                "-PollamaBaseUrl=http://localhost:1"
             )
             .withPluginClasspath()
             .build()

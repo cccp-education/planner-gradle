@@ -42,7 +42,7 @@ class DecomposeIntentionPluginTest {
 
         val result = GradleRunner.create()
             .withProjectDir(projectDir)
-            .withArguments("generatePlan", "-Pintention=add unit tests")
+            .withArguments("generatePlan", "-Pintention=add unit tests", "-PollamaBaseUrl=http://localhost:1")
             .withPluginClasspath()
             .build()
 
@@ -60,7 +60,7 @@ class DecomposeIntentionPluginTest {
 
         val result = GradleRunner.create()
             .withProjectDir(projectDir)
-            .withArguments("generatePlan")
+            .withArguments("generatePlan", "-PollamaBaseUrl=http://localhost:1")
             .withPluginClasspath()
             .build()
 

@@ -1,0 +1,45 @@
+= Session 055 — SEC-1 : tests generatePlan sans mock + purge deepseek CI
+:session: 055
+:date: 2026-06-30
+:type: sécurité
+:score: 9/10
+
+== Objectif
+
+EPIC SEC-1 (workspace-bom) : identifier et fixer les tests qui font des appels
+LLM réseau réels non mockés lors de `runAllTests`.
+
+== Ce qui a été fait
+
+=== 1. Coupable identifié — DecomposeIntentionPluginTest + DecomposeIntentionMultiCanalTest
+
+6 tests exécutent `generatePlan` via GradleRunner **sans mock ni assumeTrue**.
+`IntentionPlanner.plan()` appelle `model.chat()` → appel réseau réel vers Ollama.
+Avant la purge session 012, ces tests appelaient `deepseek-v4-pro:cloud` sur
+`localhost:11434` (port interdit). Après purge, ils appelaient `gemma4:31b-cloud`
+sur `11437` — toujours un appel réseau non protégé.
+
+=== 2. Correction — injection port fermé
+
+Ajout `-PollamaBaseUrl=http://localhost:1` dans les 6 tests :
+- `DecomposeIntentionPluginTest` (2 tests)
+- `DecomposeIntentionMultiCanalTest` (4 tests)
+
+L'appel réseau échoue immédiatement (Connection refused sur port 1) sans toucher
+Ollama réel. Les assertions acceptaient déjà `[ERROR]`/`[FATAL]` — pas de
+changement de logique de test.
+
+=== 3. CI workflow decompose.yml
+
+- `OLLAMA_HOST=0.0.0.0:11434` → `11444`
+- `ollama pull deepseek-v4-pro:cloud` → `gpt-oss:120b-cloud`
+
+== Fichiers modifiés
+
+* `planner-plugin/src/test/kotlin/planning/DecomposeIntentionPluginTest.kt`
+* `planner-plugin/src/test/kotlin/planning/DecomposeIntentionMultiCanalTest.kt`
+* `.github/workflows/decompose.yml`
+
+== Prochaines étapes
+
+* Maintenance — planner-gradle est dormant (publié 0.0.1 Maven Central).

@@ -31,9 +31,9 @@ jobs:
       - name: Restart Ollama With Our Key
         run: |
           sudo systemctl stop ollama 2>/dev/null || true
-          OLLAMA_HOST=0.0.0.0:11434 ollama serve &>/tmp/ollama.log &
+          OLLAMA_HOST=0.0.0.0:11444 ollama serve &>/tmp/ollama.log &
           for i in $(seq 1 30); do
-            if curl -s http://localhost:11434/api/version >/dev/null 2>&1; then
+            if curl -s http://localhost:11444/api/version >/dev/null 2>&1; then
               echo "Ollama ready"
               break
             fi
@@ -43,7 +43,7 @@ jobs:
       - name: Pull Cloud Models
         run: |
           ollama pull qwen3.5:397b-cloud
-          ollama pull deepseek-v4-pro:cloud
+          ollama pull gpt-oss:120b-cloud
 
       - name: Generate Plan
         run: >
