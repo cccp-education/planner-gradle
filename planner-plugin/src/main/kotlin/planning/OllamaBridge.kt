@@ -6,8 +6,8 @@ import java.time.Duration
 
 object OllamaBridge {
 
-    private const val DEFAULT_BASE_URL = "http://localhost:11434"
-    private const val DEFAULT_MODEL_NAME = "qwen3.5:397b-cloud"
+    private const val DEFAULT_BASE_URL = "http://localhost:11437"
+    private const val DEFAULT_MODEL_NAME = "gemma4:31b-cloud"
 
     fun chatModel(
         ollamaModel: String = DEFAULT_MODEL_NAME,

@@ -7,8 +7,8 @@ class PlanningPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         val ext = project.extensions.create("planner", PlannerExtension::class.java)
-        ext.ollamaModel.convention("deepseek-v4-pro:cloud")
-        ext.ollamaBaseUrl.convention("http://localhost:11434")
+        ext.ollamaModel.convention("gemma4:31b-cloud")
+        ext.ollamaBaseUrl.convention("http://localhost:11437")
 
         project.tasks.register(
             "generatePlan",

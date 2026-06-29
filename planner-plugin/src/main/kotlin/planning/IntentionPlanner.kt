@@ -19,8 +19,8 @@ object IntentionPlanner {
         context: PlanningContext,
         specContents: List<SpecReader.SpecContent>,
         logger: Logger,
-        ollamaModel: String = "deepseek-v4-pro:cloud",
-        ollamaBaseUrl: String = "http://localhost:11434"
+        ollamaModel: String = "gemma4:31b-cloud",
+        ollamaBaseUrl: String = "http://localhost:11437"
     ): Plan {
         val model = OllamaBridge.chatModel(ollamaModel = ollamaModel, ollamaBaseUrl = ollamaBaseUrl)
         val prompt = buildPrompt(intention, context, specContents)
@@ -37,8 +37,8 @@ object IntentionPlanner {
         graphifyContext: String,
         docsContext: String,
         logger: Logger,
-        ollamaModel: String = "deepseek-v4-pro:cloud",
-        ollamaBaseUrl: String = "http://localhost:11434"
+        ollamaModel: String = "gemma4:31b-cloud",
+        ollamaBaseUrl: String = "http://localhost:11437"
     ): Plan {
         val model = OllamaBridge.chatModel(ollamaModel = ollamaModel, ollamaBaseUrl = ollamaBaseUrl)
         val prompt = buildPrompt(intention, context, specContents, eagerContext, ragContext, graphifyContext, docsContext)
@@ -54,8 +54,8 @@ object IntentionPlanner {
         ragContext: String,
         graphifyContext: String,
         docsContext: String,
-        ollamaModel: String = "deepseek-v4-pro:cloud",
-        ollamaBaseUrl: String = "http://localhost:11434"
+        ollamaModel: String = "gemma4:31b-cloud",
+        ollamaBaseUrl: String = "http://localhost:11437"
     ): Plan {
         val log = Slf4jLoggerFactory.getLogger(IntentionPlanner::class.java)
         val model = OllamaBridge.chatModel(ollamaModel = ollamaModel, ollamaBaseUrl = ollamaBaseUrl)
