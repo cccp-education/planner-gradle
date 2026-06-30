@@ -9,7 +9,7 @@ _Source : configuration/EPIC_PUB.adoc (Session 096)_
 '''
 == EPIC PUB — Publication Maven Central
 
-Plugin N2 de generation SPG/SPD via LLM (deepseek). VAGUE 4 (plugins metier).
+Plugin N2 de generation SPG/SPD via LLM (gpt-oss:120b-cloud). VAGUE 4 (plugins metier).
 
 === PUB-3.10 — planner-plugin
 **Priorite** : P0

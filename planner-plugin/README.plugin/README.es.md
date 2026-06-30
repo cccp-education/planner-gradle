@@ -57,7 +57,7 @@ planner-plugin/
 
 Los puertos `11434–11436` están prohibidos. Rotar sobre `11437–11465` (29 puertos).
 Modelos autorizados: `gpt-oss:120b-cloud`, `gemma4:31b-cloud`.
-Modelo por defecto en `PlanningPlugin`: `deepseek-v4-pro:cloud`.
+Modelo por defecto en `PlanningPlugin`: `gpt-oss:120b-cloud`.
 
 ## Matriz de tests
 
@@ -100,7 +100,7 @@ export GRADLE_OPTS="-Xmx2g"
 1. **test.yml** — `./gradlew :planner-plugin:build` en push/PR a `main`/`master`
    (JDK 24 Temurin, timeout 15 min, `gradle/actions/setup-gradle@v4`).
 2. **decompose.yml** — trigger manual `workflow_dispatch`: instala Ollama, configura la
-   clave device `OLLAMA_DEVICE_KEY_A`, descarga `qwen3.5:397b-cloud` + `deepseek-v4-pro:cloud`,
+   clave device `OLLAMA_DEVICE_KEY_A`, descarga `qwen3.5:397b-cloud` + `gpt-oss:120b-cloud`,
    ejecuta `./gradlew generatePlan -Pintention=... -Pfeature.request.id=...`, hace commit del
    plan bajo `features/plans/`, sube el artefacto `build/planning/*.json`.
 

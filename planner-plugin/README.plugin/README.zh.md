@@ -56,7 +56,7 @@ planner-plugin/
 
 端口 `11434–11436` 被禁止。在 `11437–11465` 间轮换（29 个端口）。
 授权模型：`gpt-oss:120b-cloud`, `gemma4:31b-cloud`。
-`PlanningPlugin` 中的默认模型：`deepseek-v4-pro:cloud`。
+`PlanningPlugin` 中的默认模型：`gpt-oss:120b-cloud`。
 
 ## 测试矩阵
 
@@ -99,7 +99,7 @@ export GRADLE_OPTS="-Xmx2g"
 1. **test.yml** — 在向 `main`/`master` 的 push/PR 上运行 `./gradlew :planner-plugin:build`
    (JDK 24 Temurin，15 分钟超时，`gradle/actions/setup-gradle@v4`)。
 2. **decompose.yml** — `workflow_dispatch` 手动触发：安装 Ollama，设置 device key
-   `OLLAMA_DEVICE_KEY_A`，拉取 `qwen3.5:397b-cloud` + `deepseek-v4-pro:cloud`，
+   `OLLAMA_DEVICE_KEY_A`，拉取 `qwen3.5:397b-cloud` + `gpt-oss:120b-cloud`，
    运行 `./gradlew generatePlan -Pintention=... -Pfeature.request.id=...`，将计划提交至
    `features/plans/`，上传 `build/planning/*.json` 工件。
 

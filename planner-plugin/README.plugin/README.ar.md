@@ -57,7 +57,7 @@ planner-plugin/
 
 المنافذ `11434–11436` محظورة. التناوب على `11437–11465` (29 منفذًا).
 النماذج المصرّح بها: `gpt-oss:120b-cloud`, `gemma4:31b-cloud`.
-النموذج الافتراضي في `PlanningPlugin`: `deepseek-v4-pro:cloud`.
+النموذج الافتراضي في `PlanningPlugin`: `gpt-oss:120b-cloud`.
 
 ## مصفوفة الاختبارات
 
@@ -100,7 +100,7 @@ export GRADLE_OPTS="-Xmx2g"
 1. **test.yml** — `./gradlew :planner-plugin:build` عند push/PR إلى `main`/`master`
    (JDK 24 Temurin, مهلة 15 دقيقة, `gradle/actions/setup-gradle@v4`).
 2. **decompose.yml** — مُشغِّل يدوي `workflow_dispatch`: يُثبّت Ollama، يضبط مفتاح الجهاز
-   `OLLAMA_DEVICE_KEY_A`، يسحب `qwen3.5:397b-cloud` + `deepseek-v4-pro:cloud`,
+   `OLLAMA_DEVICE_KEY_A`، يسحب `qwen3.5:397b-cloud` + `gpt-oss:120b-cloud`,
    يُشغّل `./gradlew generatePlan -Pintention=... -Pfeature.request.id=...`، يلتزم الخطة
    تحت `features/plans/`، يرفع قطعة `build/planning/*.json`.
 

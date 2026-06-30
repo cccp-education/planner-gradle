@@ -62,7 +62,7 @@ plugins {
 ```bash
 ./gradlew generatePlan \
   --intention="..." \
-  --ollamaModel="deepseek-v4-pro:cloud" \
+  --ollamaModel="gpt-oss:120b-cloud" \
   --ollamaBaseUrl="http://localhost:11434"
 ```
 
@@ -79,7 +79,7 @@ plugins {
 
 ```gradle
 planner {
-    ollamaModel    = "deepseek-v4-pro:cloud"   // по умолчанию
+    ollamaModel    = "gpt-oss:120b-cloud"   // по умолчанию
     ollamaBaseUrl  = "http://localhost:11434"  // по умолчанию
     intention      = "Your default intention"  // опционально, переопределяется через -Pintention
     specsDir       = layout.projectDirectory.dir("specs")  // опциональный RAG-источник
@@ -93,7 +93,7 @@ planner {
 
 - **Java** 24+ (инструментальная цепочка Kotlin 2.3.20)
 - **Gradle** 9.5+ (foojay-resolver-convention 1.0.0 для авто-настройки toolchain)
-- **Ollama** работает локально (или удалённо), обслуживает `deepseek-v4-pro:cloud`
+- **Ollama** работает локально (или удалённо), обслуживает `gpt-oss:120b-cloud`
 - Порты `11434–11436` запрещены глобально; ротация в `11437–11465`.
   Авторизованные модели: `gpt-oss:120b-cloud`, `gemma4:31b-cloud`.
 
@@ -112,7 +112,7 @@ planner {
 из интерфейса GitHub Actions:
 
 - Входные данные: `intention` (обязательно), `feature_request_id` (опционально)
-- Загружает `qwen3.5:397b-cloud` + `deepseek-v4-pro:cloud` из Ollama cloud
+- Загружает `qwen3.5:397b-cloud` + `gpt-oss:120b-cloud` из Ollama cloud
 - Фиксирует сгенерированный план в `features/plans/` (когда указан feature request id)
 - Загружает артефакт `build/planning/*.json`
 
@@ -120,7 +120,7 @@ planner {
 
 | Симптом | Решение |
 |---------|---------|
-| `Connection refused localhost:11434` | Запустить Ollama: `ollama serve`; загрузить модель: `ollama pull deepseek-v4-pro:cloud` |
+| `Connection refused localhost:11434` | Запустить Ollama: `ollama serve`; загрузить модель: `ollama pull gpt-oss:120b-cloud` |
 | LLM возвращает некорректный JSON | Повторить (встроенная 3× повтор в `OllamaBridge`); проверить бюджет токенов в `IntentionPlanner` |
 | `Java heap space` | `export GRADLE_OPTS="-Xmx2g"` |
 | Порт `11434` запрещён | Использовать порт из `11437–11465`; передать `-PollamaBaseUrl=http://localhost:11437` |

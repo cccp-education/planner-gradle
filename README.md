@@ -62,7 +62,7 @@ Optional RAG context from existing specs:
 ```bash
 ./gradlew generatePlan \
   --intention="..." \
-  --ollamaModel="deepseek-v4-pro:cloud" \
+  --ollamaModel="gpt-oss:120b-cloud" \
   --ollamaBaseUrl="http://localhost:11434"
 ```
 
@@ -79,7 +79,7 @@ Optional RAG context from existing specs:
 
 ```gradle
 planner {
-    ollamaModel    = "deepseek-v4-pro:cloud"   // default
+    ollamaModel    = "gpt-oss:120b-cloud"   // default
     ollamaBaseUrl  = "http://localhost:11434"  // default
     intention      = "Your default intention"  // optional, overridable by -Pintention
     specsDir       = layout.projectDirectory.dir("specs")  // optional RAG source
@@ -93,7 +93,7 @@ All extension properties are overridable per-invocation via Gradle properties:
 
 - **Java** 24+ (Kotlin 2.3.20 toolchain)
 - **Gradle** 9.5+ (foojay-resolver-convention 1.0.0 for toolchain auto-provisioning)
-- **Ollama** running locally (or remote), serving `deepseek-v4-pro:cloud`
+- **Ollama** running locally (or remote), serving `gpt-oss:120b-cloud`
 - Ports `11434–11436` are forbidden globally; rotate over `11437–11465`.
   Authorized models: `gpt-oss:120b-cloud`, `gemma4:31b-cloud`.
 
@@ -112,7 +112,7 @@ The `decompose.yml` workflow exposes a `workflow_dispatch` trigger to generate a
 from the GitHub Actions UI:
 
 - Inputs: `intention` (required), `feature_request_id` (optional)
-- Pulls `qwen3.5:397b-cloud` + `deepseek-v4-pro:cloud` from Ollama cloud
+- Pulls `qwen3.5:397b-cloud` + `gpt-oss:120b-cloud` from Ollama cloud
 - Commits the generated plan under `features/plans/` (when a feature request id is given)
 - Uploads the `build/planning/*.json` artifact
 
@@ -120,7 +120,7 @@ from the GitHub Actions UI:
 
 | Symptom | Fix |
 |---------|-----|
-| `Connection refused localhost:11434` | Start Ollama: `ollama serve`; pull the model: `ollama pull deepseek-v4-pro:cloud` |
+| `Connection refused localhost:11434` | Start Ollama: `ollama serve`; pull the model: `ollama pull gpt-oss:120b-cloud` |
 | LLM returns malformed JSON | Retry (built-in 3× retry in `OllamaBridge`); check token budget in `IntentionPlanner` |
 | `Java heap space` | `export GRADLE_OPTS="-Xmx2g"` |
 | Port `11434` forbidden | Use a port in `11437–11465`; pass `-PollamaBaseUrl=http://localhost:11437` |

@@ -60,7 +60,7 @@ plugins {
 ```bash
 ./gradlew generatePlan \
   --intention="..." \
-  --ollamaModel="deepseek-v4-pro:cloud" \
+  --ollamaModel="gpt-oss:120b-cloud" \
   --ollamaBaseUrl="http://localhost:11434"
 ```
 
@@ -77,7 +77,7 @@ plugins {
 
 ```gradle
 planner {
-    ollamaModel    = "deepseek-v4-pro:cloud"   // افتراضي
+    ollamaModel    = "gpt-oss:120b-cloud"   // افتراضي
     ollamaBaseUrl  = "http://localhost:11434"  // افتراضي
     intention      = "Your default intention"  // اختياري، قابل للتجاوز عبر -Pintention
     specsDir       = layout.projectDirectory.dir("specs")  // مصدر RAG اختياري
@@ -91,7 +91,7 @@ planner {
 
 - **Java** 24+ (سلسلة أدوات Kotlin 2.3.20)
 - **Gradle** 9.5+ (foojay-resolver-convention 1.0.0 للتزوير التلقائي لسلسلة الأدوات)
-- **Ollama** يعمل محليًا (أو عن بُعد)، يُقدّم `deepseek-v4-pro:cloud`
+- **Ollama** يعمل محليًا (أو عن بُعد)، يُقدّم `gpt-oss:120b-cloud`
 - المنافذ `11434–11436` محظورة عالميًا؛ التناوب على `11437–11465`.
   النماذج المصرّح بها: `gpt-oss:120b-cloud`، `gemma4:31b-cloud`.
 
@@ -109,7 +109,7 @@ planner {
 يكشف workflow `decompose.yml` عن مُشغِّل `workflow_dispatch` لتوليد خطة من واجهة GitHub Actions:
 
 - المدخلات: `intention` (مطلوب)، `feature_request_id` (اختياري)
-- يسحب `qwen3.5:397b-cloud` + `deepseek-v4-pro:cloud` من سحابة Ollama
+- يسحب `qwen3.5:397b-cloud` + `gpt-oss:120b-cloud` من سحابة Ollama
 - يلتزم الخطة المُولَّدة تحت `features/plans/` (عند تقديم feature request id)
 - يرفع قطعة `build/planning/*.json`
 
@@ -117,7 +117,7 @@ planner {
 
 | العَرَض | الإصلاح |
 |---------|---------|
-| `Connection refused localhost:11434` | ابدأ Ollama: `ollama serve`؛ اسحب النموذج: `ollama pull deepseek-v4-pro:cloud` |
+| `Connection refused localhost:11434` | ابدأ Ollama: `ollama serve`؛ اسحب النموذج: `ollama pull gpt-oss:120b-cloud` |
 | LLM يُعيد JSON تالفًا | أعد المحاولة (إعادة محاولة 3× مدمجة في `OllamaBridge`)؛ تحقق من ميزانية الرموز في `IntentionPlanner` |
 | `Java heap space` | `export GRADLE_OPTS="-Xmx2g"` |
 | المنفذ `11434` محظور | استخدم منفذًا في `11437–11465`؛ مرّر `-PollamaBaseUrl=http://localhost:11437` |

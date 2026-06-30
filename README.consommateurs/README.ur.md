@@ -61,7 +61,7 @@ plugins {
 ```bash
 ./gradlew generatePlan \
   --intention="..." \
-  --ollamaModel="deepseek-v4-pro:cloud" \
+  --ollamaModel="gpt-oss:120b-cloud" \
   --ollamaBaseUrl="http://localhost:11434"
 ```
 
@@ -78,7 +78,7 @@ plugins {
 
 ```gradle
 planner {
-    ollamaModel    = "deepseek-v4-pro:cloud"   // طے شدہ
+    ollamaModel    = "gpt-oss:120b-cloud"   // طے شدہ
     ollamaBaseUrl  = "http://localhost:11434"  // طے شدہ
     intention      = "Your default intention"  // اختیاری، -Pintention سے اوورائیڈ قابل
     specsDir       = layout.projectDirectory.dir("specs")  // اختیاری RAG منبع
@@ -92,7 +92,7 @@ planner {
 
 - **Java** 24+ (Kotlin 2.3.20 ٹول چین)
 - **Gradle** 9.5+ (ٹول چین آٹو-پروویژننگ کے لیے foojay-resolver-convention 1.0.0)
-- **Ollama** مقامی طور پر (یا بعید) چل رہا ہے، `deepseek-v4-pro:cloud` پیش کر رہا ہے
+- **Ollama** مقامی طور پر (یا بعید) چل رہا ہے، `gpt-oss:120b-cloud` پیش کر رہا ہے
 - پورٹس `11434–11436` عالمی سطح پر ممنوع ہیں؛ `11437–11465` پر روٹیشن کریں۔
   مجاز ماڈلز: `gpt-oss:120b-cloud`、`gemma4:31b-cloud`۔
 
@@ -111,7 +111,7 @@ planner {
 ٹرگر ظاہر کرتا ہے:
 
 - ان پٹس: `intention` (لازمی)、`feature_request_id` (اختیاری)
-- Ollama کلاؤڈ سے `qwen3.5:397b-cloud` + `deepseek-v4-pro:cloud` کھینچتا ہے
+- Ollama کلاؤڈ سے `qwen3.5:397b-cloud` + `gpt-oss:120b-cloud` کھینچتا ہے
 - پیدا کردہ پلان کو `features/plans/` کے تحت کمٹ کرتا ہے (جب feature request id دیا گیا ہو)
 - `build/planning/*.json` آرٹی فیکٹ اپ لوڈ کرتا ہے
 
@@ -119,7 +119,7 @@ planner {
 
 | علامت | حل |
 |-------|-----|
-| `Connection refused localhost:11434` | Ollama شروع کریں: `ollama serve`; ماڈل کھینچیں: `ollama pull deepseek-v4-pro:cloud` |
+| `Connection refused localhost:11434` | Ollama شروع کریں: `ollama serve`; ماڈل کھینچیں: `ollama pull gpt-oss:120b-cloud` |
 | LLM مسخ شدہ JSON لوٹاتا ہے | دوبارہ کوشش کریں (`OllamaBridge` میں اندرونی 3× ری-ٹرائی); `IntentionPlanner` میں ٹوکن بجٹ چیک کریں |
 | `Java heap space` | `export GRADLE_OPTS="-Xmx2g"` |
 | پورٹ `11434` ممنوع | `11437–11465` میں ایک پورٹ استعمال کریں; `-PollamaBaseUrl=http://localhost:11437` پاس کریں |

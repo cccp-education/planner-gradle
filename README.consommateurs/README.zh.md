@@ -60,7 +60,7 @@ plugins {
 ```bash
 ./gradlew generatePlan \
   --intention="..." \
-  --ollamaModel="deepseek-v4-pro:cloud" \
+  --ollamaModel="gpt-oss:120b-cloud" \
   --ollamaBaseUrl="http://localhost:11434"
 ```
 
@@ -77,7 +77,7 @@ plugins {
 
 ```gradle
 planner {
-    ollamaModel    = "deepseek-v4-pro:cloud"   // 默认
+    ollamaModel    = "gpt-oss:120b-cloud"   // 默认
     ollamaBaseUrl  = "http://localhost:11434"  // 默认
     intention      = "Your default intention"  // 可选，可通过 -Pintention 覆盖
     specsDir       = layout.projectDirectory.dir("specs")  // 可选 RAG 源
@@ -91,7 +91,7 @@ planner {
 
 - **Java** 24+（Kotlin 2.3.20 工具链）
 - **Gradle** 9.5+（foojay-resolver-convention 1.0.0 用于工具链自动配置）
-- **Ollama** 本地（或远程）运行，提供 `deepseek-v4-pro:cloud`
+- **Ollama** 本地（或远程）运行，提供 `gpt-oss:120b-cloud`
 - 端口 `11434–11436` 全局禁止；在 `11437–11465` 间轮换。
   授权模型：`gpt-oss:120b-cloud`、`gemma4:31b-cloud`。
 
@@ -109,7 +109,7 @@ planner {
 `decompose.yml` 工作流暴露了 `workflow_dispatch` 触发器，可从 GitHub Actions UI 生成计划：
 
 - 输入：`intention`（必需）、`feature_request_id`（可选）
-- 从 Ollama 云端拉取 `qwen3.5:397b-cloud` + `deepseek-v4-pro:cloud`
+- 从 Ollama 云端拉取 `qwen3.5:397b-cloud` + `gpt-oss:120b-cloud`
 - 将生成的计划提交至 `features/plans/`（当提供 feature request id 时）
 - 上传 `build/planning/*.json` 工件
 
@@ -117,7 +117,7 @@ planner {
 
 | 症状 | 修复 |
 |------|------|
-| `Connection refused localhost:11434` | 启动 Ollama：`ollama serve`；拉取模型：`ollama pull deepseek-v4-pro:cloud` |
+| `Connection refused localhost:11434` | 启动 Ollama：`ollama serve`；拉取模型：`ollama pull gpt-oss:120b-cloud` |
 | LLM 返回格式错误的 JSON | 重试（`OllamaBridge` 内置 3× 重试）；检查 `IntentionPlanner` 中的 token 预算 |
 | `Java heap space` | `export GRADLE_OPTS="-Xmx2g"` |
 | 端口 `11434` 被禁止 | 使用 `11437–11465` 中的端口；传入 `-PollamaBaseUrl=http://localhost:11437` |

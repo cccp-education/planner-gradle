@@ -57,7 +57,7 @@ planner-plugin/
 
 पोर्ट `11434–11436` निषिद्ध हैं। `11437–11465` पर रोटेशन (29 पोर्ट)।
 अधिकृत मॉडल: `gpt-oss:120b-cloud`, `gemma4:31b-cloud`।
-`PlanningPlugin` में डिफ़ॉल्ट मॉडल: `deepseek-v4-pro:cloud`।
+`PlanningPlugin` में डिफ़ॉल्ट मॉडल: `gpt-oss:120b-cloud`।
 
 ## परीक्षण आव्यूह
 
@@ -100,7 +100,7 @@ export GRADLE_OPTS="-Xmx2g"
 1. **test.yml** — `main`/`master` पर push/PR पर `./gradlew :planner-plugin:build`
    (JDK 24 Temurin, 15 मिनट timeout, `gradle/actions/setup-gradle@v4`)।
 2. **decompose.yml** — मैन्युअल ट्रिगर `workflow_dispatch`: Ollama इंस्टॉल करता है, device key
-   `OLLAMA_DEVICE_KEY_A` सेट करता है, `qwen3.5:397b-cloud` + `deepseek-v4-pro:cloud` खींचता है,
+   `OLLAMA_DEVICE_KEY_A` सेट करता है, `qwen3.5:397b-cloud` + `gpt-oss:120b-cloud` खींचता है,
    `./gradlew generatePlan -Pintention=... -Pfeature.request.id=...` चलाता है, प्लान को
    `features/plans/` के अंतर्गत कमिट करता है, `build/planning/*.json` आर्टिफैक्ट अपलोड करता है।
 

@@ -61,7 +61,7 @@ plugins {
 ```bash
 ./gradlew generatePlan \
   --intention="..." \
-  --ollamaModel="deepseek-v4-pro:cloud" \
+  --ollamaModel="gpt-oss:120b-cloud" \
   --ollamaBaseUrl="http://localhost:11434"
 ```
 
@@ -78,7 +78,7 @@ plugins {
 
 ```gradle
 planner {
-    ollamaModel    = "deepseek-v4-pro:cloud"   // डिफ़ॉल्ट
+    ollamaModel    = "gpt-oss:120b-cloud"   // डिफ़ॉल्ट
     ollamaBaseUrl  = "http://localhost:11434"  // डिफ़ॉल्ट
     intention      = "Your default intention"  // वैकल्पिक, -Pintention द्वारा अध्यारोहण योग्य
     specsDir       = layout.projectDirectory.dir("specs")  // वैकल्पिक RAG स्रोत
@@ -92,7 +92,7 @@ planner {
 
 - **Java** 24+ (Kotlin 2.3.20 टूलचेन)
 - **Gradle** 9.5+ (टूलचेन ऑटो-प्रोविजनिंग के लिए foojay-resolver-convention 1.0.0)
-- **Ollama** स्थानीय रूप से (या दूरस्थ) चल रहा है, `deepseek-v4-pro:cloud` सेवित करता है
+- **Ollama** स्थानीय रूप से (या दूरस्थ) चल रहा है, `gpt-oss:120b-cloud` सेवित करता है
 - पोर्ट `11434–11436` वैश्विक रूप से निषिद्ध हैं; `11437–11465` पर रोटेशन करें।
   अधिकृत मॉडल: `gpt-oss:120b-cloud`、`gemma4:31b-cloud`।
 
@@ -111,7 +111,7 @@ planner {
 ट्रिगर उजागर करता है:
 
 - इनपुट: `intention` (अनिवार्य)、`feature_request_id` (वैकल्पिक)
-- Ollama क्लाउड से `qwen3.5:397b-cloud` + `deepseek-v4-pro:cloud` खींचता है
+- Ollama क्लाउड से `qwen3.5:397b-cloud` + `gpt-oss:120b-cloud` खींचता है
 - उत्पन्न योजना को `features/plans/` के अंतर्गत कमिट करता है (जब feature request id दिया गया हो)
 - `build/planning/*.json` आर्टिफैक्ट अपलोड करता है
 
@@ -119,7 +119,7 @@ planner {
 
 | लक्षण | समाधान |
 |-------|--------|
-| `Connection refused localhost:11434` | Ollama प्रारंभ करें: `ollama serve`; मॉडल खींचें: `ollama pull deepseek-v4-pro:cloud` |
+| `Connection refused localhost:11434` | Ollama प्रारंभ करें: `ollama serve`; मॉडल खींचें: `ollama pull gpt-oss:120b-cloud` |
 | LLM विकृत JSON लौटाता है | पुनः प्रयास करें (`OllamaBridge` में अंतर्निहित 3× रिट्राय); `IntentionPlanner` में टोकन बजट जाँचें |
 | `Java heap space` | `export GRADLE_OPTS="-Xmx2g"` |
 | पोर्ट `11434` निषिद्ध | `11437–11465` में एक पोर्ट उपयोग करें; `-PollamaBaseUrl=http://localhost:11437` पास करें |

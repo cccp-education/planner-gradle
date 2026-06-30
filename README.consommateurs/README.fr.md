@@ -62,7 +62,7 @@ Contexte RAG optionnel depuis des specs existantes :
 ```bash
 ./gradlew generatePlan \
   --intention="..." \
-  --ollamaModel="deepseek-v4-pro:cloud" \
+  --ollamaModel="gpt-oss:120b-cloud" \
   --ollamaBaseUrl="http://localhost:11434"
 ```
 
@@ -79,7 +79,7 @@ Contexte RAG optionnel depuis des specs existantes :
 
 ```gradle
 planner {
-    ollamaModel    = "deepseek-v4-pro:cloud"   // défaut
+    ollamaModel    = "gpt-oss:120b-cloud"   // défaut
     ollamaBaseUrl  = "http://localhost:11434"  // défaut
     intention      = "Votre intention par défaut"  // optionnel, surchargeable via -Pintention
     specsDir       = layout.projectDirectory.dir("specs")  // source RAG optionnelle
@@ -93,7 +93,7 @@ Toutes les propriétés d'extension sont surchargeables à l'appel via les propr
 
 - **Java** 24+ (toolchain Kotlin 2.3.20)
 - **Gradle** 9.5+ (foojay-resolver-convention 1.0.0 pour l'auto-provisioning du toolchain)
-- **Ollama** en local (ou distant), servant `deepseek-v4-pro:cloud`
+- **Ollama** en local (ou distant), servant `gpt-oss:120b-cloud`
 - Les ports `11434–11436` sont interdits globalement ; rotation sur `11437–11465`.
   Modèles autorisés : `gpt-oss:120b-cloud`, `gemma4:31b-cloud`.
 
@@ -112,7 +112,7 @@ Le workflow `decompose.yml` expose un trigger `workflow_dispatch` pour générer
 depuis l'UI GitHub Actions :
 
 - Entrées : `intention` (requis), `feature_request_id` (optionnel)
-- Pull `qwen3.5:397b-cloud` + `deepseek-v4-pro:cloud` depuis Ollama cloud
+- Pull `qwen3.5:397b-cloud` + `gpt-oss:120b-cloud` depuis Ollama cloud
 - Committe le plan généré sous `features/plans/` (quand un id de feature request est fourni)
 - Upload l'artefact `build/planning/*.json`
 
@@ -120,7 +120,7 @@ depuis l'UI GitHub Actions :
 
 | Symptôme | Correctif |
 |----------|-----------|
-| `Connection refused localhost:11434` | Démarrer Ollama : `ollama serve` ; puller le modèle : `ollama pull deepseek-v4-pro:cloud` |
+| `Connection refused localhost:11434` | Démarrer Ollama : `ollama serve` ; puller le modèle : `ollama pull gpt-oss:120b-cloud` |
 | Le LLM renvoie du JSON malformé | Retry (retry 3× intégré dans `OllamaBridge`) ; vérifier le budget de tokens dans `IntentionPlanner` |
 | `Java heap space` | `export GRADLE_OPTS="-Xmx2g"` |
 | Port `11434` interdit | Utiliser un port dans `11437–11465` ; passer `-PollamaBaseUrl=http://localhost:11437` |
