@@ -4,10 +4,10 @@
 _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
-_Derniere mise a jour_ : 2026-06-30
-_Session terminee_ : 055 — SEC-1 : tests generatePlan sans mock corrigés + purge deepseek CI ✅
-_Sessions precedent_ : 054/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
-_Prochaine session_ : 056 — maintenance
+_Derniere mise a jour_ : 2026-07-03
+_Session terminee_ : 056 — CNV-6 Migration — convention plugins education.cccp.build.* v0.0.1 appliquées, -53 lignes, compileKotlin SUCCESS ✅ TERMINE
+_Sessions precedent_ : 055/054/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
+_Prochaine session_ : 057 — maintenance
 
 '''
 == REGLES ABSOLUES
@@ -37,6 +37,7 @@ _Prochaine session_ : 056 — maintenance
 
 |===
 | # | Date | Type | Sujet | Score
+| 056 | 2026-07-03 | dev | CNV-6 Migration — convention plugins education.cccp.build.* v0.0.1 appliquées, -53 lignes, compileKotlin SUCCESS | ✅ TERMINE
 | 053 | 2026-06-24 | doc | README i18n — 10 langues × 2 guides (consommateurs + plugin) = 20 fichiers, badges/shields, markers 0.0.1, switcher i18n, AR/UR RTL | 9/10
 | 052 | 2026-06-19 | fix | Fix POM developer email — cccp.education@gmail.com → cccp.edu@gmail.com | 9/10
 | 051 | 2026-06-11 | publish | Publication Maven Central 0.0.1 — codebase-contracts:0.1.0→0.0.1, POM sans guard, Sonatype→nmcp, settings nmcp | 10/10

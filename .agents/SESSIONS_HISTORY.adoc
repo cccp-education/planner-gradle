@@ -1,9 +1,10 @@
 = HISTORIQUE DES SESSIONS — Planner Gradle
-:date: 2026-06-24
+:date: 2026-07-03
 
 [cols="2,2,3,3", options="header"]
 |===
 | Session | Date | Type | Sujet
+| 056 | 2026-07-03 | dev | CNV-6 Migration — convention plugins education.cccp.build.* v0.0.1 appliquées (pattern bakery gradle-plugin + publishing). build.gradle.kts 125→72 lignes (-53). Variantes gardées : kotlin.serialization, plugin-publish, exceptionFormat FULL, EnableDynamicAgentLoading. compileKotlin SUCCESS, BUILD SUCCESS.
 | 054 | 2026-06-24 | refactor README | Architecture README Plugin + Consommateur — déplacement README.plugin → planner-plugin/, README.consommateurs → racine, liens i18n recréés (10 langues)
 | 053 | 2026-06-24 | doc | README i18n — 10 langues × 2 guides (consommateurs + plugin) = 20 fichiers, badges/shields, markers 0.0.1, switcher i18n, AR/UR RTL
 | 052 | 2026-06-19 | fix | Fix POM developer email — cccp.education@gmail.com → cccp.edu@gmail.com

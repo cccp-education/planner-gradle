@@ -1,24 +1,14 @@
-import org.gradle.api.JavaVersion.VERSION_24
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 
 plugins {
-    signing
-    `java-library`
-    `maven-publish`
-    `java-gradle-plugin`
-    alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.publish)
+    id("education.cccp.build.gradle-plugin") version "0.0.1"
+    id("education.cccp.build.publishing") version "0.0.1"
     kotlin("plugin.serialization") version libs.versions.kotlin.get()
 }
 
 group = "education.cccp"
 version = libs.plugins.planner.get().version
-kotlin.jvmToolchain(24)
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
@@ -39,11 +29,8 @@ dependencies {
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform()
     jvmArgs("-XX:+EnableDynamicAgentLoading")
     testLogging {
-        events("passed", "skipped", "failed")
-        showStandardStreams = true
         exceptionFormat = FULL
     }
 }
@@ -67,9 +54,8 @@ gradlePlugin {
     }
 }
 
-java {
-    withJavadocJar()
-    withSourcesJar()
+publishingConventions {
+    publicationType = "PLUGIN"
 }
 
 publishing {
@@ -78,48 +64,10 @@ publishing {
             pom {
                 name.set("Planner Gradle Plugin")
                 description.set(gradlePlugin.plugins.getByName("planner").description)
-                url.set(gradlePlugin.website.get())
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("cccp-education")
-                        name.set("CCCP Education")
-                        email.set("cccp.edu@gmail.com")
-                    }
-                }
-                scm {
-                    connection.set(gradlePlugin.vcsUrl.get())
-                    developerConnection.set(gradlePlugin.vcsUrl.get())
-                    url.set(gradlePlugin.vcsUrl.get())
-                }
-                project.findProperty("relocationGroup")?.let { targetGroup ->
-                    withXml {
-                        val pom = asElement()
-                        val doc = pom.ownerDocument
-                        val distMgmt = doc.createElement("distributionManagement")
-                        val relocation = doc.createElement("relocation")
-                        relocation.appendChild(doc.createElement("groupId")).also { it.textContent = targetGroup.toString() }
-                        relocation.appendChild(doc.createElement("artifactId")).also { it.textContent = project.name }
-                        distMgmt.appendChild(relocation)
-                        pom.appendChild(distMgmt)
-                    }
-                }
             }
         }
     }
     repositories {
         mavenCentral()
     }
-}
-
-signing {
-    if (System.getenv("CI") != "true" && !version.toString().endsWith("-SNAPSHOT")) {
-        sign(publishing.publications)
-    }
-    useGpgCmd()
 }
