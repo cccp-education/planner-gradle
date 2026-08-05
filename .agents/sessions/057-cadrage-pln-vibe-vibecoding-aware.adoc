@@ -1,0 +1,98 @@
+= Session 057 — Cadrage EPIC PLN-VIBE (planner vibecoding-aware)
+:date: 2026-08-06
+:type: governance
+:score: 9/10
+
+== Contexte
+
+Suite a la synchronisation de la gouvernance workspace (6 boroughs + HTOWN),
+audit strategique du pipeline vibecoding generatif de contenu. Constat : planner
+est le cerveau du vibecoding (`PlannerIntegration.kt` dans codebase appelle
+`IntentionPlanner.plan()`), mais le modele `Task` ne supporte que `gradleTask`
+(pas edit_file/exec_shell). Le `ToolRegistry` de codebase sait deja executer
+7 outils (read/write/edit/list/exec_shell/exec_gradle/list_tasks), mais planner
+ne les planifie pas — le prompt produit uniquement des taches Gradle.
+
+== Objectif
+
+Eprouver la maturite de planner comme planificateur vibecoding generatif de
+contenu depuis la gouvernance agentique du workspace. Planner doit pouvoir
+parler aux createurs de contenu (slider/bakery/capsule/plantuml/codebase)
+via le hub codebase, en produisant des plans multi-outil (edit/shell/gradle).
+
+== Audit planner existant (11 fichiers, ~600 lignes prod)
+
+| Fichier | Role | Lignes |
+|---|---|---|
+| `Plan.kt` | Modele `Plan(Epic/UserStory/Task)` — Task n'a que `description` + `gradleTask` | 31 |
+| `LLMResponse.kt` | DTO Jackson pour parse LLM — `LLMTask` idem (gradleTask only) | 63 |
+| `IntentionPlanner.kt` | Coeur LLM : `plan()` -> Ollama -> parse -> `Plan`. 3 overloads. Prompt "Planning Expert for Gradle plugin project" | 166 |
+| `DecomposeIntentionTask.kt` | Tache Gradle `generatePlan` — 4 canaux contexte (EAGER/RAG/graphify/docs) + `CompositeContext` typed | 144 |
+| `PlanningPlugin.kt` | Plugin — 1 tache `generatePlan`. Note : `vibecode` supprimee (split-brain S-049) | 22 |
+| `PlannerExtension.kt` | DSL : ollamaModel, ollamaBaseUrl, intention, specsDir | 11 |
+| `OllamaBridge.kt` | Builder `OllamaChatModel` (langchain4j) | 24 |
+| `SpecReader.kt` | Lecture specs `.adoc` (token budget 2000) | 34 |
+| `Metadata.kt` | Format pivot metadata.json | 35 |
+| `StdoutFormatter.kt` | Sortie stdout `[PLAN] [EPIC] [US] [TASK]` | 17 |
+| `PlanningContext.kt` | `data class PlanningContext(intention, specs)` | 9 |
+
+Gap identifie : `Task` ne modelise que `gradleTask: String`. Pas de `toolType`,
+pas d'action pour edit_file/exec_shell. Le prompt produit uniquement des taches Gradle.
+
+== Code reutilisable trouve (boroughs publics)
+
+| Borough | Pattern | Reutilisable pour |
+|---|---|---|
+| codebase `VibecodingPlan.kt` | `VibecodingStep(description, gradleTask, expectedOutput, maxRetries, verifyHook)` + `RollbackStrategy` enum | Modele de Step enrichi (verify hook, retries) |
+| codebase `ToolRegistry.kt` | 7 outils (read/write/edit_file, list_directory, exec_shell, exec_gradle) + `ToolInfo` + enforcement hook | Catalogue d'outils que planner doit connaitre |
+| codebase `StepVerifier.kt` | `TaskVerdict` enum (SUCCESS/FAILED/BLOCKED/UNKNOWN) + verify->adapt | Pattern validation resultat |
+| workspace-bom `AgentState.kt` | `GradleTask(description, gradleTask, project)` — champ `project` deja present + `AgentState` sealed | Contrat N0 partage — planner devrait emettre ce contrat |
+| workspace-bom `GradleTaskTool.kt` | Tool koog cross-borough (`:project:task`) avec blacklist + timeout | Deja cable pour piloter autres boroughs |
+| slider `ValidationResult.kt` | Sealed `Valid(json)` / `Invalid(error)` + invariants `init` | Pattern validation du Plan produit |
+| slider `DeckState.kt` | Data class immutable + invariants croises `init{}` + `DeckStage` enum lifecycle | Pattern lifecycle du Plan |
+
+== Cadrage EPIC PLN-VIBE — planner vibecoding-aware
+
+Vision : planner produit des plans vibecoding (edit/shell/gradle) depuis la
+gouvernance workspace, pilotant les createurs de contenu via codebase.
+
+[cols="1,3,1,2", options="header"]
+|===
+| US | Description | Pts | Inspire de
+| PLN-VIBE-0 | Cadrage EPIC — vision, inventaire gap, decoupage US. Maj INDEX/BACKLOG/PROMPT_REPRISE | 1 | —
+| PLN-VIBE-1 | `TaskType` enum (GRADLE, EDIT_FILE, EXEC_SHELL) + etendre `Task` (toolType, target optionnel). Invariants `init`. Tests constructeur. ~8 unit | 2 | slider DeckState invariants
+| PLN-VIBE-2 | `LLMTask` etendu (toolType, target) + `LLMResponse.toPlan()` mis a jour. Tests parse JSON. ~6 unit | 2 | —
+| PLN-VIBE-3 | Prompt `IntentionPlanner` enrichi : catalogue outils (read/write/edit/shell/gradle + cross-borough `:slider:`, `:capsule:`...) + regles planification multi-outil. Tests `buildPrompt` asserts presence catalogue. ~5 unit | 2 | codebase ToolRegistry toolNames/descriptions
+| PLN-VIBE-4 | `StdoutFormatter` etendu — affiche `toolType`. `DecomposeIntentionTask` passe nouveau modele. Tests format. ~4 unit | 1 | —
+| PLN-VIBE-5 | Cucumber BDD — `planner_vibecoding.feature` : scenarios (intention -> plan avec tasks edit/gradle/shell, validation invariants, pas de replan EPIC TERMINE). ~4 scenarios | 3 | slider Cucumber pipeline + slider ValidationResult sealed
+|===
+
+Total : 6 US, ~12 pts. Methode : baby-step DDD/TDD/BDD, 3 niveaux tests/US
+(unit -> functional -> cucumber), English only code/Gherkin. Zero regression
+(tests existants PLN-7 IntentionPlanner/LLMResponse restent VERT).
+
+Non-regression critique : `PlannerIntegration.kt` (codebase) appelle
+`IntentionPlanner.plan()` et fait `planningPlan.toContractPlan()`. L'extension
+de `Task` doit rester compatible — ajouter `toolType` avec defaut `GRADLE` +
+`target` avec defaut `""` preserve le contrat existant.
+
+== Decision pilote
+
+Cadrage valide. Decision : planner doit parler aux createurs de contenu
+(slider/bakery/capsule/plantuml/codebase) via le hub codebase, en produisant
+des plans multi-outil (edit/shell/gradle). Le couplage se fait via codebase
+(pattern DAG N1->N2, pas de couplage direct N2->N2).
+
+== Livrables session
+
+. Cadrage EPIC PLN-VIBE documente (6 US, ~12 pts)
+. Audit complet planner existant (11 fichiers)
+. Audit code reutilisable 4 boroughs (codebase, workspace-bom, slider)
+. Maj gouvernance : INDEX, BACKLOG, PROMPT_REPRISE, SESSIONS_HISTORY
+. Snapshot AGENTS.adoc racine + commit/push configuration
+
+== Prochaine session
+
+058 — PLN-VIBE-1 : `TaskType` enum + etendre `Task` (toolType, target).
+Baby-step TDD strict (RED -> GREEN -> REFACTOR). Verifier `./gradlew
+:planner-plugin:compileKotlin` VERT + tests existants PLN-7 PASS.

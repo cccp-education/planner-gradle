@@ -4,10 +4,10 @@
 _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
-_Derniere mise a jour_ : 2026-07-03
-_Session terminee_ : 056 — CNV-6 Migration — convention plugins education.cccp.build.* v0.0.1 appliquées, -53 lignes, compileKotlin SUCCESS ✅ TERMINE
-_Sessions precedent_ : 055/054/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
-_Prochaine session_ : 057 — maintenance
+_Derniere mise a jour_ : 2026-08-06
+_Session terminee_ : 057 — Cadrage EPIC PLN-VIBE (planner vibecoding-aware). Audit planner existant (11 fichiers, ~600 lignes) + code reutilisable 4 boroughs. 6 US ~12 pts validees par pilote. Baby-step TDD/BDD. Zero regression (tests PLN-7 preserves).
+_Sessions precedent_ : 056/055/054/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
+_Prochaine session_ : 058 — PLN-VIBE-1 : TaskType enum (GRADLE, EDIT_FILE, EXEC_SHELL) + etendre Task (toolType, target). Invariants init. Baby-step TDD strict.
 
 '''
 == REGLES ABSOLUES
@@ -37,6 +37,7 @@ _Prochaine session_ : 057 — maintenance
 
 |===
 | # | Date | Type | Sujet | Score
+| 057 | 2026-08-06 | governance | **Cadrage EPIC PLN-VIBE** — planner vibecoding-aware. Audit planner existant (11 fichiers, ~600 lignes). Gap : `Task` ne modelise que `gradleTask` (pas edit_file/exec_shell). `ToolRegistry` codebase sait deja executer 7 outils. Code reutilisable : codebase VibecodingPlan/StepVerifier/ToolRegistry, workspace-bom AgentState/GradleTask (champ project), slider ValidationResult sealed/DeckState invariants. 6 US ~12 pts validees. | 9/10
 | 056 | 2026-07-03 | dev | CNV-6 Migration — convention plugins education.cccp.build.* v0.0.1 appliquées, -53 lignes, compileKotlin SUCCESS | ✅ TERMINE
 | 053 | 2026-06-24 | doc | README i18n — 10 langues × 2 guides (consommateurs + plugin) = 20 fichiers, badges/shields, markers 0.0.1, switcher i18n, AR/UR RTL | 9/10
 | 052 | 2026-06-19 | fix | Fix POM developer email — cccp.education@gmail.com → cccp.edu@gmail.com | 9/10
@@ -81,6 +82,63 @@ _Prochaine session_ : 057 — maintenance
 | PLN-7 | Tests : IntentionPlanner, OllamaBridge, LLMResponse.toPlan(), TestKit | ✅ TERMINE | P1
 | Publication Maven Central 0.0.1 | nmcp, POM sans guard, codebase-contracts:0.0.1, settings nmcp | ✅ 2026-06-11 | P2
 |===
+
+'''
+== EPIC PLN-VIBE — Planner Vibecoding-Aware (Session 057 — Cadrage)
+
+_Source_ : Session 057 — audit strategique pipeline vibecoding. Planner est
+le cerveau du vibecoding (`PlannerIntegration.kt` dans codebase appelle
+`IntentionPlanner.plan()`), mais le modele `Task` ne supporte que `gradleTask`.
+`ToolRegistry` de codebase sait deja executer 7 outils (read/write/edit_file,
+list_directory, exec_shell, exec_gradle, list_tasks). Le prompt planner
+produit uniquement des taches Gradle — il doit planifier multi-outil (edit/shell/gradle)
+et piloter les createurs de contenu (slider/bakery/capsule/plantuml) via le hub codebase.
+
+_Dependances_ : codebase (ToolRegistry catalogue), workspace-bom (AgentState/GradleTask contrat).
+
+[cols="1,3,1,2", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| PLN-VIBE-0
+| *Cadrage EPIC* — vision, inventaire gap, decoupage US. Maj INDEX/BACKLOG/PROMPT_REPRISE
+| 1
+| ✅ TERMINÉ (S-057)
+
+| PLN-VIBE-1
+| `TaskType` enum (GRADLE, EDIT_FILE, EXEC_SHELL) + etendre `Task` (toolType, target optionnel). Invariants `init`. Tests constructeur. ~8 unit. Inspire slider DeckState invariants.
+| 2
+| ⬜ TODO
+
+| PLN-VIBE-2
+| `LLMTask` etendu (toolType, target) + `LLMResponse.toPlan()` mis a jour. Tests parse JSON. ~6 unit
+| 2
+| ⬜ TODO
+
+| PLN-VIBE-3
+| Prompt `IntentionPlanner` enrichi : catalogue outils (read/write/edit/shell/gradle + cross-borough `:slider:`, `:capsule:`...) + regles planification multi-outil. Tests `buildPrompt` asserts presence catalogue. ~5 unit. Inspire codebase ToolRegistry toolNames/descriptions.
+| 2
+| ⬜ TODO
+
+| PLN-VIBE-4
+| `StdoutFormatter` etendu — affiche `toolType`. `DecomposeIntentionTask` passe nouveau modele. Tests format. ~4 unit
+| 1
+| ⬜ TODO
+
+| PLN-VIBE-5
+| Cucumber BDD — `planner_vibecoding.feature` : scenarios (intention -> plan avec tasks edit/gradle/shell, validation invariants, pas de replan EPIC TERMINE). ~4 scenarios. Inspire slider Cucumber pipeline + slider ValidationResult sealed.
+| 3
+| ⬜ TODO
+|===
+
+_Total_ : 6 US, ~12 pts. _Methode_ : baby-step DDD/TDD/BDD, 3 niveaux tests/US
+(unit -> functional -> cucumber), English only code/Gherkin. _Statut_ : cadrage
+valide (S-057), execution TODO (S-058+).
+
+_Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
+`IntentionPlanner.plan()` et fait `planningPlan.toContractPlan()`. L'extension
+de `Task` doit rester compatible — ajouter `toolType` avec defaut `GRADLE` +
+`target` avec defaut `""` preserve le contrat existant.
 
 '''
 == Fichiers Associes

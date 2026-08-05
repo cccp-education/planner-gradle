@@ -1,6 +1,6 @@
 = Backlog — Manhattan (planner-gradle)
 :description: Backlog de publication Maven Central — EPIC PUB
-:date: 2026-06-08
+:date: 2026-08-06
 :toc: left
 :sectnums:
 
@@ -48,3 +48,29 @@ Par :
 | Artefact | URL |
 |---|---|
 | planner-plugin | https://central.sonatype.com/artifact/education.cccp/planner-plugin |
+
+'''
+== EPIC PLN-VIBE — Planner Vibecoding-Aware
+
+_Source_ : Session 057. Planner est le cerveau du vibecoding mais ne planifie
+que des taches Gradle. `ToolRegistry` de codebase sait deja executer 7 outils
+(read/write/edit_file, list_directory, exec_shell, exec_gradle, list_tasks).
+Planner doit planifier multi-outil (edit/shell/gradle) et piloter les createurs
+de contenu (slider/bakery/capsule/plantuml) via le hub codebase.
+
+_Dependances_ : codebase (ToolRegistry catalogue), workspace-bom (AgentState/GradleTask).
+
+[cols="1,3,1,1", options="header"]
+|===
+| US | Description | Pts | Statut
+| PLN-VIBE-0 | Cadrage EPIC — vision, inventaire gap, decoupage US | 1 | ✅ TERMINÉ (S-057)
+| PLN-VIBE-1 | `TaskType` enum (GRADLE, EDIT_FILE, EXEC_SHELL) + etendre `Task` (toolType, target). Invariants `init`. ~8 unit | 2 | ⬜ TODO
+| PLN-VIBE-2 | `LLMTask` etendu (toolType, target) + `LLMResponse.toPlan()` mis a jour. ~6 unit | 2 | ⬜ TODO
+| PLN-VIBE-3 | Prompt `IntentionPlanner` enrichi : catalogue outils + cross-borough. ~5 unit | 2 | ⬜ TODO
+| PLN-VIBE-4 | `StdoutFormatter` etendu — affiche `toolType`. `DecomposeIntentionTask` passe nouveau modele. ~4 unit | 1 | ⬜ TODO
+| PLN-VIBE-5 | Cucumber BDD — `planner_vibecoding.feature` : scenarios multi-outil. ~4 scenarios | 3 | ⬜ TODO
+|===
+
+_Total_ : 6 US, ~12 pts. _Methode_ : baby-step TDD/BDD, English only.
+_Non-regression_ : `toolType` defaut `GRADLE` + `target` defaut `""` preserve
+`PlannerIntegration.kt` (codebase).
