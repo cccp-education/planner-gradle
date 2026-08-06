@@ -1,0 +1,7 @@
+= COMPLETED_TASKS_ARCHIVE — planner-gradle — Août 2026
+
+|===
+| Date | Tâche | Borough | Statut | Score
+| 2026-08-06 | Session 057 — Cadrage EPIC PLN-VIBE (planner vibecoding-aware). Audit planner existant + code réutilisable 4 boroughs. 6 US ~12 pts validées. | planner-gradle | ✅ | 9/10
+| 2026-08-06 | Session 058 — PLN-VIBE-1/2/3/4 : TaskType enum + Task étendu (toolType, target, 3 invariants init), LLMTask étendu + toTask() internal, prompt enrichi (catalogue 6 outils + cross-borough), StdoutFormatter affiche toolType. 24 nouveaux tests unitaires VERT. | planner-gradle | ✅ | 9/10
+|===

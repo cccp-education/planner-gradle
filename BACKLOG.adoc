@@ -64,10 +64,10 @@ _Dependances_ : codebase (ToolRegistry catalogue), workspace-bom (AgentState/Gra
 |===
 | US | Description | Pts | Statut
 | PLN-VIBE-0 | Cadrage EPIC — vision, inventaire gap, decoupage US | 1 | ✅ TERMINÉ (S-057)
-| PLN-VIBE-1 | `TaskType` enum (GRADLE, EDIT_FILE, EXEC_SHELL) + etendre `Task` (toolType, target). Invariants `init`. ~8 unit | 2 | ⬜ TODO
-| PLN-VIBE-2 | `LLMTask` etendu (toolType, target) + `LLMResponse.toPlan()` mis a jour. ~6 unit | 2 | ⬜ TODO
-| PLN-VIBE-3 | Prompt `IntentionPlanner` enrichi : catalogue outils + cross-borough. ~5 unit | 2 | ⬜ TODO
-| PLN-VIBE-4 | `StdoutFormatter` etendu — affiche `toolType`. `DecomposeIntentionTask` passe nouveau modele. ~4 unit | 1 | ⬜ TODO
+| PLN-VIBE-1 | `TaskType` enum (GRADLE, EDIT_FILE, EXEC_SHELL) + etendre `Task` (toolType, target). Invariants `init`. ~8 unit | 2 | ✅ TERMINÉ (S-058)
+| PLN-VIBE-2 | `LLMTask` etendu (toolType, target) + `LLMResponse.toPlan()` mis a jour. ~6 unit | 2 | ✅ TERMINÉ (S-058)
+| PLN-VIBE-3 | Prompt `IntentionPlanner` enrichi : catalogue outils + cross-borough. ~5 unit | 2 | ✅ TERMINÉ (S-058)
+| PLN-VIBE-4 | `StdoutFormatter` etendu — affiche `toolType`. `DecomposeIntentionTask` passe nouveau modele. ~4 unit | 1 | ✅ TERMINÉ (S-058)
 | PLN-VIBE-5 | Cucumber BDD — `planner_vibecoding.feature` : scenarios multi-outil. ~4 scenarios | 3 | ⬜ TODO
 |===
 

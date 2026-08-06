@@ -128,6 +128,21 @@ object IntentionPlanner {
             |
             |$specsBlock
             |$extraContext
+            |Vibecoding tool catalogue (the plan may drive any of these):
+            |- read_file      — Read the contents of a file at the given path
+            |- write_file     — Write content to a file at the given path
+            |- edit_file      — Edit a file by replacing oldString with newString at the given path
+            |- list_directory — List the contents of a directory at the given path
+            |- exec_shell     — Execute a shell command via bash -c (DANGEROUS commands blocked)
+            |- exec_gradle    — Execute a Gradle task via ./gradlew
+            |
+            |Each task carries a `toolType` among GRADLE (default), EDIT_FILE, EXEC_SHELL:
+            |- GRADLE     → set `gradleTask` to a realistic invocation like "./gradlew test".
+            |               Cross-borough examples: ":slider:generateSlides", ":capsule:extractSpeakerNotes",
+            |               ":bakery:publishSite", ":plantuml:generateDiagram".
+            |- EDIT_FILE  → set `target` to the file path; leave `gradleTask` blank.
+            |- EXEC_SHELL → set `target` to the shell command; leave `gradleTask` blank.
+            |
             |Output a valid JSON object with this exact structure:
             |{
             |  "title": "<intention summary>",
@@ -142,7 +157,9 @@ object IntentionPlanner {
             |          "tasks": [
             |            {
             |              "description": "<task description>",
-            |              "gradleTask": "./gradlew <task>"
+            |              "gradleTask": "./gradlew <task>",
+            |              "toolType": "GRADLE",
+            |              "target": ""
             |            }
             |          ]
             |        }
@@ -157,6 +174,7 @@ object IntentionPlanner {
             |- EPIC names use a short prefix derived from the intention (e.g., PLN, TEST, CAP) followed by a dash and index starting at 0
             |- Decompose logically: 1-4 EPICs, each with 1-4 user stories, each with 1-3 tasks
             |- gradleTask values must be realistic Gradle invocations like "./gradlew test", "./gradlew build"
+            |- When `toolType` is omitted, the consumer applies the default GRADLE
             |- Use governance/RAG/document context to avoid redundant EPICs
             |- If an EPIC is already TERMINE, do NOT re-plan it — reference it as dependency
             |- Output ONLY the JSON object, no markdown fences, no explanations

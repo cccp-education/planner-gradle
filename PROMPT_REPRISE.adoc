@@ -1,26 +1,29 @@
-= PROMPT_REPRISE — planner-gradle (Session 057 terminée)
+= PROMPT_REPRISE — planner-gradle (Session 058 terminée)
 :date: 2026-08-06
 
-== Session 057 terminée — Cadrage EPIC PLN-VIBE
+== Session 058 terminée — PLN-VIBE-1/2/3/4 ✅
 
-Cadrage EPIC PLN-VIBE (planner vibecoding-aware) validé par le pilote. Audit
-complet planner existant (11 fichiers, ~600 lignes) + code réutilisable 4
-boroughs (codebase ToolRegistry/VibecodingPlan/StepVerifier, workspace-bom
-AgentState/GradleTask, slider ValidationResult/DeckState invariants).
+4 US exécutées en baby-step TDD strict (RED → GREEN → REFACTOR), 24 nouveaux
+tests unitaires VERT. Modèle multi-outil du planner en place.
 
-6 US ~12 pts, baby-step TDD/BDD, English only code/Gherkin, zéro régression.
+. PLN-VIBE-1 ✅ `TaskType` enum (GRADLE/EDIT_FILE/EXEC_SHELL) + `Task` étendu
+  (`toolType` défaut GRADLE, `target` défaut "") + 3 invariants `init`.
+. PLN-VIBE-2 ✅ `LLMTask` étendu (`toolType?`, `target?` nullables pour compat
+  JSON legacy) + `toTask()` `internal` applique défauts → délègue aux invariants.
+. PLN-VIBE-3 ✅ Prompt `IntentionPlanner` enrichi : catalogue 6 outils, 3
+  TaskType, cross-borough `:slider:`/`:capsule:`/`:bakery:`/`:plantuml:`.
+. PLN-VIBE-4 ✅ `StdoutFormatter` affiche `toolType` (+target pour non-GRADLE).
 
-Gap identifié : `Task` ne modélise que `gradleTask` (pas edit_file/exec_shell).
-`ToolRegistry` de codebase sait déjà exécuter 7 outils, mais planner ne les
-planifie pas — le prompt produit uniquement des tâches Gradle.
+Non-régression : `PlannerIntegration.kt` (codebase) appelle `t.gradleTask` —
+champ + valeurs défaut préservés. `compileKotlin` VERT après chaque US.
+`publishToMavenLocal` exécuté (Règle 2). 6 échecs tests fonctionnels
+préexistants (ConnectException Ollama `localhost:1` — pas liés au changement).
 
-== Prochaine session — 058 : PLN-VIBE-1
+== Prochaine session — 059 : PLN-VIBE-5 (Cucumber BDD)
 
-- `TaskType` enum (GRADLE, EDIT_FILE, EXEC_SHELL) + étendre `Task` (toolType,
-  target optionnel). Invariants `init` (inspiré slider DeckState).
-- Baby-step TDD strict : RED (tests échouent — champs absents) -> GREEN (champs
-  ajoutés) -> REFACTOR.
-- Vérifier `./gradlew :planner-plugin:compileKotlin` VERT.
-- Vérifier tests existants PLN-7 (IntentionPlanner/LLMResponse) restent VERT.
-- Non-régression : `toolType` défaut `GRADLE` + `target` défaut `""` préserve
-  `PlannerIntegration.kt` (codebase) qui appelle `IntentionPlanner.plan()`.
+- Infrastructure Cucumber absente du borough (jamais configurée).
+- À ajouter : plugin `cucumber` + glue + step defs (s'inspirer slider).
+- `planner_vibecoding.feature` ~4 scénarios : intention → plan avec tasks
+  edit/gradle/shell, validation invariants, pas de replan EPIC TERMINÉ.
+- Baby-step BDD strict. Vérifier `./gradlew :planner-plugin:compileKotlin` VERT.
+- Une fois US-5 terminé, EPIC PLN-VIBE clos (6/6 US).

@@ -32,6 +32,6 @@ class PlanTest {
         assertEquals("[PLAN] title=\"test plugin\" totalPoints=3 estimatedSessions=1-2", lines[0])
         assertEquals("[EPIC] name=\"TST-0\" description=\"Bootstrap\" points=3", lines[1])
         assertEquals("  [US] description=\"Setup project\"", lines[2])
-        assertEquals("    [TASK] description=\"Create files\" gradleTask=./gradlew init", lines[3])
+        assertEquals("    [TASK] description=\"Create files\" toolType=GRADLE gradleTask=./gradlew init", lines[3])
     }
 }

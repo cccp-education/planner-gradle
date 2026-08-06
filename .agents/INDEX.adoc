@@ -5,9 +5,9 @@ _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
 _Derniere mise a jour_ : 2026-08-06
-_Session terminee_ : 057 — Cadrage EPIC PLN-VIBE (planner vibecoding-aware). Audit planner existant (11 fichiers, ~600 lignes) + code reutilisable 4 boroughs. 6 US ~12 pts validees par pilote. Baby-step TDD/BDD. Zero regression (tests PLN-7 preserves).
-_Sessions precedent_ : 056/055/054/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
-_Prochaine session_ : 058 — PLN-VIBE-1 : TaskType enum (GRADLE, EDIT_FILE, EXEC_SHELL) + etendre Task (toolType, target). Invariants init. Baby-step TDD strict.
+_Session terminee_ : 058 — PLN-VIBE-1/2/3/4 ✅ (TaskType enum + Task étendu, LLMTask étendu + toTask internal, prompt enrichi catalogue 6 outils + cross-borough, StdoutFormatter affiche toolType). 24 nouveaux tests unitaires VERT. Baby-step TDD strict. Non-régression vérifiée (PlannerIntegration.kt codebase).
+_Sessions precedent_ : 057/056/055/054/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
+_Prochaine session_ : 059 — PLN-VIBE-5 : Cucumber BDD `planner_vibecoding.feature` (~4 scénarios). Infrastructure Cucumber absente du borough — à configurer (plugin + glue + step defs, inspire slider).
 
 '''
 == REGLES ABSOLUES
@@ -37,6 +37,7 @@ _Prochaine session_ : 058 — PLN-VIBE-1 : TaskType enum (GRADLE, EDIT_FILE, EXE
 
 |===
 | # | Date | Type | Sujet | Score
+| 058 | 2026-08-06 | dev | **PLN-VIBE-1/2/3/4** — TaskType enum (GRADLE/EDIT_FILE/EXEC_SHELL) + Task étendu (toolType, target, 3 invariants init). LLMTask étendu (toolType?, target? nullables) + toTask() internal. Prompt enrichi (catalogue 6 outils + cross-borough :slider:/:capsule:/:bakery:/:plantuml:). StdoutFormatter affiche toolType. 24 nouveaux tests unitaires VERT. Baby-step TDD strict. | 9/10
 | 057 | 2026-08-06 | governance | **Cadrage EPIC PLN-VIBE** — planner vibecoding-aware. Audit planner existant (11 fichiers, ~600 lignes). Gap : `Task` ne modelise que `gradleTask` (pas edit_file/exec_shell). `ToolRegistry` codebase sait deja executer 7 outils. Code reutilisable : codebase VibecodingPlan/StepVerifier/ToolRegistry, workspace-bom AgentState/GradleTask (champ project), slider ValidationResult sealed/DeckState invariants. 6 US ~12 pts validees. | 9/10
 | 056 | 2026-07-03 | dev | CNV-6 Migration — convention plugins education.cccp.build.* v0.0.1 appliquées, -53 lignes, compileKotlin SUCCESS | ✅ TERMINE
 | 053 | 2026-06-24 | doc | README i18n — 10 langues × 2 guides (consommateurs + plugin) = 20 fichiers, badges/shields, markers 0.0.1, switcher i18n, AR/UR RTL | 9/10
@@ -108,22 +109,22 @@ _Dependances_ : codebase (ToolRegistry catalogue), workspace-bom (AgentState/Gra
 | PLN-VIBE-1
 | `TaskType` enum (GRADLE, EDIT_FILE, EXEC_SHELL) + etendre `Task` (toolType, target optionnel). Invariants `init`. Tests constructeur. ~8 unit. Inspire slider DeckState invariants.
 | 2
-| ⬜ TODO
+| ✅ TERMINÉ (S-058)
 
 | PLN-VIBE-2
 | `LLMTask` etendu (toolType, target) + `LLMResponse.toPlan()` mis a jour. Tests parse JSON. ~6 unit
 | 2
-| ⬜ TODO
+| ✅ TERMINÉ (S-058)
 
 | PLN-VIBE-3
 | Prompt `IntentionPlanner` enrichi : catalogue outils (read/write/edit/shell/gradle + cross-borough `:slider:`, `:capsule:`...) + regles planification multi-outil. Tests `buildPrompt` asserts presence catalogue. ~5 unit. Inspire codebase ToolRegistry toolNames/descriptions.
 | 2
-| ⬜ TODO
+| ✅ TERMINÉ (S-058)
 
 | PLN-VIBE-4
 | `StdoutFormatter` etendu — affiche `toolType`. `DecomposeIntentionTask` passe nouveau modele. Tests format. ~4 unit
 | 1
-| ⬜ TODO
+| ✅ TERMINÉ (S-058)
 
 | PLN-VIBE-5
 | Cucumber BDD — `planner_vibecoding.feature` : scenarios (intention -> plan avec tasks edit/gradle/shell, validation invariants, pas de replan EPIC TERMINE). ~4 scenarios. Inspire slider Cucumber pipeline + slider ValidationResult sealed.
@@ -132,8 +133,8 @@ _Dependances_ : codebase (ToolRegistry catalogue), workspace-bom (AgentState/Gra
 |===
 
 _Total_ : 6 US, ~12 pts. _Methode_ : baby-step DDD/TDD/BDD, 3 niveaux tests/US
-(unit -> functional -> cucumber), English only code/Gherkin. _Statut_ : cadrage
-valide (S-057), execution TODO (S-058+).
+(unit -> functional -> cucumber), English only code/Gherkin. _Statut_ : 4/6 US
+terminées (S-058), US-5 Cucumber BDD TODO (S-059).
 
 _Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
 `IntentionPlanner.plan()` et fait `planningPlan.toContractPlan()`. L'extension

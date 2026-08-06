@@ -35,7 +35,11 @@ data class LLMTask(
     @field:JsonProperty("description")
     val description: String,
     @field:JsonProperty("gradleTask")
-    val gradleTask: String
+    val gradleTask: String,
+    @field:JsonProperty("toolType")
+    val toolType: TaskType? = null,
+    @field:JsonProperty("target")
+    val target: String? = null
 )
 
 fun LLMResponse.toPlan(): Plan = Plan(
@@ -57,7 +61,9 @@ private fun LLMUserStory.toUserStory(): UserStory = UserStory(
     tasks = tasks.map { it.toTask() }
 )
 
-private fun LLMTask.toTask(): Task = Task(
+internal fun LLMTask.toTask(): Task = Task(
     description = description,
-    gradleTask = gradleTask
+    gradleTask = gradleTask,
+    toolType = toolType ?: TaskType.GRADLE,
+    target = target ?: ""
 )

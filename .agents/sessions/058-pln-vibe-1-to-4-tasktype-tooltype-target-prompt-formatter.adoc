@@ -1,0 +1,85 @@
+= 058-pln-vibe-1-to-4-tasktype-tooltype-target-prompt-formatter.adoc
+:date: 2026-08-06
+:toc:
+
+== Session 058 — PLN-VIBE-1 → 4 (TaskType, LLMTask, Prompt, Formatter)
+
+=== Objectif
+
+Exécuter les 4 premières US de l'EPIC PLN-VIBE (planner vibecoding-aware) :
+introduire le modèle multi-outil (edit/shell/gradle) dans le planner. Cadrage
+validé en S-057 (gap : `Task` ne modélisait que `gradleTask`).
+
+=== Méthode
+
+Baby-step DDD/TDD strict, 3 niveaux tests/US (unit → functional → cucumber),
+RED → GREEN → REFACTOR. English only code. Zéro régression : `PlannerIntegration.kt`
+(codebase) appelle `t.gradleTask` — champ `gradleTask` + valeurs défaut préservées.
+
+=== Livrables
+
+==== PLN-VIBE-1 — `TaskType` enum + étendre `Task` (2 pts) ✅
+
+* `Plan.kt` — `TaskType` enum (GRADLE, EDIT_FILE, EXEC_SHELL) + `Task` étendu
+  (`toolType` défaut GRADLE, `target` défaut `""`) avec 3 invariants `init`
+  (description non-blank, GRADLE→gradleTask non-blank, non-GRADLE→target non-blank).
+  Pattern inspiré slider `DeckState`.
+* `TaskTypeTest.kt` — 9 unit tests (enum variants, défauts, invariants croisés).
+
+==== PLN-VIBE-2 — `LLMTask` étendu + `toPlan()` mis à jour (2 pts) ✅
+
+* `LLMResponse.kt` — `LLMTask` étendu (`toolType: TaskType?`, `target: String?`
+  nullables pour compat JSON legacy) + `toTask()` rendu `internal` (testable)
+  applique les défauts `GRADLE`/`""` qui délèguent aux invariants `Task`.
+* `LLMTaskVibecodingTest.kt` — 6 unit tests (parse legacy, GRADLE/EDIT_FILE/EXEC_SHELL,
+  propagation full hierarchy, rejet EDIT_FILE sans target).
+
+==== PLN-VIBE-3 — Prompt `IntentionPlanner` enrichi (2 pts) ✅
+
+* `IntentionPlanner.kt` — `buildPromptInternal` enrichi : catalogue 6 outils
+  vibecoding (read/write/edit_file, list_directory, exec_shell, exec_gradle),
+  3 TaskType documentés, JSON schema avec `toolType`/`target`, exemples
+  cross-borough `:slider:`/`:capsule:`/`:bakery:`/`:plantuml:`, règle défaut GRADLE.
+* `IntentionPlannerVibecodingTest.kt` — 5 unit tests (catalogue, variants,
+  schema, cross-borough, défaut).
+
+==== PLN-VIBE-4 — `StdoutFormatter` étendu (1 pt) ✅
+
+* `StdoutFormatter.kt` — `formatTaskTail` switch sur `toolType` :
+  GRADLE → `toolType=GRADLE gradleTask=...`, EDIT_FILE/EXEC_SHELL →
+  `toolType=... target=...`.
+* `PlanTest.kt` — assertion legacy mise à jour (format `toolType=GRADLE`).
+* `StdoutFormatterVibecodingTest.kt` — 4 unit tests (GRADLE, EDIT_FILE, EXEC_SHELL, mixed).
+
+=== Non-régression
+
+* `compileKotlin` VERT après chaque US.
+* `publishToMavenLocal` exécuté après chaque US (Règle 2 AGENT.adoc).
+* 62 tests au total : 56 unit VERT (dont 24 nouveaux) + 6 échecs **préexistants**
+  (`DecomposeIntentionPluginTest`/`DecomposeIntentionMultiCanalTest` —
+  ConnectException Ollama `localhost:1`,确认 préexistant via `git stash -u`).
+* Tests existants préservés : `PlanTest` (mis à jour format), `LLMResponseTest`
+  (constructeurs 2-args compatibles grâce défauts), `IntentionPlannerTest` (6/6 VERT),
+  `OllamaBridgeTest`, `SpecReaderTest`.
+
+=== Reste à faire
+
+* PLN-VIBE-5 — Cucumber BDD `planner_vibecoding.feature` (~4 scénarios).
+  Infrastructure Cucumber absente du borough (jamais configurée). Reporté S-059.
+
+=== Fichiers modifiés
+
+* `planner-plugin/src/main/kotlin/planning/Plan.kt` (TaskType + Task étendu)
+* `planner-plugin/src/main/kotlin/planning/LLMResponse.kt` (LLMTask + toTask internal)
+* `planner-plugin/src/main/kotlin/planning/IntentionPlanner.kt` (prompt enrichi)
+* `planner-plugin/src/main/kotlin/planning/StdoutFormatter.kt` (format toolType)
+* `planner-plugin/src/test/kotlin/planning/TaskTypeTest.kt` (nouveau, 9 tests)
+* `planner-plugin/src/test/kotlin/planning/LLMTaskVibecodingTest.kt` (nouveau, 6 tests)
+* `planner-plugin/src/test/kotlin/planning/IntentionPlannerVibecodingTest.kt` (nouveau, 5 tests)
+* `planner-plugin/src/test/kotlin/planning/StdoutFormatterVibecodingTest.kt` (nouveau, 4 tests)
+* `planner-plugin/src/test/kotlin/planning/PlanTest.kt` (assertion format mise à jour)
+
+=== Score session
+
+9/10 — 4/6 US terminées en une session, TDD strict respecté, non-régression
+vérifiée. Moins 1 : US-5 non entamée (infra Cucumber à configurer).
