@@ -44,7 +44,13 @@ data class LLMTask(
     @field:JsonProperty("toolType")
     val toolType: TaskType? = null,
     @field:JsonProperty("target")
-    val target: String? = null
+    val target: String? = null,
+    @field:JsonProperty("expectedOutput")
+    val expectedOutput: String? = null,
+    @field:JsonProperty("maxRetries")
+    val maxRetries: Int? = null,
+    @field:JsonProperty("verifyHook")
+    val verifyHook: String? = null
 )
 
 fun LLMResponse.toPlan(): Plan = Plan(
@@ -70,5 +76,8 @@ internal fun LLMTask.toTask(): GradleTask = GradleTask(
     description = description,
     gradleTask = gradleTask,
     toolType = toolType ?: TaskType.GRADLE,
-    target = target ?: ""
+    target = target ?: "",
+    expectedOutput = expectedOutput ?: "BUILD SUCCESSFUL",
+    maxRetries = maxRetries ?: 3,
+    verifyHook = verifyHook
 )

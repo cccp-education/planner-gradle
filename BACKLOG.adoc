@@ -118,7 +118,7 @@ sites `VibecodingGraph.kt:713/741`).
 
 | PLN-VERIFY-2
 | *Planner consomme N0 étendu* — Étendre `LLMTask` (expectedOutput/maxRetries/verifyHook nullables) + `LLMTask.toTask()` mapping avec defaults. `IntentionPlanner.buildPromptInternal` schéma JSON + règles prompt (demander expectedOutput, maxRetries optionnel, verifyHook rare). `StdoutFormatter` affiche expectedOutput. ~10 unit | 3
-| ⏳ À FAIRE
+| ✅ TERMINÉ (S-065)
 
 | PLN-VERIFY-3
 | *codebase cross-borough* — `VibecodingGraph.extractCurrentStep` + rollback (2 sites) remplacent `"BUILD SUCCESSFUL"` hardcodé par `task.expectedOutput`/`task.maxRetries`/`task.verifyHook`. Non-régression : codebase koog tests + PlannerIntegration. ~3 unit | 1
@@ -132,7 +132,7 @@ sites `VibecodingGraph.kt:713/741`).
 _Total_ : 5 US, ~10 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
 tests/US (unit → functional → cucumber), English only code/Gherkin.
 _Dépendances_ : MEMPHIS (agent-contracts 0.0.3), codebase (bridge 2
-sites). _Statut_ : 1/5 US (US-0 cadrage S-063). EPIC PLN-VERIFY EN COURS.
+sites). _Statut_ : 3/5 US (US-0 cadrage S-063 + US-1 BOM 0.0.3 S-064 + US-2 planner S-065). EPIC PLN-VERIFY EN COURS.
 
 _Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
 `IntentionPlanner.plan()` puis construit `PlanState`. Le pont

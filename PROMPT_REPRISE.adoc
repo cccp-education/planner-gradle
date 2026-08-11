@@ -1,68 +1,60 @@
-= PROMPT_REPRISE — planner-gradle (Session 064 terminée)
+= PROMPT_REPRISE — planner-gradle (Session 065 terminée)
 :date: 2026-08-11
 
-== Session 064 terminée — PLN-VERIFY US-1 BOM cross-borough
+== Session 065 terminée — PLN-VERIFY US-2 planner consomme N0 étendu
 
-US-1 de l'EPIC PLN-VERIFY (cadré S-063). Étendu
-`contracts.agent.GradleTask` (N0) avec les 3 champs de vérification
-que `codebase.koog.planning.VibecodingStep` attendait mais que le
-contrat N0 n'avait pas : `expectedOutput`, `maxRetries`,
-`verifyHook`. Bumper `agent-contracts` 0.0.2 → 0.0.3, publier sur
-Maven Central (MEMPHIS), propager la constraint dans le BOM racine
-(0.0.17 → 0.0.18).
+US-2 de l'EPIC PLN-VERIFY. Étendu planner pour consommer les 3 champs
+de vérification du contrat N0 `GradleTask` (0.0.3) :
+`expectedOutput`, `maxRetries`, `verifyHook`.
 
-Baby-step TDD strict (RED → GREEN → REFACTOR), backward compat
-critique (defaults préservent le comportement du bridge codebase).
+Baby-step TDD strict (RED → GREEN → REFACTOR), 3 fichiers test créés
+(21 unit), 3 fichiers prod modifiés (+14 lignes net). Backward compat
+prouvée : defaults `"BUILD SUCCESSFUL"`/`3`/`null` → GradleTask
+identique si LLM omet.
 
 == État EPIC PLN-VERIFY
 
-EPIC EN COURS (2/5 US) :
+EPIC EN COURS (3/5 US) :
 
 * US-0 cadrage ✅ TERMINÉ (S-063)
-* US-1 BOM cross-borough ✅ TERMINÉ (S-064) — `GradleTask` +3 champs
-  + 2 invariants, `agent-contracts` 0.0.3 publié Central (bundle
-  `cd4d2d44`), BOM 0.0.18 publié Central (bundle `3d2702bf`).
-  `planner-plugin/build.gradle.kts` déjà bumpé 0.0.3.
-* US-2 planner consomme N0 étendu ⏳ À FAIRE — `LLMTask` (3 champs
-  nullables) + `LLMTask.toTask()` + `IntentionPlanner.buildPrompt
-  Internal` (schéma JSON + règles prompt) + `StdoutFormatter`. ~10
-  unit.
+* US-1 BOM cross-borough ✅ TERMINÉ (S-064) — `agent-contracts` 0.0.3
+  publié Central (bundle `cd4d2d44`), BOM 0.0.18 (bundle `3d2702bf`).
+* US-2 planner consomme N0 étendu ✅ TERMINÉ (S-065) — `LLMTask`
+  +3 champs nullables + `toTask()` defaults + prompt schéma JSON +
+  3 règles + `StdoutFormatter` affiche custom `expectedOutput`.
+  90 unit + 8 cucumber = 98 PASS, 0 FAIL. `publishToMavenLocal` VERT.
 * US-3 codebase cross-borough ⏳ À FAIRE — `VibecodingGraph` 2 sites
-  remplacent hardcodé par vraie valeur. ~3 unit.
+  (`extractCurrentStep:713` + rollback `:741`) remplacent
+  `"BUILD SUCCESSFUL"` hardcodé par `task.expectedOutput`/
+  `task.maxRetries`/`task.verifyHook`. ~3 unit.
 * US-4 Cucumber BDD ⏳ À FAIRE — `planner_verify.feature` ~5
-  scénarios.
+  scénarios (expectedOutput custom, maxRetries custom, verifyHook
+  présent, defaults préservés, end-to-end planner → extractCurrentStep
+  → StepVerifier).
 
 _Total_ : 5 US, ~10 pts. Méthode baby-step DDD/TDD/BDD (unit →
 functional → cucumber), English only code/Gherkin.
 
-== Prochaine session — 065 : US-2 planner consomme N0 étendu
+== Prochaine session — 066 : US-3 codebase cross-borough
 
-Démarrer US-2 (planner consomme N0 étendu). Baby-step TDD strict :
+Démarrer US-3 (codebase cross-borough). Baby-step TDD strict :
 
-. Étendre `LLMTask` (`planner-plugin/src/main/kotlin/planning/
-  LLMResponse.kt:39`) avec 3 champs nullables :
-  `expectedOutput: String? = null`, `maxRetries: Int? = null`,
-  `verifyHook: String? = null`.
-. Étendre `LLMTask.toTask()` (ligne 69) pour mapper les 3 champs
-  avec defaults `GradleTask` (`?: "BUILD SUCCESSFUL"`, `?: 3`,
-  `?: null`).
-. Étendre `IntentionPlanner.buildPromptInternal` (ligne 135) :
-  schéma JSON ajout `expectedOutput`/`maxRetries`/`verifyHook` +
-  règles prompt (demander `expectedOutput` obligatoire,
-  `maxRetries` optionnel default 3, `verifyHook` rare).
-. `StdoutFormatter` affiche `expectedOutput` (optionnel — voir
-  code actuel).
-. ~10 unit tests (parse JSON LLMTask + prompt + format).
+. Localiser `codebase-plugin/.../koog/planning/VibecodingGraph.kt`
+  lignes 713 (`extractCurrentStep`) et 741 (rollback).
+. Remplacer `expectedOutput = "BUILD SUCCESSFUL"` hardcodé par
+  `task.expectedOutput` (vrai valeur du plan).
+. Remplacer `maxRetries` hardcodé par `task.maxRetries`.
+. Remplacer `verifyHook` hardcodé par `task.verifyHook`.
+. Non-régression : codebase koog tests + `PlannerIntegration`. ~3 unit.
 
-_Pré-requis_ : `agent-contracts:0.0.3` déjà publié Central + planner-
-plugin déjà bumpé 0.0.3 (S-064). `./gradlew :planner-plugin:check`
-VERT avant de coder.
+_Pré-requis_ : `agent-contracts:0.0.3` publié Central + planner
+publié mavenLocal (S-064 + S-065). Backward compat critique : si
+planner omet les métadonnées → defaults identiques au comportement
+actuel → zéro régression.
 
-_Dépendances_ : MEMPHIS (BOM 0.0.3 publié), codebase (bridge US-3
-à venir). Backward compat critique : defaults préservent
-comportement actuel du bridge codebase → zéro régression si LLM
-omet les métadonnées.
+_Dépendances_ : MEMPHIS (BOM 0.0.3 publié), planner (US-2 terminé).
+Cross-borough codebase (borough Queens).
 
 Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`,
-`BACKLOG.adoc`. Vérifier `./gradlew :planner-plugin:compileKotlin`
-VERT avant de coder.
+`BACKLOG.adoc`. Vérifier `./gradlew :codebase-plugin:compileKotlin`
+VERT avant de coder (depuis `foundry/public/codebase-gradle/`).

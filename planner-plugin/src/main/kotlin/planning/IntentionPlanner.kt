@@ -148,7 +148,10 @@ object IntentionPlanner {
             |              "description": "<task description>",
             |              "gradleTask": "./gradlew <task>",
             |              "toolType": "GRADLE",
-            |              "target": ""
+            |              "target": "",
+            |              "expectedOutput": "<expected success signal>",
+            |              "maxRetries": 3,
+            |              "verifyHook": null
             |            }
             |          ]
             |        }
@@ -164,6 +167,9 @@ object IntentionPlanner {
             |- Decompose logically: 1-4 EPICs, each with 1-4 user stories, each with 1-3 tasks
             |- gradleTask values must be realistic Gradle invocations like "./gradlew test", "./gradlew build"
             |- When `toolType` is omitted, the consumer applies the default GRADLE
+            |- `expectedOutput` is REQUIRED: the concrete success signal the task must produce (e.g. "BUILD SUCCESSFUL", "SPG generated", "Tests passed"). Defaults to "BUILD SUCCESSFUL" when omitted
+            |- `maxRetries` is optional, defaults to 3 (range 1..10). Set higher for flaky/network tasks
+            |- `verifyHook` is optional and rare: a shell script path run after success to validate artifacts (e.g. "scripts/check-artifacts.sh"). Omit when no post-verify is needed
             |- Use governance/RAG/document context to avoid redundant EPICs
             |- If an EPIC is already TERMINE, do NOT re-plan it — reference it as dependency
             |- Output ONLY the JSON object, no markdown fences, no explanations

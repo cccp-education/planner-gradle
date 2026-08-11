@@ -1,0 +1,177 @@
+= Session 065 — PLN-VERIFY US-2 planner consomme N0 étendu
+:date: 2026-08-11
+:type: dev
+:score: 9/10
+:epic: PLN-VERIFY
+:us: US-2
+
+== Objectif
+
+US-2 de l'EPIC PLN-VERIFY (cadré S-063, US-1 BOM 0.0.3 publié S-064).
+Étendre planner pour consommer les 3 champs de vérification ajoutés au
+contrat N0 `contracts.agent.GradleTask` (0.0.3) : `expectedOutput`,
+`maxRetries`, `verifyHook`. Le prompt LLM doit demander ces métadonnées,
+le parseur JSON doit les accepter, et le formateur stdout doit les
+afficher (si custom).
+
+== Méthode
+
+Baby-step TDD strict (RED → GREEN → REFACTOR), 3 niveaux tests/US
+(unit → functional → cucumber). English only code/Gherkin. Backward
+compat critique : defaults préservent le comportement du bridge codebase
+si le LLM omet les métadonnées.
+
+== Exécution
+
+=== Baseline
+
+- `./gradlew :planner-plugin:compileKotlin` VERT
+- `./gradlew :planner-plugin:check` VERT
+- 69 unit + 8 cucumber = 77 PASS, 0 FAIL
+- `agent-contracts:0.0.3` résolu (local m2 + Central), `GradleTask` a
+  bien les 8 champs (description, gradleTask, toolType, target, project,
+  expectedOutput, maxRetries, verifyHook) + 2 invariants (non-blank,
+  1..10)
+
+=== RED — `LLMTaskVerifyTest` (10 tests)
+
+Nouveau fichier `LLMTaskVerifyTest.kt` — pattern `LLMTaskVibecodingTest`.
+10 tests documentent :
+- parse JSON `expectedOutput`/`maxRetries`/`verifyHook` quand fournis (3)
+- defaults `GradleTask` quand omis (`"BUILD SUCCESSFUL"`, `3`, `null`) (3)
+- préservation des 3 métadonnées ensemble (1)
+- rejet blank `expectedOutput` via invariant `GradleTask` (1)
+- rejet `maxRetries` hors 1..10 (2)
+
+Compilation initiale : 1 erreur import `assertTrue` manquant → corrigé.
+Run : 7/10 FAILED (les 3 tests "defaults when omitted" passent déjà car
+ils exploitent les defaults `GradleTask` 0.0.3 ; les 7 qui attendent les
+nouvelles métadonnées échouent — Jackson ignore les champs inconnus sur
+`LLMTask`).
+
+=== GREEN — `LLMResponse.kt` étendu
+
+- `LLMTask` : +3 champs nullables `expectedOutput: String? = null`,
+  `maxRetries: Int? = null`, `verifyHook: String? = null` (pattern
+  vibecoding existant `toolType`/`target`).
+- `LLMTask.toTask()` : +3 mappings avec defaults `?: "BUILD SUCCESSFUL"`,
+  `?: 3`, `?: null` (pass-through, pas de default explicite car
+  `GradleTask.verifyHook` a déjà default `null`).
+
+Run : 10/10 PASSED + non-régression `LLMTaskVibecodingTest` (6) +
+`LLMResponseTest` (5) + `PlanTest` (1) VERT.
+
+=== RED — `IntentionPlannerVerifyTest` (7 tests)
+
+Nouveau fichier `IntentionPlannerVerifyTest.kt` — pattern
+`IntentionPlannerVibecodingTest`. 7 tests documentent :
+- schéma JSON inclut `expectedOutput`/`maxRetries`/`verifyHook` (3)
+- règle default `expectedOutput = "BUILD SUCCESSFUL"` (1)
+- règle default `maxRetries = 3` (1)
+- règle `expectedOutput` required (1)
+- règle `verifyHook` optional/rare (1)
+
+Run : 6/7 FAILED (seul `BUILD SUCCESSFUL` présent car déjà dans le prompt
+legacy via `gradleTask` examples).
+
+=== GREEN — `IntentionPlanner.kt` étendu
+
+- Schéma JSON task : +3 champs `"expectedOutput"`, `"maxRetries"`,
+  `"verifyHook"` avec valeurs d'exemple.
+- Règles prompt : +3 règles (`expectedOutput` REQUIRED + default,
+  `maxRetries` optional + default 3 range 1..10, `verifyHook` optional
+  rare + exemple).
+
+Itération 1 : 1 test FAILED (`expectedOutput is required` — wording
+`is REQUIRED` vs assertion `required` sensible à la casse). Itération 2 :
+test ajusté `ignoreCase = true` (le wording prompt `REQUIRED` est
+intentionnel, standard LLM prompt). Run : 7/7 PASSED + non-régression
+`IntentionPlannerVibecodingTest` (5) + `IntentionPlannerTest` (7) VERT.
+
+=== RED — `StdoutFormatterVerifyTest` (4 tests)
+
+Nouveau fichier `StdoutFormatterVerifyTest.kt` — pattern
+`StdoutFormatterVibecodingTest`. 4 tests documentent :
+- pas d'`expectedOutput` quand default `BUILD SUCCESSFUL` (1)
+- `expectedOutput` affiché quand custom (1)
+- `expectedOutput` affiché pour EDIT_FILE custom (1)
+- ligne complète avec custom `expectedOutput` sur GRADLE (1)
+
+Décision design : afficher `expectedOutput` seulement si non-default
+(évite le bruit sur les tâches normales — pattern "économie d'encre"
+capsule/slider). Run : 3/4 FAILED (le test "default non-émis" passe déjà
+car le formatter legacy n'affiche pas expectedOutput).
+
+=== GREEN — `StdoutFormatter.kt` étendu
+
+- `formatTaskTail` : `base + expectedSuffix` où `expectedSuffix` est
+  `""` si `expectedOutput == "BUILD SUCCESSFUL"` sinon
+  `" expectedOutput=${task.expectedOutput}"`.
+
+Run : 4/4 PASSED + non-régression `StdoutFormatterVibecodingTest` (4) +
+`PlanTest` (1) VERT (le default `BUILD SUCCESSFUL` n'est pas affiché →
+ligne legacy préservée).
+
+=== REFACTOR + non-régression complète
+
+- `./gradlew :planner-plugin:check` BUILD SUCCESSFUL (25s)
+- 90 unit + 8 cucumber = 98 PASS, 0 FAIL (baseline 77 → +21 unit)
+- `./gradlew :planner-plugin:publishToMavenLocal` VERT (Regle 2)
+- `grep` secrets : 0 (juste `TOKEN_BUDGET` constante métier RAG
+  préexistante dans `SpecReader.kt`)
+
+== Artefacts
+
+=== Production modifiée (3 fichiers, +14 lignes net)
+
+- `planner-plugin/src/main/kotlin/planning/LLMResponse.kt` :
+  `LLMTask` +3 champs nullables + `toTask()` +3 mappings defaults
+- `planner-plugin/src/main/kotlin/planning/IntentionPlanner.kt` :
+  schéma JSON +3 champs + 3 règles prompt
+- `planner-plugin/src/main/kotlin/planning/StdoutFormatter.kt` :
+  `formatTaskTail` affiche `expectedOutput` si custom
+
+=== Tests créés (3 fichiers, 21 tests)
+
+- `planner-plugin/src/test/kotlin/planning/LLMTaskVerifyTest.kt` : 10 unit
+- `planner-plugin/src/test/kotlin/planning/IntentionPlannerVerifyTest.kt` : 7 unit
+- `planner-plugin/src/test/kotlin/planning/StdoutFormatterVerifyTest.kt` : 4 unit
+
+=== Gouvernance modifiée
+
+- `PROMPT_REPRISE.adoc` : contexte reprise S-066 (US-3 codebase bridge)
+- `.agents/INDEX.adoc` : session 065, statut EPIC 3/5 US
+- `.agents/SESSIONS_HISTORY.adoc` : entrée 065
+- `BACKLOG.adoc` : US-2 ✅ TERMINÉ (S-065), sections détaillées
+- `.agents/archives/COMPLETED_TASKS_ARCHIVE_2026-08.adoc` : entrée US-2
+- `AGENTS.adoc` racine : entrée Manhattan S-065
+
+== État EPIC PLN-VERIFY
+
+- US-0 cadrage ✅ TERMINÉ (S-063)
+- US-1 BOM cross-borough ✅ TERMINÉ (S-064) — `agent-contracts` 0.0.3
+- US-2 planner consomme N0 étendu ✅ TERMINÉ (S-065)
+- US-3 codebase cross-borough ⏳ À FAIRE — `VibecodingGraph` 2 sites
+  remplacent hardcodé par vraie valeur. ~3 unit.
+- US-4 Cucumber BDD ⏳ À FAIRE — `planner_verify.feature` ~5 scénarios.
+
+_Statut_ : 3/5 US. EPIC EN COURS.
+
+== Non-régression critique
+
+`PlannerIntegration.kt` (codebase) appelle `IntentionPlanner.plan()` puis
+construit `PlanState`. Le pont `Plan → VibecodingStep` via
+`extractCurrentStep` doit produire un `VibecodingStep` identique à
+aujourd'hui si le LLM ne fournit pas les métadonnées (defaults backward
+compat : `"BUILD SUCCESSFUL"`, `3`, `null`). Vérifié : `LLMTask.toTask()`
+applique exactement ces defaults → `GradleTask` identique → pont
+codebase inchangé. US-3 (à venir) remplacera le hardcodé par la vraie
+valeur du plan.
+
+== Score
+
+9/10 — US-2 livrée en baby-step TDD strict, 21 tests, backward compat
+prouvée. Pas de publication Maven Central (pas de bump version — US-2
+est une extension interne du plugin, pas un changement de contrat N0).
+Point mineur : 1 itération supplémentaire sur le test `required`
+sensibilité casse (ajustement test, pas production).

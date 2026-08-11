@@ -18,9 +18,13 @@ object StdoutFormatter {
         }
     }
 
-    private fun formatTaskTail(task: contracts.agent.GradleTask): String = when (task.toolType) {
-        TaskType.GRADLE -> "toolType=GRADLE gradleTask=${task.gradleTask}"
-        TaskType.EDIT_FILE -> "toolType=EDIT_FILE target=${task.target}"
-        TaskType.EXEC_SHELL -> "toolType=EXEC_SHELL target=${task.target}"
+    private fun formatTaskTail(task: contracts.agent.GradleTask): String {
+        val base = when (task.toolType) {
+            TaskType.GRADLE -> "toolType=GRADLE gradleTask=${task.gradleTask}"
+            TaskType.EDIT_FILE -> "toolType=EDIT_FILE target=${task.target}"
+            TaskType.EXEC_SHELL -> "toolType=EXEC_SHELL target=${task.target}"
+        }
+        val expectedSuffix = if (task.expectedOutput != "BUILD SUCCESSFUL") " expectedOutput=${task.expectedOutput}" else ""
+        return base + expectedSuffix
     }
 }
