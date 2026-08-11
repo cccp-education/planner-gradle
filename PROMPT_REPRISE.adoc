@@ -1,54 +1,45 @@
-= PROMPT_REPRISE — planner-gradle (Session 068 terminée)
+= PROMPT_REPRISE — planner-gradle (Session 069 terminée)
 :date: 2026-08-11
 
-== Session 068 terminée — Cadrage EPIC PLN-BUDGET
+== Session 069 terminée — PLN-BUDGET US-1 `BudgetAdapter` (domaine `planning.budget`)
 
-Split-brain #4 reporté S-061. Audit planner + BOM + codebase.
-`agent-contracts.RelevanceBudget` (N0, 0.0.3 déjà publié) est un contrat
-N0 orphan — zéro consommateur. `codebase-contracts.ChannelBudget`
-(fixe 40/30/20/10) est utilisé par planner (`DecomposeIntentionTask.kt:112`)
-et codebase pour tronquer post-collecte.
+Baby-step TDD strict RED → GREEN → REFACTOR. 9/9 unit PASSED. `:check` VERT
+104 tests 0 FAIL (baseline 95 → +9). `publishToMavenLocal` VERT.
+`RelevanceContext` (data class 4 String) + `BudgetAdapter` (object pur)
+créés dans `planning/budget/BudgetAdapter.kt`. `compute` injectable (défaut
+= `RelevanceBudget.compute`) pour testabilité des fallbacks. Fallback :
+compute retourne vide ou lance → contenus originaux non tronqués.
 
-5 constats audités, décisions archi, 4 US découpees, zéro code modifié
-(gouvernance pure pattern S-057/S-063). EPIC planner-only — codebase
-HORS SCOPE (borough Queens DORMANT).
-
-## État EPIC PLN-BUDGET — EN COURS (1/4 US)
+## État EPIC PLN-BUDGET — EN COURS (2/4 US)
 
 |===
 | US | Statut
 
 | US-0 cadrage | ✅ TERMINÉ (S-068)
-| US-1 `BudgetAdapter` (domaine `planning.budget`, object pur) | ⏳ À FAIRE
+| US-1 `BudgetAdapter` (domaine `planning.budget`, object pur) | ✅ TERMINÉ (S-069)
 | US-2 Wiring `DecomposeIntentionTask` | ⏳ À FAIRE
 | US-3 Cucumber BDD `planner_budget.feature` | ⏳ À FAIRE
 |===
 
-## Décisions clés (cadrage S-068)
+## Prochaine session — 070 : PLN-BUDGET US-2 wiring `DecomposeIntentionTask`
 
-* Zéro bump BOM — `agent-contracts` 0.0.3 déjà dans classpath planner
-  (`build.gradle.kts:29`). `RelevanceBudget` est déjà disponible.
-* `BudgetAdapter` mappe 4 canaux planner → `Map<String, String>`
-  (EAGER/RAG/GRAPHIFY/DOCS) → `RelevanceBudget.compute(intention, channels,
-  totalTokens=8000)` → `ChannelScore` → 4 String tronquées.
-* Fallback sécurité : si `compute` retourne vide ou lance → contenus
-  originaux non tronqués (comportement actuel préservé).
-* Non-régression : `PlannerIntegration.kt` (codebase) appelle toujours
-  `IntentionPlanner.plan(4 String)` — contrat d'appel inchangé.
+Remplacer `ChannelBudget.fromConfig(config)` + `budget.applyBudget(channels)`
+(lignes 104-121) par `BudgetAdapter.applyRelevanceBudget(intention,
+eagerCtx, ragCtx, graphifyCtx, docsCtx)`. ~5 unit + 2 functional.
 
-## Prochaine session — 069 : PLN-BUDGET US-1 `BudgetAdapter`
-
-Baby-step TDD strict RED → GREEN → REFACTOR requis. Object pur, domaine
-`planning.budget` nouveau. ~8 unit.
-
-* RED : écrire `BudgetAdapterTest` (~8 unit) — assertions sur mapping
-  canaux → Map, compute → ChannelScore → 4 String tronquées, fallback
-  quand compute vide/exception. Compile fail (BudgetAdapter inexistant).
-* GREEN : créer `BudgetAdapter.kt` (object pur) — `applyRelevanceBudget(
-  intention, eagerCtx, ragCtx, graphifyCtx, docsCtx, totalTokens=8000):
-  RelevanceContext` (data class 4 String). Mapping noms
-  EAGER/RAG/GRAPHIFY/DOCS. Fallback try/catch.
-* REFACTOR : vérifier `:check` VERT (95 tests baseline + 8 nouveaux).
+* Le bloc actuel (lignes 102-139) est le `try/catch` qui écrit un
+  `CompositeContext` typed. US-2 le remplace par le budget dynamique.
+* `hasMultiChannel` (ligne 74) reste le déclencheur — le budget dynamique
+  ne s'applique que si au moins un canal est fourni.
+* Fallback : si `RelevanceBudget` indisponible (exception) → fallback sur
+  `ChannelBudget` fixe (path actuel). `BudgetAdapter` gère déjà le fallback
+  contenu original si compute vide/exception.
+* Backward compat : `CompositeContext`/`CompositeContextConfig` importés
+  dans `DecomposeIntentionTask` peuvent être retirés si plus consommés —
+  vérifier. Le log `[planner] Multi-canal activé` doit rester.
+* Baby-step TDD strict RED → GREEN → REFACTOR requis. English only.
+* Après : vérifier `./gradlew :planner-plugin:check` VERT puis
+  `./gradlew :planner-plugin:publishToMavenLocal`.
 
 Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`, `BACKLOG.adoc`.
 Vérifier `./gradlew :planner-plugin:compileKotlin` VERT avant de coder.

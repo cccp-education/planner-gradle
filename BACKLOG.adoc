@@ -41,7 +41,7 @@ Par :
 ```
 
 '''
-== 🟡 EPIC PLN-BUDGET — Relevance Budget Dynamique (Session 068 — Cadrage)
+== 🟡 EPIC PLN-BUDGET — Relevance Budget Dynamique (Session 069 — US-1 `BudgetAdapter` ✅)
 
 _Source_ : Session 068. Split-brain #4 reporté S-061 :
 `agent-contracts.RelevanceBudget` (N0, 0.0.3 déjà publié) fait un budget
@@ -127,7 +127,7 @@ zéro bump BOM). Codebase HORS SCOPE (borough DORMANT — EPIC planner-only).
 
 | PLN-BUDGET-1
 | *`BudgetAdapter`* (domaine `planning.budget`, nouveau) — object pur qui mappe 4 canaux planner (`eagerContext`/`ragContext`/`graphifyContext`/`docsContext`) → `Map<String, String>` (noms EAGER/RAG/GRAPHIFY/DOCS) → `RelevanceBudget.compute(intention, channels, totalTokens=8000)` → `List<ChannelScore>` → 4 String tronquées. Fallback : si compute retourne vide ou lance → contenus originaux non tronqués. ~8 unit | 2
-| ⏳ À FAIRE
+| ✅ TERMINÉ (S-069)
 
 | PLN-BUDGET-2
 | *Wiring `DecomposeIntentionTask`* — remplacer `ChannelBudget.fromConfig(config)` + `budget.applyBudget(channels)` (lignes 104-121) par `BudgetAdapter.applyRelevanceBudget(intention, eagerCtx, ragCtx, graphifyCtx, docsCtx)`. Backward compat : si `RelevanceBudget` indisponible (exception) → fallback sur `ChannelBudget` fixe (path actuel). ~5 unit + 2 functional | 2
@@ -141,7 +141,7 @@ zéro bump BOM). Codebase HORS SCOPE (borough DORMANT — EPIC planner-only).
 _Total_ : 4 US, ~8 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
 tests/US (unit → functional → cucumber), English only code/Gherkin.
 _Dépendances_ : MEMPHIS (agent-contracts 0.0.3 déjà publié, zéro bump).
-_Statut_ : 1/4 US (S-068 cadrage). US-1→3 à faire (prochaine session 069).
+_Statut_ : 2/4 US (S-068 cadrage + S-069 US-1 `BudgetAdapter` ✅). US-2/3 à faire (prochaine session 070).
 
 _Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
 `IntentionPlanner.plan(eagerContext, ragContext, graphifyContext, docsContext)`.

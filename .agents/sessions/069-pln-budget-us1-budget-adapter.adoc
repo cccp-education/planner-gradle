@@ -1,0 +1,99 @@
+= Session 069 — PLN-BUDGET US-1 `BudgetAdapter` (domaine `planning.budget`)
+:date: 2026-08-11
+:project: planner-gradle
+:epic: PLN-BUDGET
+:type: dev
+:score: 10/10
+
+== Mission
+
+US-1 `BudgetAdapter` — object pur du nouveau domaine `planning.budget` qui
+permet à planner de consommer `agent-contracts.RelevanceBudget` (N0, 0.0.3
+déjà publié, contrat orphan) au lieu de `ChannelBudget` fixe.
+
+Baby-step TDD strict RED → GREEN → REFACTOR, ~8 unit. Object pur, domaine
+`planning.budget` nouveau. Zéro bump BOM.
+
+== RED — `BudgetAdapterTest` (~9 unit, compile fail)
+
+Nouveau fichier `planner-plugin/src/test/kotlin/planning/budget/BudgetAdapterTest.kt`
+(package `planning.budget`). Compile fail attendu : 9 occurrences
+`Unresolved reference 'BudgetAdapter'`.
+
+9 unit couvrent :
+
+. `maps the four planner channels to EAGER RAG GRAPHIFY DOCS keys and forwards original content` — injection compute capture la Map, vérifie les clés `EAGER`/`RAG`/`GRAPHIFY`/`DOCS` + valeurs originales + fallback sortie = originaux.
+. `passes the intention and default totalTokens 8000 to compute` — capture args.
+. `forwards a custom totalTokens to compute` — capture `totalTokens = 500`.
+. `maps computed channel scores back to the four planner channels` — compute injecté retourne 4 `ChannelScore` (EAGER/RAG/GRAPHIFY/DOCS), vérifie les 4 String tronquées dans `RelevanceContext`.
+. `allocates a larger budget to the channel most relevant to the intention` — vrai compute : intention "planifier formation afnor qualite" vs 4 canaux longs (~26k chars), EAGER pertinent (`afnor formation qualite`) reçoit plus de tokens que RAG/GRAPHIFY/DOCS non pertinents.
+. `truncates content exceeding the allocated budget` — vrai compute : `result.eager.length < eager.length`.
+. `returns original content when compute returns an empty channel list` — injection `RelevanceBudget(channels = emptyList())`.
+. `returns original content when compute throws` — injection `IllegalStateException("embedding unavailable")`.
+. `preserves blank channels as blank when compute returns channel scores` — canaux RAG/DOCS vides restent vides après mapping.
+
+== GREEN — `BudgetAdapter.kt` + `RelevanceContext`
+
+Nouveau fichier `planner-plugin/src/main/kotlin/planning/budget/BudgetAdapter.kt`
+(package `planning.budget`) :
+
+[source,kotlin]
+----
+data class RelevanceContext(
+    val eager: String,
+    val rag: String,
+    val graphify: String,
+    val docs: String
+)
+
+object BudgetAdapter {
+    fun applyRelevanceBudget(
+        intention: String,
+        eagerCtx: String,
+        ragCtx: String,
+        graphifyCtx: String,
+        docsCtx: String,
+        totalTokens: Int = 8000,
+        compute: (String, Map<String, String>, Int) -> RelevanceBudget =
+            { i, c, t -> RelevanceBudget.compute(i, c, t) }
+    ): RelevanceContext
+}
+----
+
+* Object pur : pas d'état, pas d'effet de bord, pas de dépendance Gradle.
+* Mapping : `mapOf("EAGER" to eagerCtx, "RAG" to ragCtx, "GRAPHIFY" to
+  graphifyCtx, "DOCS" to docsCtx)`.
+* `compute` injectable (défaut = `RelevanceBudget.compute`) — testabilité
+  des chemins fallback sans toucher au contrat d'appel par défaut.
+* Fallback : si `compute` retourne `channels.isEmpty()` ou lance une
+  exception → retourne `RelevanceContext` avec les 4 contenus originaux
+  non tronqués (backward compat, comportement actuel préservé).
+* Mapping retour : `budget.channels.associateBy { it.name }` → 4 String
+  tronquées par canal, `?: original` si un canal absent.
+
+== REFACTOR — Vérifications
+
+* `./gradlew :planner-plugin:test --tests "planning.budget.BudgetAdapterTest"`
+  → 9/9 PASSED.
+* `./gradlew :planner-plugin:check` → BUILD SUCCESSFUL.
+* Total tests : 104 (95 baseline + 9 unit nouveaux), 0 FAIL.
+* `./gradlew :planner-plugin:publishToMavenLocal` → BUILD SUCCESSFUL
+  (règle 2 respectée — signature GPG `CBE2926CD46D8E8B`).
+* Zéro secret, zéro commit (règle 1), zéro bump BOM (agent-contracts 0.0.3
+  déjà dans `build.gradle.kts:29`).
+
+== Fichiers créés
+
+* `planner-plugin/src/main/kotlin/planning/budget/BudgetAdapter.kt`
+  (1 prod : `RelevanceContext` + `BudgetAdapter`)
+* `planner-plugin/src/test/kotlin/planning/budget/BudgetAdapterTest.kt`
+  (1 test : 9 unit)
+
+== Prochaine session — 070
+
+US-2 wiring `DecomposeIntentionTask` : remplacer
+`ChannelBudget.fromConfig(config)` + `budget.applyBudget(channels)`
+(lignes 104-121) par `BudgetAdapter.applyRelevanceBudget(intention,
+eagerCtx, ragCtx, graphifyCtx, docsCtx)`. Backward compat : si
+`RelevanceBudget` indisponible (exception) → fallback sur `ChannelBudget`
+fixe (path actuel). ~5 unit + 2 functional. Baby-step TDD strict.
