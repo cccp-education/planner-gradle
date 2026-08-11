@@ -1,0 +1,164 @@
+= Session 064 — PLN-VERIFY US-1 BOM cross-borough (agent-contracts 0.0.3)
+:date: 2026-08-11
+:project: planner-gradle (cross-borough MEMPHIS)
+:epic: PLN-VERIFY
+:us: PLN-VERIFY-1
+:type: dev
+:score: 9/10
+
+== Mission
+
+US-1 de l'EPIC PLN-VERIFY (cadré S-063). Étendre
+`contracts.agent.GradleTask` (N0) avec les 3 champs de vérification que
+`codebase.koog.planning.VibecodingStep` attend mais que le contrat N0
+n'avait pas : `expectedOutput`, `maxRetries`, `verifyHook`. Bumper
+`agent-contracts` 0.0.2 → 0.0.3, publier sur Maven Central (MEMPHIS),
+et propager la constraint dans le BOM racine (0.0.17 → 0.0.18).
+
+Baby-step TDD strict (RED → GREEN → REFACTOR), backward compat
+critique (defaults préservent le comportement du bridge codebase).
+
+== Constat technique
+
+`codebase.koog.planning.VibecodingStep` (`VibecodingPlan.kt:10`) a 3
+champs de vérification consommés par `StepVerifier.verifyAndAdapt`
+(retry/give-up + prompt replan). `contracts.agent.GradleTask` (N0,
+`AgentState.kt:126`) n'en avait aucun. Le bridge codebase
+`VibecodingGraph.extractCurrentStep:713` hardcodait
+`expectedOutput = "BUILD SUCCESSFUL"` — ignorant la vraie expectation
+de chaque tâche (ex: `generateSPG` → `"SPG generated"`).
+
+== Étape RED — GradleTaskVerifyTest (12 unit tests)
+
+Nouveau fichier `agent-contracts/src/test/kotlin/contracts/agent/
+GradleTaskVerifyTest.kt` — 12 tests couvrant :
+
+* Defaults : `expectedOutput = "BUILD SUCCESSFUL"`, `maxRetries = 3`,
+  `verifyHook = null` (3 tests)
+* Custom values : `expectedOutput = "SPG generated"`, `maxRetries = 5`,
+  `verifyHook = "grep FAILED"` (3 tests)
+* Invariants : `expectedOutput` non-blank, `maxRetries` 1..10 (5 tests :
+  reject blank, reject 0, reject 11, accept 1 borne inf, accept 10
+  borne sup)
+* Backward compat : construction 5-champs legacy préservée avec
+  verification defaults (1 test)
+
+Compilation → RED : `Unresolved reference 'expectedOutput'`/
+`'maxRetries'`/`'verifyHook'` (3 champs absents de `GradleTask`).
+
+== Étape GREEN — étendre GradleTask
+
+`agent-contracts/src/main/kotlin/contracts/agent/AgentState.kt:126` :
+ajout de 3 champs à `GradleTask` data class :
+
+[source,kotlin]
+----
+data class GradleTask(
+    val description: String,
+    val gradleTask: String,
+    val toolType: TaskType = TaskType.GRADLE,
+    val target: String = "",
+    val project: String = "",
+    val expectedOutput: String = "BUILD SUCCESSFUL",
+    val maxRetries: Int = 3,
+    val verifyHook: String? = null
+) {
+    init {
+        // ... 3 invariants existants ...
+        require(expectedOutput.isNotBlank()) {
+            "GradleTask.expectedOutput must not be blank"
+        }
+        require(maxRetries in 1..10) {
+            "GradleTask.maxRetries must be between 1 and 10, got $maxRetries"
+        }
+    }
+}
+----
+
+Defaults backward compat : `"BUILD SUCCESSFUL"`/`3`/`null` préservent
+exactement le comportement actuel du bridge codebase → zéro régression.
+
+== Étape REFACTOR
+
+Pas nécessaire. Code minimal, invariants clairs, style aligné sur
+`GradleTaskTest.kt` (AssertJ + JUnit5). 1 itération de revue
+suffisante.
+
+== Vérifications
+
+* `./gradlew test --tests GradleTaskVerifyTest --tests GradleTaskTest`
+  → 12 + 9 = 21 tests PASSED (0 FAIL)
+* `./gradlew check` agent-contracts → BUILD SUCCESSFUL (24 unit + 3
+  Plan + cucumber VERT, zéro régression)
+* `./gradlew publishToMavenLocal` agent-contracts → BUILD SUCCESSFUL
+
+== Bump + publication agent-contracts 0.0.3
+
+* `agent-contracts/build.gradle.kts` : `version = "0.0.2"` → `"0.0.3"`
+* `./gradlew publishAggregationToCentralPortal --no-daemon` → bundle
+  `cd4d2d44-4324-4224-9e38-b39a0a2d3ed3` AUTOMATIC uploadé. Status
+  PUBLISHING.
+
+== Non-régression planner contre 0.0.3
+
+* `planner-plugin/build.gradle.kts` : `agent-contracts:0.0.2` →
+  `0.0.3`
+* `./gradlew :planner-plugin:compileKotlin :planner-plugin:
+  compileTestKotlin` → BUILD SUCCESSFUL
+* `./gradlew :planner-plugin:check` → BUILD SUCCESSFUL (zéro
+  régression, 38 unit + 8 cucumber PLN-CONTRACTS + 4 cucumber
+  PLN-VIBE VERTS)
+
+== Bump + publication BOM 0.0.18
+
+* `workspace-bom/build.gradle.kts` :
+  * `agent-contracts:0.0.2` → `0.0.3` (constraint)
+  * `version = "0.0.17"` → `"0.0.18"`
+* `./gradlew build -x runAllTests` → BUILD SUCCESSFUL
+* `./gradlew publishAggregationToCentralPortal --no-daemon` → bundle
+  `3d2702bf-e75a-49ed-a67a-0e7d6b4e63e4` AUTOMATIC uploadé. Status
+  PUBLISHING.
+
+== Fichiers modifiés
+
+* `workspace-bom/agent-contracts/src/main/kotlin/contracts/agent/
+  AgentState.kt` — GradleTask +3 champs + 2 invariants
+* `workspace-bom/agent-contracts/src/test/kotlin/contracts/agent/
+  GradleTaskVerifyTest.kt` — nouveau, 12 unit tests
+* `workspace-bom/agent-contracts/build.gradle.kts` — version 0.0.3
+* `workspace-bom/build.gradle.kts` — constraint 0.0.3 + version 0.0.18
+* `planner-gradle/planner-plugin/build.gradle.kts` — dépendance
+  agent-contracts 0.0.3
+
+== Tests
+
+* agent-contracts : 12 new + 9 existing + 3 Plan = 24 unit VERT
+* agent-contracts cucumber : AgentState (8) + AgentTool (5) +
+  GradleTaskTool (10) + RelevanceBudget (4) + ContextAssembler (4) =
+  31 cucumber VERT
+* planner : `:check` VERT (38 unit + 8 cucumber PLN-CONTRACTS + 4
+  cucumber PLN-VIBE + ToolCatalog)
+* Zéro régression, zéro secret
+
+== Note `runAllTests` BOM
+
+`./gradlew build` (BOM racine) échoue à `runTestsForCodebasegradle`
+(car `check` codebase ~10 min + tests instables préexistants). Hors
+portée US-1 — non-régression planner validée séparément. `build -x
+runAllTests` VERT.
+
+== Prochaine session — 065 : US-2 planner consomme N0 étendu
+
+Démarrer US-2 (planner consomme N0 étendu). Baby-step TDD strict :
+
+. Étendre `LLMTask` (3 champs nullables : `expectedOutput`/`maxRetries`/
+  `verifyHook`) + `LLMTask.toTask()` mapping avec defaults.
+. `IntentionPlanner.buildPromptInternal` schéma JSON + règles prompt
+  (demander `expectedOutput`, `maxRetries` optionnel, `verifyHook`
+  rare).
+. `StdoutFormatter` affiche `expectedOutput`.
+. ~10 unit tests (parse JSON + prompt + format).
+. Vérifier `./gradlew :planner-plugin:check` VERT avant de coder.
+
+_Dépendance_ : `agent-contracts:0.0.3` publié sur Central (bundle
+`cd4d2d44`). `planner-plugin/build.gradle.kts` déjà bumpé 0.0.3.

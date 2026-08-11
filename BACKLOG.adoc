@@ -41,6 +41,106 @@ Par :
 ```
 
 '''
+== EPIC PLN-VERIFY — Planner Vibecoding Verification Metadata
+
+_Source_ : Session 063 (cadrage). Split-brain #5 reporté en S-061 :
+`codebase.koog.planning.VibecodingStep` a `expectedOutput`/`maxRetries`/
+`verifyHook` que `contracts.agent.GradleTask` (N0) n'a pas. Le bridge
+codebase `VibecodingGraph.extractCurrentStep` hardcode
+`expectedOutput = "BUILD SUCCESSFUL"` — le StepVerifier ne peut pas
+exploiter la vraie expectation de chaque tâche que planner connaît.
+
+_Dépendances_ : MEMPHIS (agent-contracts 0.0.3), codebase (bridge 2
+sites `VibecodingGraph.kt:713/741`).
+
+=== Audit — 4 constats
+
+[cols="1,3,3", options="header"]
+|===
+| # | Constat | Preuve
+
+| 1
+| `VibecodingStep` a 3 champs de vérification
+| `codebase-plugin/.../VibecodingPlan.kt:10` — `expectedOutput: String`, `maxRetries: Int = 3`, `verifyHook: String? = null`. Consommé par `StepVerifier.verifyAndAdapt` (retry/give-up + prompt replan).
+
+| 2
+| `GradleTask` N0 n'a aucun champ de vérification
+| `workspace-bom/agent-contracts/.../AgentState.kt:126` — 5 champs (description/gradleTask/toolType/target/project), 3 invariants. Pas d'expectedOutput/maxRetries/verifyHook.
+
+| 3
+| Bridge codebase hardcode les métadonnées manquantes
+| `codebase-plugin/.../VibecodingGraph.kt:713` (extractCurrentStep) + `:741` (rollback) — `expectedOutput = "BUILD SUCCESSFUL"` constant, ignorant la nature de la tâche. Drift : `generateSPG` produit `"SPG generated"` mais vérifié contre `"BUILD SUCCESSFUL"`.
+
+| 4
+| Le prompt LLM ne demande pas les métadonnées
+| `planner-plugin/.../IntentionPlanner.kt:135` — schéma JSON de sortie sans `expectedOutput`/`maxRetries`/`verifyHook`. Le LLM n'a aucun moyen de les fournir.
+|===
+
+=== Décisions architecturales (cadrage S-063)
+
+. *Portée EPIC* : étendre `contracts.agent.GradleTask` (N0) avec 3 champs
+  de vérification optionnels (defaults backward compat) + étendre le
+  prompt LLM + étendre le bridge codebase. Pas de nouveau type — on
+  enrichit le N0 existant (pattern PLN-CONTRACTS US-1).
+. *Backward compat critique* : defaults préservent le comportement
+  actuel — `expectedOutput = "BUILD SUCCESSFUL"`, `maxRetries = 3`,
+  `verifyHook = null`. Avec ces defaults, le bridge codebase produit le
+  même `VibecodingStep` qu'aujourd'hui → zéro régression.
+. *Dépendance cross-borough BOM* : `agent-contracts` 0.0.2 → 0.0.3 (bump
+  + 3 champs + invariants). Publication MEMPHIS.
+. *Dépendance cross-borough codebase* : `VibecodingGraph.extractCurrentStep`
+  + rollback (2 sites) remplacent le hardcodé par la vraie valeur du
+  plan. Si planner ne fournit pas → default identique au comportement
+  actuel.
+. *Invariants N0* : `expectedOutput` non-blank, `maxRetries` 1..10
+  (anti-abus LLM halluciné), `verifyHook` nullable.
+. *Non-régression critique* : `PlannerIntegration.kt` (codebase) pont
+  `Plan → PlanState → VibecodingStep` doit produire identique si LLM
+  omet les métadonnées.
+. *Méthode* : baby-step DDD/TDD/BDD, 3 niveaux tests/US
+  (unit → functional → cucumber), English only code/Gherkin.
+. *Ordre* : US-1 (BOM, indépendant) → US-2 (planner) → US-3 (codebase) →
+  US-4 (Cucumber).
+
+=== US découpage
+
+[cols="1,3,1,1", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| PLN-VERIFY-0
+| *Cadrage EPIC* — audit planner + codebase + BOM, 4 constats, décisions, découpage US. Maj INDEX/BACKLOG/PROMPT_REPRISE/AGENTS racine | 1
+| ✅ TERMINÉ (S-063)
+
+| PLN-VERIFY-1
+| *BOM cross-borough* — Étendre `contracts.agent.GradleTask` avec `expectedOutput: String = "BUILD SUCCESSFUL"` + `maxRetries: Int = 3` + `verifyHook: String? = null`. Invariants `init` (expectedOutput non-blank, maxRetries 1..10). Bump `agent-contracts` 0.0.2 → 0.0.3. Publication Maven Central (MEMPHIS). Backward compatible. ~6 unit | 2
+| ✅ TERMINÉ (S-064)
+
+| PLN-VERIFY-2
+| *Planner consomme N0 étendu* — Étendre `LLMTask` (expectedOutput/maxRetries/verifyHook nullables) + `LLMTask.toTask()` mapping avec defaults. `IntentionPlanner.buildPromptInternal` schéma JSON + règles prompt (demander expectedOutput, maxRetries optionnel, verifyHook rare). `StdoutFormatter` affiche expectedOutput. ~10 unit | 3
+| ⏳ À FAIRE
+
+| PLN-VERIFY-3
+| *codebase cross-borough* — `VibecodingGraph.extractCurrentStep` + rollback (2 sites) remplacent `"BUILD SUCCESSFUL"` hardcodé par `task.expectedOutput`/`task.maxRetries`/`task.verifyHook`. Non-régression : codebase koog tests + PlannerIntegration. ~3 unit | 1
+| ⏳ À FAIRE
+
+| PLN-VERIFY-4
+| *Cucumber BDD* — `planner_verify.feature` : scénarios (plan avec expectedOutput custom, maxRetries custom, verifyHook présent, defaults préservés si LLM omet, end-to-end planner → extractCurrentStep → StepVerifier). ~5 scénarios. Inspiré slider Cucumber pipeline | 3
+| ⏳ À FAIRE
+|===
+
+_Total_ : 5 US, ~10 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
+tests/US (unit → functional → cucumber), English only code/Gherkin.
+_Dépendances_ : MEMPHIS (agent-contracts 0.0.3), codebase (bridge 2
+sites). _Statut_ : 1/5 US (US-0 cadrage S-063). EPIC PLN-VERIFY EN COURS.
+
+_Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
+`IntentionPlanner.plan()` puis construit `PlanState`. Le pont
+`Plan → VibecodingStep` via `extractCurrentStep` doit produire un
+`VibecodingStep` identique à aujourd'hui si le LLM ne fournit pas les
+métadonnées (defaults backward compat : `"BUILD SUCCESSFUL"`, `3`, `null`).
+
+'''
 == EPIC PUB-5 — Verification
 
 === PUB-5.1 — Verifier Maven Central

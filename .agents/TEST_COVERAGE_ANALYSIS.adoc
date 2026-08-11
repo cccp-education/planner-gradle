@@ -39,3 +39,25 @@ test) :
 `:cucumberTest` VERT (4/4 scénarios PLN-VIBE-5). `:check` VERT.
 `:integrationTest` = 6 tests découverts (ConnectException Ollama attendu
 hors CI). Zéro production modifié — pure maintenance test infra.
+
+== Session 064 — PLN-VERIFY US-1 BOM cross-borough (2026-08-11)
+
+Tests nouveaux (MEMPHIS `agent-contracts`, pas planner-plugin) :
+
+[cols="3,3,2", options="header"]
+|===
+| Test | Type | Statut
+| `GradleTaskVerifyTest` (12 tests) — defaults (expectedOutput/maxRetries/verifyHook), custom values, invariants (non-blank, 1..10), backward compat 5-champs | unitaire | ✅ PASS
+| `GradleTaskTest` (9 tests) — non-régression 5 champs existants | unitaire | ✅ PASS
+| `PlanTest` (3 tests) — non-régression Plan/Epic/UserStory | unitaire | ✅ PASS
+| Cucumber agent-contracts (31 scénarios) — AgentState/AgentTool/GradleTaskTool/RelevanceBudget/ContextAssembler | cucumber | ✅ PASSED
+|===
+
+*Total MEMPHIS* : 24 unit + 31 cucumber VERT (0 FAIL).
+*Non-régression planner* : `:planner-plugin:check` VERT contre
+`agent-contracts:0.0.3` (38 unit + 8 cucumber PLN-CONTRACTS + 4
+cucumber PLN-VIBE + ToolCatalog). Zéro régression.
+
+== Session 063 — Cadrage EPIC PLN-VERIFY (2026-08-11)
+
+Zéro test modifié — session de gouvernance pure (pattern S-057).
