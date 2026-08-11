@@ -122,7 +122,7 @@ sites `VibecodingGraph.kt:713/741`).
 
 | PLN-VERIFY-3
 | *codebase cross-borough* — `VibecodingGraph.extractCurrentStep` + rollback (2 sites) remplacent `"BUILD SUCCESSFUL"` hardcodé par `task.expectedOutput`/`task.maxRetries`/`task.verifyHook`. Non-régression : codebase koog tests + PlannerIntegration. ~3 unit | 1
-| ⏳ À FAIRE
+| ✅ TERMINÉ (S-066)
 
 | PLN-VERIFY-4
 | *Cucumber BDD* — `planner_verify.feature` : scénarios (plan avec expectedOutput custom, maxRetries custom, verifyHook présent, defaults préservés si LLM omet, end-to-end planner → extractCurrentStep → StepVerifier). ~5 scénarios. Inspiré slider Cucumber pipeline | 3
@@ -132,7 +132,7 @@ sites `VibecodingGraph.kt:713/741`).
 _Total_ : 5 US, ~10 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
 tests/US (unit → functional → cucumber), English only code/Gherkin.
 _Dépendances_ : MEMPHIS (agent-contracts 0.0.3), codebase (bridge 2
-sites). _Statut_ : 3/5 US (US-0 cadrage S-063 + US-1 BOM 0.0.3 S-064 + US-2 planner S-065). EPIC PLN-VERIFY EN COURS.
+sites). _Statut_ : 4/5 US (US-0 cadrage S-063 + US-1 BOM 0.0.3 S-064 + US-2 planner S-065 + US-3 codebase S-066). EPIC PLN-VERIFY EN COURS.
 
 _Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
 `IntentionPlanner.plan()` puis construit `PlanState`. Le pont

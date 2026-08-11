@@ -1,0 +1,165 @@
+= Session 066 — PLN-VERIFY US-3 codebase cross-borough
+:date: 2026-08-11
+:type: dev
+:score: 9/10
+:epic: PLN-VERIFY
+:us: US-3
+:borough: cross (Manhattan planner → Queens codebase)
+
+== Objectif
+
+US-3 de l'EPIC PLN-VERIFY (cadré S-063, US-1 BOM 0.0.3 publié S-064,
+US-2 planner consomme N0 S-065). Cross-borough Queens : le bridge
+codebase `VibecodingGraph.extractCurrentStep` (ligne 713) et
+`executeRollbackStrategy` (ligne 741) hardcodent
+`expectedOutput = "BUILD SUCCESSFUL"` au lieu de consommer les
+métadonnées de vérification du `GradleTask` N0 (0.0.3) que planner
+fournit désormais. Le `StepVerifier` ne pouvait pas exploiter la vraie
+expectation de chaque tâche (ex: `generateSPG` → `"SPG generated"`
+vérifié contre `"BUILD SUCCESSFUL"` — drift silencieuse).
+
+== Méthode
+
+Baby-step TDD strict (RED → GREEN → REFACTOR). Cross-borough : planner
+pilote, codebase modifié (borough Queens). English only code/tests.
+Backward compat critique : defaults N0 (`"BUILD SUCCESSFUL"`, `3`,
+`null`) préservent le comportement actuel si planner omet les
+métadonnées.
+
+== Exécution
+
+=== Baseline
+
+- `./gradlew compileKotlin` (codebase-plugin) VERT
+- `agent-contracts:0.0.3` résolu (mavenLocal + Central), `GradleTask`
+  a bien les 3 champs (`expectedOutput`/`maxRetries`/`verifyHook`)
+- codebase `libs.versions.toml` pointait sur `0.0.2` (bump nécessaire)
+
+=== RED — `VibecodingGraphVerifyStepTest` (9 tests)
+
+Nouveau fichier `VibecodingGraphVerifyStepTest.kt` dans codebase-plugin
+(package `codebase.koog`, même package que `VibecodingGraph`).
+9 tests documentent :
+- `extractCurrentStep` forward `task.expectedOutput` custom (1)
+- `extractCurrentStep` preserve default `expectedOutput` quand omis (1)
+- `extractCurrentStep` forward `task.maxRetries` custom (1)
+- `extractCurrentStep` preserve default `maxRetries` quand omis (1)
+- `extractCurrentStep` forward `task.verifyHook` présent (1)
+- `extractCurrentStep` preserve default `verifyHook` null quand omis (1)
+- `extractCurrentStep` forward les 3 métadonnées ensemble (1)
+- `extractCurrentStep` return null si plan null (1)
+- `extractCurrentStep` return null si toutes tâches exécutées (1)
+
+Run initial : compile FAILED — `extractCurrentStep` est `private` dans
+`VibecodingGraph` → inaccessible depuis le test. RED confirmé (3 erreurs
+"Cannot access 'fun extractCurrentStep': it is private" + 7 type
+mismatch `VibecodingStep` vs `VibecodingStep?`).
+
+=== GREEN — `VibecodingGraph.kt` modifié
+
+Site 1 (ligne 705-718, `extractCurrentStep`) :
+- Visibilité `private` → `internal` (testable depuis le module, même
+  package — pattern `buildReplanPrompt` déjà `internal` ligne 473)
+- `VibecodingStep(...)` consomme `task.expectedOutput` /
+  `task.maxRetries` / `task.verifyHook` au lieu de hardcoder
+  `"BUILD SUCCESSFUL"` (maxRetries/verifyHook utilisent les defaults
+  `VibecodingStep` = `3` / `null` qui sont identiques aux defaults N0)
+
+Site 2 (ligne 741, `executeRollbackStrategy` fallback) :
+- Fallback quand `extractCurrentStep` retourne null (pas de plan ou
+  toutes tâches faites) — pas de `GradleTask` disponible dans ce
+  contexte. Conserve le default N0 `"BUILD SUCCESSFUL"` (backward
+  compat légitime). Refactor : `run { ... }` block avec log warn pour
+  clarifier que c'est un fallback, pas un hardcodé caché.
+
+Itération 1 : 7 erreurs "Initializer type mismatch: expected
+'VibecodingStep', actual 'VibecodingStep?'" dans le test (les tests
+non-null utilisaient `val step: VibecodingStep =` au lieu de `!!`).
+Corrigé : 7 éditions `!!` (les 2 tests null gardent `VibecodingStep?`).
+Run : 9/9 PASSED.
+
+=== Bump dépendance
+
+- `codebase-plugin/gradle/libs.versions.toml` :
+  `agent-contracts` 0.0.2 → 0.0.3 (aligne codebase sur planner S-065)
+
+=== REFACTOR + non-régression complète
+
+- `./gradlew test --tests "codebase.koog.*" --tests "codebase.rag.PlannerIntegration*"`
+  BUILD SUCCESSFUL (9m10s)
+- Rapport XML : 881 tests, 0 failures, 0 errors, 4 skipped
+- `VibecodingGraphVerifyStepTest` : 9/9 PASSED inclus dans le décompte
+- `./gradlew publishToMavenLocal` (codebase-plugin) VERT (Regle 2)
+- Non-régression planner : `./gradlew :planner-plugin:test` UP-TO-DATE
+  (planner consomme `agent-contracts:0.0.3` + `codebase-contracts:0.0.1`,
+  pas de dépendance directe à `codebase-plugin` → non impacté)
+
+== Artefacts
+
+=== Production modifiée (codebase-plugin, 2 fichiers)
+
+- `codebase-plugin/src/main/kotlin/codebase/koog/VibecodingGraph.kt` :
+  `extractCurrentStep` internal + consomme `task.expectedOutput`/
+  `maxRetries`/`verifyHook` (site 1) + fallback rollback clarifié (site 2)
+- `codebase-plugin/gradle/libs.versions.toml` : `agent-contracts`
+  0.0.2 → 0.0.3
+
+=== Tests créés (codebase-plugin, 1 fichier, 9 tests)
+
+- `codebase-plugin/src/test/kotlin/codebase/koog/VibecodingGraphVerifyStepTest.kt` :
+  9 unit
+
+=== Gouvernance modifiée
+
+- `PROMPT_REPRISE.adoc` (planner) : contexte reprise S-067 (US-4 Cucumber)
+- `.agents/INDEX.adoc` (planner) : session 066, statut EPIC 4/5 US
+- `.agents/SESSIONS_HISTORY.adoc` (planner) : entrée 066
+- `BACKLOG.adoc` (planner) : US-3 ✅ TERMINÉ (S-066), sections détaillées
+- `.agents/archives/COMPLETED_TASKS_ARCHIVE_2026-08.adoc` (planner) : US-3
+- `AGENTS.adoc` racine : entrée Manhattan S-066 + Queens sync
+- Gouvernance codebase : INDEX/BACKLOG/PROMPT_REPRISE synchronisés
+
+== État EPIC PLN-VERIFY
+
+- US-0 cadrage ✅ TERMINÉ (S-063)
+- US-1 BOM cross-borough ✅ TERMINÉ (S-064) — `agent-contracts` 0.0.3
+- US-2 planner consomme N0 étendu ✅ TERMINÉ (S-065)
+- US-3 codebase cross-borough ✅ TERMINÉ (S-066) — bridge 2 sites
+  consomme `task.expectedOutput`/`maxRetries`/`verifyHook`, backward
+  compat prouvée (defaults N0 identiques)
+- US-4 Cucumber BDD ⏳ À FAIRE — `planner_verify.feature` ~5 scénarios
+  (expectedOutput custom, maxRetries custom, verifyHook présent,
+  defaults préservés, end-to-end planner → extractCurrentStep →
+  StepVerifier).
+
+_Statut_ : 4/5 US. EPIC EN COURS.
+
+== Non-régression critique
+
+`PlannerIntegration.kt` (codebase) appelle `IntentionPlanner.plan()` puis
+construit `PlanState`. Le pont `Plan → VibecodingStep` via
+`extractCurrentStep` produit maintenant un `VibecodingStep` portant les
+vraies métadonnées du `GradleTask` N0. Si le LLM omet les métadonnées
+(S-065 defaults `?: "BUILD SUCCESSFUL"` / `?: 3` / `?: null`), le
+`GradleTask` est identique au legacy → `VibecodingStep` identique →
+zéro régression. Vérifié : 881 tests codebase 0 failures.
+
+== Décisions architecturales
+
+. *Visibilité `internal`* : `extractCurrentStep` rendu `internal` pour
+  testabilité (même package `codebase.koog`). Pattern `buildReplanPrompt`
+  déjà `internal` (ligne 473). Pas de fuite d'API publique.
+. *Site 2 fallback légitime* : le fallback rollback (ligne 741) n'a pas
+  accès à un `GradleTask` (pas de plan extractible). Conserver le default
+  N0 `"BUILD SUCCESSFUL"` est le bon comportement — c'est un fallback
+  d'erreur, pas un hardcodage caché. Log warn ajouté pour traçabilité.
+. *Bump codebase 0.0.2 → 0.0.3* : aligne codebase sur planner (S-065).
+  Aucune régression (0.0.3 est backward compatible, juste +3 champs
+  avec defaults).
+
+== Score
+
+9/10 — US-3 livrée en baby-step TDD strict, 9 tests, cross-borough
+Manhattan→Queens, backward compat prouvée (881 tests 0 failures).
+Point mineur : 1 itération supplémentaire sur le type mismatch
+`VibecodingStep?` (7 éditions `!!` — ajustement test, pas production).

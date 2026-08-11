@@ -1,60 +1,63 @@
-= PROMPT_REPRISE — planner-gradle (Session 065 terminée)
+= PROMPT_REPRISE — planner-gradle (Session 066 terminée)
 :date: 2026-08-11
 
-== Session 065 terminée — PLN-VERIFY US-2 planner consomme N0 étendu
+== Session 066 terminée — PLN-VERIFY US-3 codebase cross-borough
 
-US-2 de l'EPIC PLN-VERIFY. Étendu planner pour consommer les 3 champs
-de vérification du contrat N0 `GradleTask` (0.0.3) :
-`expectedOutput`, `maxRetries`, `verifyHook`.
+US-3 de l'EPIC PLN-VERIFY. Cross-borough Queens : bridge codebase
+`VibecodingGraph.extractCurrentStep` + rollback consomment désormais
+les métadonnées du `GradleTask` N0 (`expectedOutput`/`maxRetries`/
+`verifyHook`) au lieu de hardcoder `"BUILD SUCCESSFUL"`.
 
-Baby-step TDD strict (RED → GREEN → REFACTOR), 3 fichiers test créés
-(21 unit), 3 fichiers prod modifiés (+14 lignes net). Backward compat
-prouvée : defaults `"BUILD SUCCESSFUL"`/`3`/`null` → GradleTask
-identique si LLM omet.
+Baby-step TDD strict (RED → GREEN → REFACTOR), 9 tests unitaires
+créés (`VibecodingGraphVerifyStepTest`), 2 fichiers prod modifiés
+(+1 bump dépendance). Backward compat prouvée : 881 tests codebase
+0 failures. `publishToMavenLocal` VERT.
 
 == État EPIC PLN-VERIFY
 
-EPIC EN COURS (3/5 US) :
+EPIC EN COURS (4/5 US) :
 
 * US-0 cadrage ✅ TERMINÉ (S-063)
 * US-1 BOM cross-borough ✅ TERMINÉ (S-064) — `agent-contracts` 0.0.3
   publié Central (bundle `cd4d2d44`), BOM 0.0.18 (bundle `3d2702bf`).
 * US-2 planner consomme N0 étendu ✅ TERMINÉ (S-065) — `LLMTask`
-  +3 champs nullables + `toTask()` defaults + prompt schéma JSON +
-  3 règles + `StdoutFormatter` affiche custom `expectedOutput`.
-  90 unit + 8 cucumber = 98 PASS, 0 FAIL. `publishToMavenLocal` VERT.
-* US-3 codebase cross-borough ⏳ À FAIRE — `VibecodingGraph` 2 sites
-  (`extractCurrentStep:713` + rollback `:741`) remplacent
-  `"BUILD SUCCESSFUL"` hardcodé par `task.expectedOutput`/
-  `task.maxRetries`/`task.verifyHook`. ~3 unit.
+  +3 champs nullables + prompt schéma JSON + `StdoutFormatter`.
+  98 PASS, 0 FAIL.
+* US-3 codebase cross-borough ✅ TERMINÉ (S-066) —
+  `VibecodingGraph.extractCurrentStep` internal + consomme
+  `task.expectedOutput`/`maxRetries`/`verifyHook`. Site rollback
+  fallback conserve default N0. `agent-contracts` codebase 0.0.2 →
+  0.0.3. 9 unit + 881 codebase tests 0 FAIL. `publishToMavenLocal` VERT.
 * US-4 Cucumber BDD ⏳ À FAIRE — `planner_verify.feature` ~5
   scénarios (expectedOutput custom, maxRetries custom, verifyHook
   présent, defaults préservés, end-to-end planner → extractCurrentStep
   → StepVerifier).
 
-_Total_ : 5 US, ~10 pts. Méthode baby-step DDD/TDD/BDD (unit →
-functional → cucumber), English only code/Gherkin.
+_Total_ : 5 US, ~10 pts. Méthode baby-step DDD/TDD/BDD
+(unit → functional → cucumber), English only code/Gherkin.
 
-== Prochaine session — 066 : US-3 codebase cross-borough
+== Prochaine session — 067 : US-4 Cucumber BDD
 
-Démarrer US-3 (codebase cross-borough). Baby-step TDD strict :
+Démarrer US-4 (Cucumber BDD). Baby-step BDD strict :
 
-. Localiser `codebase-plugin/.../koog/planning/VibecodingGraph.kt`
-  lignes 713 (`extractCurrentStep`) et 741 (rollback).
-. Remplacer `expectedOutput = "BUILD SUCCESSFUL"` hardcodé par
-  `task.expectedOutput` (vrai valeur du plan).
-. Remplacer `maxRetries` hardcodé par `task.maxRetries`.
-. Remplacer `verifyHook` hardcodé par `task.verifyHook`.
-. Non-régression : codebase koog tests + `PlannerIntegration`. ~3 unit.
+. Créer `planner_verify.feature` dans `planner-plugin/src/test/resources/`
+  (pattern `planner_vibecoding.feature` S-059 + `planner_contracts.feature`
+  S-061). ~5 scénarios :
+  - plan avec `expectedOutput` custom → `VibecodingStep` porte la valeur
+  - plan avec `maxRetries` custom → `StepVerifier` respecte le budget
+  - plan avec `verifyHook` présent → `VibecodingStep.verifyHook` non null
+  - plan sans métadonnées → defaults préservés (`"BUILD SUCCESSFUL"`/`3`/`null`)
+  - end-to-end planner → `extractCurrentStep` → `StepVerifier`
+. Steps `PlannerVerifySteps` (pattern `PlannerVibecodingSteps` S-059).
+. Runner dédié ou réutiliser `CucumberTestRunner` existant.
+. Non-régression : `:planner-plugin:check` VERT + cucumber existants.
 
-_Pré-requis_ : `agent-contracts:0.0.3` publié Central + planner
-publié mavenLocal (S-064 + S-065). Backward compat critique : si
-planner omet les métadonnées → defaults identiques au comportement
-actuel → zéro régression.
+_Pré-requis_ : planner mavenLocal S-065 + codebase mavenLocal S-066
+prêts. `agent-contracts:0.0.3` publié Central.
 
-_Dépendances_ : MEMPHIS (BOM 0.0.3 publié), planner (US-2 terminé).
-Cross-borough codebase (borough Queens).
+_Dépendances_ : planner (US-2 terminé) + codebase (US-3 terminé).
+EPIC PLN-VERIFY se fermera à la fin de US-4 (5/5 US).
 
 Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`,
-`BACKLOG.adoc`. Vérifier `./gradlew :codebase-plugin:compileKotlin`
-VERT avant de coder (depuis `foundry/public/codebase-gradle/`).
+`BACKLOG.adoc`. Vérifier `./gradlew :planner-plugin:compileKotlin`
+VERT avant de coder.
