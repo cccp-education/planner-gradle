@@ -19,3 +19,23 @@
 == Session 051 — Publication Maven Central (2026-06-11)
 
 Inchangé — aucun test modifié. Publication uniquement (build -x test).
+
+== Session 060 — Maintenance @integration (2026-08-11)
+
+Tests modifiés (annotation `@Tag("integration")` ajoutée, pas de nouveau
+test) :
+
+[cols="3,3,2", options="header"]
+|===
+| Test | Type | Statut
+| DecomposeIntentionMultiCanalTest x4 (GradleRunner) | integration | `@integration` (exclus `:test`, inclus `:integrationTest`)
+| DecomposeIntentionPluginTest x2 (GradleRunner) | integration | `@integration` (exclus `:test`, inclus `:integrationTest`)
+| DecomposeIntentionMultiCanalTest x2 (unitaires purs) | unitaire | ✅ PASS (`:test`)
+| DecomposeIntentionPluginTest x2 (tasks-only) | unitaire | ✅ PASS (`:test`)
+| CucumberTestRunner PLN-VIBE-5 x4 scénarios | cucumber | ✅ PASSED (`:cucumberTest`)
+|===
+
+*Total* : `:test` VERT (56 unitaires, 6 `@integration` exclus).
+`:cucumberTest` VERT (4/4 scénarios PLN-VIBE-5). `:check` VERT.
+`:integrationTest` = 6 tests découverts (ConnectException Ollama attendu
+hors CI). Zéro production modifié — pure maintenance test infra.

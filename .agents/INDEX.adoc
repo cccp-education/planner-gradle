@@ -5,9 +5,9 @@ _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
 _Derniere mise a jour_ : 2026-08-11
-_Session terminee_ : 059 — PLN-VIBE-5 ✅ EPIC PLN-VIBE CLOS 6/6 US. Cucumber BDD `planner_vibecoding.feature` 4 scénarios VERT. Infra Cucumber configurée (plugin 0.0.2, runner glue `planning.steps`). Baby-step BDD strict, zéro production modifié.
-_Sessions precedent_ : 058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
-_Prochaine session_ : 060 — EPIC PLN-VIBE TERMINÉ. Options : PUB-2.2 (quick win commentaire relocation), maintenance (@integration sur 6 tests Ollama préexistants), ou nouveau EPIC.
+_Session terminee_ : 060 — Maintenance @integration. 6 tests GradleRunner (`DecomposeIntentionMultiCanalTest` x4 + `DecomposeIntentionPluginTest` x2) marqués `@Tag("integration")` (JUnit5), exclus du `check` via `excludeTags("integration")` sur le `test` task. Tâche `integrationTest` dédiée créée (`includeTags`, `excludeEngines("cucumber")`, `excludeTestsMatching("planning.steps.CucumberTestRunner")`). `:check` VERT, non-régression Cucumber PLN-VIBE-5 (4/4 PASSED). Zéro production modifié.
+_Sessions precedent_ : 059/058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
+_Prochaine session_ : 061 — EPIC PLN-VIBE TERMINÉ. Options : PUB-2.2 (quick win commentaire relocation), PUB-3.10 (bloqué DNS/GPG), ou nouveau EPIC.
 
 '''
 == REGLES ABSOLUES
@@ -37,6 +37,7 @@ _Prochaine session_ : 060 — EPIC PLN-VIBE TERMINÉ. Options : PUB-2.2 (quick w
 
 |===
 | # | Date | Type | Sujet | Score
+| 060 | 2026-08-11 | maintenance | **@integration** — 6 tests GradleRunner (`DecomposeIntentionMultiCanalTest` x4 + `DecomposeIntentionPluginTest` x2) marqués `@Tag("integration")` (JUnit5), exclus du `check` via `excludeTags("integration")` sur `test` task. Tâche `integrationTest` dédiée créée (`includeTags`, `excludeEngines("cucumber")`, `excludeTestsMatching("planning.steps.CucumberTestRunner")`). `:check` VERT, Cucumber PLN-VIBE-5 4/4 PASSED. Zéro production modifié. | 9/10
 | 059 | 2026-08-11 | dev | **PLN-VIBE-5** — Cucumber BDD `planner_vibecoding.feature` 4 scénarios VERT. Infra Cucumber configurée (plugin `education.cccp.build.cucumber` 0.0.2, runner `CucumberTestRunner` glue `planning.steps`, dirs features/scenarios). `PlannerVibecodingSteps` (232 lignes, pattern `En` java8, AssertJ). Baby-step BDD strict RED → GREEN. Zéro production modifié — pure BDD. EPIC PLN-VIBE TERMINÉ 6/6 US. | 9/10
 | 058 | 2026-08-06 | dev | **PLN-VIBE-1/2/3/4** — TaskType enum (GRADLE/EDIT_FILE/EXEC_SHELL) + Task étendu (toolType, target, 3 invariants init). LLMTask étendu (toolType?, target? nullables) + toTask() internal. Prompt enrichi (catalogue 6 outils + cross-borough :slider:/:capsule:/:bakery:/:plantuml:). StdoutFormatter affiche toolType. 24 nouveaux tests unitaires VERT. Baby-step TDD strict. | 9/10
 | 057 | 2026-08-06 | governance | **Cadrage EPIC PLN-VIBE** — planner vibecoding-aware. Audit planner existant (11 fichiers, ~600 lignes). Gap : `Task` ne modelise que `gradleTask` (pas edit_file/exec_shell). `ToolRegistry` codebase sait deja executer 7 outils. Code reutilisable : codebase VibecodingPlan/StepVerifier/ToolRegistry, workspace-bom AgentState/GradleTask (champ project), slider ValidationResult sealed/DeckState invariants. 6 US ~12 pts validees. | 9/10

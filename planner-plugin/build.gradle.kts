@@ -36,6 +36,39 @@ tasks.withType<Test> {
     }
 }
 
+// Exclude @Tag("integration") tests from the normal `test` task — they
+// require a real Ollama instance (ConnectException on localhost:1 in CI).
+// Run on demand via `./gradlew :planner-plugin:integrationTest`.
+tasks.named<Test>("test") {
+    useJUnitPlatform {
+        excludeTags("integration")
+    }
+}
+
+// Dedicated integration test task — runs JUnit tests tagged @Tag("integration")
+// (e.g. DecomposeIntentionMultiCanalTest / DecomposeIntentionPluginTest GradleRunner
+// scenarios requiring a real Ollama instance). Excluded from `check`; run on demand
+// via `./gradlew :planner-plugin:integrationTest`. The cucumber engine is excluded
+// so the CucumberTestRunner suite is not picked up.
+val integrationTest = tasks.register<Test>("integrationTest") {
+    group = "verification"
+    description = "Runs integration tests (requires real Ollama)."
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    shouldRunAfter(tasks.test)
+    useJUnitPlatform {
+        includeTags("integration")
+        excludeEngines("cucumber")
+    }
+    filter {
+        excludeTestsMatching("planning.steps.CucumberTestRunner")
+    }
+    jvmArgs("-XX:+EnableDynamicAgentLoading")
+    testLogging {
+        exceptionFormat = FULL
+    }
+}
+
 gradlePlugin {
     website.set("https://github.com/cheroliv/planner-gradle/")
     vcsUrl.set("https://github.com/cheroliv/planner-gradle.git")

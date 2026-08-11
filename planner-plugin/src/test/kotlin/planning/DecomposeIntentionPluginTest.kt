@@ -2,6 +2,7 @@ package planning
 
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
+import org.junit.jupiter.api.Tag
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -37,6 +38,7 @@ class DecomposeIntentionPluginTest {
     }
 
     @Test
+    @Tag("integration")
     fun `generatePlan with valid intention outputs structured format`() {
         val projectDir = createTestProject()
 
@@ -55,6 +57,7 @@ class DecomposeIntentionPluginTest {
     }
 
     @Test
+    @Tag("integration")
     fun `generatePlan with missing intention does not crash`() {
         val projectDir = createTestProject()
 

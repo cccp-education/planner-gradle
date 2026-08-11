@@ -5,6 +5,7 @@ import contracts.context.CompositeContextConfig
 import contracts.context.ContextChannel
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
+import org.junit.jupiter.api.Tag
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertFalse
@@ -16,10 +17,16 @@ import kotlin.test.assertTrue
  * (eager, rag, graphify, docs) en plus du SpecReader classique.
  *
  * Compatibilité ascendante garantie : les canaux sont @Optional.
+ *
+ * Les 4 scénarios GradleRunner requièrent un Ollama réel (ConnectException
+ * `localhost:1` hors CI). Ils sont marqués `@Tag("integration")` et exclus
+ * du `check` normal via `excludeTags("integration")`. Une tâche `integrationTest`
+ * dédiée les exécute à la demande (`./gradlew :planner-plugin:integrationTest`).
  */
 class DecomposeIntentionMultiCanalTest {
 
     @Test
+    @Tag("integration")
     fun `generatePlan without multi-channel properties succeeds (backward compatible)`() {
         val projectDir = createTestProject()
 
@@ -34,6 +41,7 @@ class DecomposeIntentionMultiCanalTest {
     }
 
     @Test
+    @Tag("integration")
     fun `generatePlan with eager channel does not crash`() {
         val projectDir = createTestProject()
 
@@ -52,6 +60,7 @@ class DecomposeIntentionMultiCanalTest {
     }
 
     @Test
+    @Tag("integration")
     fun `generatePlan with all 4 channels logs multi-canal tokens`() {
         val projectDir = createTestProject()
 
@@ -77,6 +86,7 @@ class DecomposeIntentionMultiCanalTest {
     }
 
     @Test
+    @Tag("integration")
     fun `generatePlan with only docs channel uses 8-param planner path`() {
         val projectDir = createTestProject()
 

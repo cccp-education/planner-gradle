@@ -4,4 +4,6 @@
 | Date | Tâche | Borough | Statut | Score
 | 2026-08-06 | Session 057 — Cadrage EPIC PLN-VIBE (planner vibecoding-aware). Audit planner existant + code réutilisable 4 boroughs. 6 US ~12 pts validées. | planner-gradle | ✅ | 9/10
 | 2026-08-06 | Session 058 — PLN-VIBE-1/2/3/4 : TaskType enum + Task étendu (toolType, target, 3 invariants init), LLMTask étendu + toTask() internal, prompt enrichi (catalogue 6 outils + cross-borough), StdoutFormatter affiche toolType. 24 nouveaux tests unitaires VERT. | planner-gradle | ✅ | 9/10
+| 2026-08-11 | Session 059 — PLN-VIBE-5 Cucumber BDD `planner_vibecoding.feature` 4 scénarios VERT. Infra Cucumber configurée. EPIC PLN-VIBE TERMINÉ 6/6 US. | planner-gradle | ✅ | 9/10
+| 2026-08-11 | Session 060 — Maintenance @integration. 6 tests GradleRunner marqués `@Tag("integration")`, exclus du `check`. Tâche `integrationTest` dédiée créée. `:check` VERT. Zéro production modifié. | planner-gradle | ✅ | 9/10
 |===

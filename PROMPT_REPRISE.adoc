@@ -1,25 +1,24 @@
-= PROMPT_REPRISE — planner-gradle (Session 059 terminée)
+= PROMPT_REPRISE — planner-gradle (Session 060 terminée)
 :date: 2026-08-11
 
-== Session 059 terminée — PLN-VIBE-5 ✅ EPIC PLN-VIBE CLOS (6/6 US)
+== Session 060 terminée — Maintenance @integration (exclusion tests Ollama)
 
-Cucumber BDD `planner_vibecoding.feature` 4 scénarios `@vibecoding` VERT.
-Infra Cucumber configurée (plugin `education.cccp.build.cucumber` 0.0.2,
-runner `CucumberTestRunner` glue `planning.steps`, dirs features/scenarios).
-`PlannerVibecodingSteps` (232 lignes, pattern `En` java8, AssertJ).
-Baby-step BDD strict RED (4 PendingException) → GREEN (4/4 PASSED). Zéro
-production modifié — pure BDD.
+6 tests GradleRunner (`DecomposeIntentionMultiCanalTest` x4 +
+`DecomposeIntentionPluginTest` x2) échouaient en CI par `ConnectException`
+sur Ollama `localhost:1`. Marqués `@Tag("integration")` (JUnit5) et exclus
+du `check` normal via `useJUnitPlatform { excludeTags("integration") }`
+sur le `test` task. Tâche `integrationTest` dédiée créée
+(`includeTags("integration")`, `excludeEngines("cucumber")`,
+`excludeTestsMatching("planning.steps.CucumberTestRunner")`).
 
-Scénarios : multi-tool plan (GRADLE/EDIT_FILE/EXEC_SHELL), legacy default
-GRADLE (non-régression PlannerIntegration), Task invariants (EDIT_FILE
-requires target), prompt catalogue + cross-borough `:slider:` + "no replan
-EPIC TERMINE".
+Aucun code de production modifié — pure maintenance test infra. Les 2
+tests unitaires purs de `DecomposeIntentionMultiCanalTest` et les 2 tests
+`tasks`-only de `DecomposeIntentionPluginTest` restent dans `:test`.
 
-`./gradlew :planner-plugin:cucumberTest` VERT 4/4. `publishToMavenLocal`
-VERT (Règle 2). 6 échecs tests préexistants (ConnectException Ollama
-`localhost:1` — `DecomposeIntentionMultiCanalTest`, documentés S-058).
+`./gradlew :planner-plugin:check` VERT. `publishToMavenLocal` VERT (R2).
+EPIC PLN-VIBE reste CLOS (6/6 US).
 
-== Prochaine session — 060 : maintenance / prochain EPIC
+== Prochaine session — 061 : options
 
 EPIC PLN-VIBE TERMINÉ. Borough planner n'a plus d'EPIC actif.
 
@@ -28,9 +27,8 @@ Options :
   PUB-0/PUB-1 DNS TXT + GPG, dépendances externes).
 . *PUB-2.2* — Mise à jour commentaire relocation build.gradle.kts (1 pt,
   P1, pas de dépendance — quick win).
-. *Maintenance* — Marquer les 6 tests `DecomposeIntentionMultiCanalTest`
-  `@integration` (ConnectException Ollama hors CI) pour les exclure du
-  `check` normal, comme slider le fait avec `@integration`.
+. *Nouvel EPIC* — Cadrage (multi-canal, RAG étendu, contrats N0,
+  dogfooding). Besoin d'une direction produit.
 
 Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`, `BACKLOG.adoc`.
 Vérifier `./gradlew :planner-plugin:compileKotlin` VERT avant de coder.

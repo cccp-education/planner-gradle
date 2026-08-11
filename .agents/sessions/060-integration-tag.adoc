@@ -1,0 +1,95 @@
+= Session 060 — Maintenance @integration (exclusion tests Ollama du check)
+:date: 2026-08-11
+:borough: Manhattan (planner-gradle)
+:type: maintenance
+:score: 9/10
+
+== Objectif
+
+Les 6 tests GradleRunner (`DecomposeIntentionMultiCanalTest` x4 +
+`DecomposeIntentionPluginTest` x2) échouaient en CI par `ConnectException`
+sur Ollama `localhost:1` (pas d'instance Ollama en local/CI). Ils étaient
+inclus dans le `check` normal et bloquaient le build.
+
+Objectif : les marquer `@Tag("integration")` et les exclure du `check`,
+sur le pattern déjà utilisé par slider (Cucumber `@integration`) et
+documenté dans le `PROMPT_REPRISE.adoc` S-059.
+
+== Livrables
+
+. `DecomposeIntentionMultiCanalTest.kt` — 4 tests GradleRunner annotés
+  `@Tag("integration")` (import `org.junit.jupiter.api.Tag`). Les 2 tests
+  unitaires purs (`typed context types...`, `ChannelBudget truncates...`)
+  restent non-taggés et inclus dans `:test`.
+. `DecomposeIntentionPluginTest.kt` — 2 tests GradleRunner annotés
+  `@Tag("integration")` (`generatePlan with valid intention...`,
+  `generatePlan with missing intention...`). Les 2 tests `tasks` only
+  (`plugin registers generatePlan task`,
+  `generatePlan task belongs to generate group`) restent non-taggés
+  (pas d'appel Ollama).
+. `build.gradle.kts` — 3 blocs ajoutés :
+  * `tasks.named<Test>("test") { useJUnitPlatform { excludeTags("integration") } }`
+    (exclut les 6 tests du `check` normal).
+  * `val integrationTest = tasks.register<Test>("integrationTest")` —
+    tâche dédiée `group = "verification"`, `includeTags("integration")`,
+    `excludeEngines("cucumber")`, `filter.excludeTestsMatching(
+    "planning.steps.CucumberTestRunner")` (évite que la suite Cucumber
+    soit découverte par `integrationTest`), `shouldRunAfter(tasks.test)`.
+  * Commentaire KDoc expliquant le rationnel.
+
+== Vérifications
+
+. `./gradlew :planner-plugin:test` — BUILD SUCCESSFUL (6 tests `@integration`
+  exclus, 56 tests unitaires restants VERT).
+. `./gradlew :planner-plugin:cucumberTest` — BUILD SUCCESSFUL (4/4
+  scénarios PLN-VIBE-5 `@vibecoding` PASSED, non-régression Cucumber).
+. `./gradlew :planner-plugin:check` — BUILD SUCCESSFUL (non-régression
+  complète).
+. `./gradlew :planner-plugin:integrationTest` — 6 tests découverts et
+  exécutés (tous FAILED par `ConnectException` Ollama `localhost:1` —
+  attendu hors CI, prouve que la tâche capte bien les tests taggés).
+. `./gradlew :planner-plugin:publishToMavenLocal` — BUILD SUCCESSFUL
+  (Règle 2).
+. `grep -r "TOKEN\|SECRET\|PASSWORD\|API_KEY\|gho_\|ghp_"` — zéro match.
+
+== Décisions techniques
+
+. *JUnit5 `@Tag` vs Cucumber `@integration` tag* — slider utilise le tag
+  Cucumber `@integration` (filtré via `cucumber.filter.tags`). Pour les
+  tests JUnit5 GradleRunner, le standard JUnit5 est `@Tag("integration")`
+  (filtré via `useJUnitPlatform { excludeTags / includeTags }`). Les deux
+  mécanismes coexistent : Cucumber gère ses tags via le plugin, JUnit gère
+  les siens via la plateforme.
+. *`excludeEngines("cucumber")` insuffisant* — `CucumberTestRunner` est
+  une `@Suite` JUnit5 qui découvre l'engine cucumber. `excludeEngines`
+  empêche l'exécution cucumber mais la suite reste découverte →
+  `initializationError`. Ajout de
+  `filter.excludeTestsMatching("planning.steps.CucumberTestRunner")` pour
+  exclure la classe elle-même.
+. *`tasks.withType<Test>` vs `tasks.named<Test>("test")`* — scoper
+  `excludeTags` au seul `test` task évite le conflit "tag both included
+  and excluded" sur `integrationTest` (qui `includeTags`).
+
+== Non-régression
+
+. Aucun code de production modifié — pure maintenance test infra.
+. Les 2 tests unitaires purs de `DecomposeIntentionMultiCanalTest` et les
+  2 tests `tasks`-only de `DecomposeIntentionPluginTest` restent dans
+  `:test` (non-régression couverture).
+. Cucumber PLN-VIBE-5 inchangé (4/4 PASSED).
+. EPIC PLN-VIBE reste CLOS (6/6 US).
+
+== Fichiers modifiés
+
+. `planner-plugin/src/test/kotlin/planning/DecomposeIntentionMultiCanalTest.kt`
+. `planner-plugin/src/test/kotlin/planning/DecomposeIntentionPluginTest.kt`
+. `planner-plugin/build.gradle.kts`
+
+== Prochaine session
+
+. *PUB-3.10* — Publication Maven Central planner-plugin (bloqué : PUB-0/PUB-1
+  DNS TXT + GPG + dépendances externes).
+. *PUB-2.2* — Mise à jour commentaire relocation build.gradle.kts (1 pt,
+  P1, pas de dépendance — quick win).
+. *Nouvel EPIC* — Cadrage (multi-canal, RAG étendu, contrats N0,
+  dogfooding). Le borough planner n'a plus d'EPIC actif.
