@@ -41,6 +41,115 @@ Par :
 ```
 
 '''
+== 🟡 EPIC PLN-BUDGET — Relevance Budget Dynamique (Session 068 — Cadrage)
+
+_Source_ : Session 068. Split-brain #4 reporté S-061 :
+`agent-contracts.RelevanceBudget` (N0, 0.0.3 déjà publié) fait un budget
+pondéré par similarité (cosine/naive + softmax) que planner ignore.
+`codebase-contracts.ChannelBudget` (fixe 40/30/20/10) est utilisé par planner
+et codebase pour tronquer post-collecte. L'audit révèle que `RelevanceBudget`
+est un contrat N0 orphan — le budget intelligent est disponible mais dormant.
+
+_Dépendances_ : MEMPHIS (agent-contracts 0.0.3 déjà dans classpath planner,
+zéro bump BOM). Codebase HORS SCOPE (borough DORMANT — EPIC planner-only).
+
+=== Audit — 5 constats
+
+[cols="1,3,3", options="header"]
+|===
+| # | Constat | Preuve
+
+| 1
+| `RelevanceBudget` est un contrat N0 orphan
+| `workspace-bom/agent-contracts/.../RelevanceBudget.kt` — publié 0.0.3 (bundle `cd4d2d44`), 4 scénarios Cucumber `ac_4_relevance_budget.feature`, mais ZÉRO consommateur. Budget dynamique cosinus+softmax disponible mais dormant.
+
+| 2
+| `ChannelBudget` tronque avec proportions fixes
+| `workspace-bom/codebase-contracts/.../ContextChannel.kt:117` — data class 5 fractions (40/30/20/10/0), `applyBudget(channels)` tronque post-collecte. Ne dépend pas de l'intention.
+
+| 3
+| Planner hardcode le budget fixe
+| `planner-plugin/.../DecomposeIntentionTask.kt:104-121` — construit `CompositeContextConfig` (40/30/20/10 hardcodés), `ChannelBudget.fromConfig(config)`, `budget.applyBudget(channels)`. Un intention "planifier formation AFNOR" alloue 3200 tokens EAGER quoi que l'intention soit.
+
+| 4
+| Codebase fait pareil
+| `codebase-plugin/.../CompositeContextBuilder.kt:32` + `MultiChannelContextGraph.kt:25` — `truncateTokens(eagerContent, config.eagerLazyTokens)` + `ChannelBudget()` defaults. Même budget fixe indépendant de l'intention.
+
+| 5
+| Le split-brain est fixe-vs-dynamique, pas dumb-vs-smart
+| `RelevanceBudget.compute(intention, channels, totalTokens)` fait les deux (pondérer + tronquer) en un passage. `ChannelBudget` ne sait que tronquer. Les deux sont des budgets token — `RelevanceBudget` est strictement plus général.
+|===
+
+=== Décisions architecturales (cadrage S-068)
+
+. *Portée EPIC* : faire consommer `RelevanceBudget` (agent-contracts 0.0.3
+  déjà publié) par planner en remplaçant le budget fixe `ChannelBudget`
+  par un budget dynamique dans `DecomposeIntentionTask`. Le budget dynamique
+  prend l'intention + les contenus canaux et tronque selon la similarité.
+. *Backward compat* : `ChannelBudget` reste pour les consommateurs sans
+  pondération (tests, autres boroughs). `RelevanceBudget` est un upgrade
+  optionnel — si l'intention est vide ou les embeddings indisponibles,
+  fallback sur le contenu original (comportement actuel préservé).
+. *Dépendance cross-borough BOM* : aucune nouvelle publication —
+  `agent-contracts` 0.0.3 est déjà dans le classpath de planner
+  (`build.gradle.kts:29`). Zéro bump BOM. `RelevanceBudget` est déjà
+  disponible.
+. *Dépendance cross-borough codebase* : HORS SCOPE. `CompositeContextBuilder`
+  et `MultiChannelContextGraph` bénéficieront de `RelevanceBudget` dans un
+  EPIC futur codebase. Borough Queens DORMANT.
+. *Adapter pattern* : `RelevanceBudget.compute` prend `Map<String, String>`
+  (nom canal → contenu) + `intention: String`. Planner a 4 canaux nommés
+  (`eagerContext`, `ragContext`, `graphifyContext`, `docsContext`). Nouveau
+  `BudgetAdapter` (object pur, domaine `planning.budget`) qui mappe
+  4 canaux planner → Map → `compute` → `ChannelScore` → 4 String tronquées.
+. *Fallback sécurité* : si `RelevanceBudget.compute` retourne vide ou lance,
+  `BudgetAdapter` retourne les contenus originaux non tronqués (backward
+  compat — le LLM reçoit le même contexte qu'aujourd'hui).
+. *Non-régression critique* : `PlannerIntegration.kt` (codebase) appelle
+  `IntentionPlanner.plan(eagerContext, ragContext, ...)`. Le contrat d'appel
+  est inchangé — planner reçoit toujours 4 String. Seul le contenu tronqué
+  change (dynamique au lieu de fixe).
+. *Testabilité* : `RelevanceBudget.compute` est pure (aucun effet de bord).
+  `BudgetAdapter` est pur aussi. Tests unit + functional + Cucumber BDD.
+. *Méthode* : baby-step DDD/TDD/BDD, 3 niveaux tests/US
+  (unit → functional → cucumber), English only code/Gherkin.
+. *Ordre* : US-1 (adapter, indépendant) → US-2 (wiring) → US-3 (Cucumber).
+
+=== US découpage
+
+[cols="1,3,1,1", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| PLN-BUDGET-0
+| *Cadrage EPIC* — audit planner + BOM + codebase, 5 constats, décisions, découpage US. Maj INDEX/BACKLOG/PROMPT_REPRISE/AGENTS racine | 1
+| ✅ TERMINÉ (S-068)
+
+| PLN-BUDGET-1
+| *`BudgetAdapter`* (domaine `planning.budget`, nouveau) — object pur qui mappe 4 canaux planner (`eagerContext`/`ragContext`/`graphifyContext`/`docsContext`) → `Map<String, String>` (noms EAGER/RAG/GRAPHIFY/DOCS) → `RelevanceBudget.compute(intention, channels, totalTokens=8000)` → `List<ChannelScore>` → 4 String tronquées. Fallback : si compute retourne vide ou lance → contenus originaux non tronqués. ~8 unit | 2
+| ⏳ À FAIRE
+
+| PLN-BUDGET-2
+| *Wiring `DecomposeIntentionTask`* — remplacer `ChannelBudget.fromConfig(config)` + `budget.applyBudget(channels)` (lignes 104-121) par `BudgetAdapter.applyRelevanceBudget(intention, eagerCtx, ragCtx, graphifyCtx, docsCtx)`. Backward compat : si `RelevanceBudget` indisponible (exception) → fallback sur `ChannelBudget` fixe (path actuel). ~5 unit + 2 functional | 2
+| ⏳ À FAIRE
+
+| PLN-BUDGET-3
+| *Cucumber BDD* — `planner_budget.feature` : scénarios (budget dynamique alloue plus de tokens au canal pertinent, fallback fixe si similarity indisponible, non-régression 4 canaux préservés, total tokens respecté). ~4 scénarios. Inspiré slider Cucumber pipeline | 3
+| ⏳ À FAIRE
+|===
+
+_Total_ : 4 US, ~8 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
+tests/US (unit → functional → cucumber), English only code/Gherkin.
+_Dépendances_ : MEMPHIS (agent-contracts 0.0.3 déjà publié, zéro bump).
+_Statut_ : 1/4 US (S-068 cadrage). US-1→3 à faire (prochaine session 069).
+
+_Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
+`IntentionPlanner.plan(eagerContext, ragContext, graphifyContext, docsContext)`.
+Le contrat d'appel est inchangé — planner reçoit toujours 4 String. Seul le
+contenu tronqué change (dynamique au lieu de fixe). Si `RelevanceBudget.compute`
+échoue ou retourne vide, fallback sur le contenu original non tronqué.
+
+'''
 == ✅ EPIC PLN-VERIFY — Planner Vibecoding Verification Metadata TERMINÉ (S-067)
 
 _Source_ : Session 063 (cadrage). Split-brain #5 reporté en S-061 :

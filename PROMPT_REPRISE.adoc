@@ -1,44 +1,54 @@
-= PROMPT_REPRISE — planner-gradle (Session 067 terminée)
+= PROMPT_REPRISE — planner-gradle (Session 068 terminée)
 :date: 2026-08-11
 
-== Session 067 terminée — PLN-VERIFY US-4 Cucumber BDD
+== Session 068 terminée — Cadrage EPIC PLN-BUDGET
 
-US-4 de l'EPIC PLN-VERIFY. Dernière US : Cucumber BDD
-`planner_verify.feature` (5 scénarios) documentant que le planner porte
-les métadonnées de vérification end-to-end. Baby-step BDD strict
-(RED → GREEN → REFACTOR), zéro production modifié.
+Split-brain #4 reporté S-061. Audit planner + BOM + codebase.
+`agent-contracts.RelevanceBudget` (N0, 0.0.3 déjà publié) est un contrat
+N0 orphan — zéro consommateur. `codebase-contracts.ChannelBudget`
+(fixe 40/30/20/10) est utilisé par planner (`DecomposeIntentionTask.kt:112`)
+et codebase pour tronquer post-collecte.
 
-Shared state pattern introduit : `PlannerScenarioState` (object Kotlin
-singleton "World") + `PlannerScenarioStateReset` (`@Before` hook reset
-par scénario). `PlannerVibecodingSteps` refactoré pour partager l'état
-via imports. `PlannerVerifySteps` créé (steps verify-specifics).
+5 constats audités, décisions archi, 4 US découpees, zéro code modifié
+(gouvernance pure pattern S-057/S-063). EPIC planner-only — codebase
+HORS SCOPE (borough Queens DORMANT).
 
-13/13 Cucumber PASSED (4 PLN-CONTRACTS + 5 PLN-VERIFY + 4 PLN-VIBE).
-`:check` VERT (95 tests), `publishToMavenLocal` VERT.
-
-== État EPIC PLN-VERIFY — TERMINÉ 5/5 US
+## État EPIC PLN-BUDGET — EN COURS (1/4 US)
 
 |===
 | US | Statut
 
-| US-0 cadrage | ✅ TERMINÉ (S-063)
-| US-1 BOM cross-borough | ✅ TERMINÉ (S-064) — `agent-contracts` 0.0.3 Central
-| US-2 planner consomme N0 | ✅ TERMINÉ (S-065)
-| US-3 codebase cross-borough | ✅ TERMINÉ (S-066)
-| US-4 Cucumber BDD | ✅ TERMINÉ (S-067)
+| US-0 cadrage | ✅ TERMINÉ (S-068)
+| US-1 `BudgetAdapter` (domaine `planning.budget`, object pur) | ⏳ À FAIRE
+| US-2 Wiring `DecomposeIntentionTask` | ⏳ À FAIRE
+| US-3 Cucumber BDD `planner_budget.feature` | ⏳ À FAIRE
 |===
 
-== Prochaine session — 068 : Cadrage prochain EPIC
+## Décisions clés (cadrage S-068)
 
-Aucun EPIC en cours. Cadrage baby-step pattern S-057/S-063 requis avant
-de coder. Candidats :
+* Zéro bump BOM — `agent-contracts` 0.0.3 déjà dans classpath planner
+  (`build.gradle.kts:29`). `RelevanceBudget` est déjà disponible.
+* `BudgetAdapter` mappe 4 canaux planner → `Map<String, String>`
+  (EAGER/RAG/GRAPHIFY/DOCS) → `RelevanceBudget.compute(intention, channels,
+  totalTokens=8000)` → `ChannelScore` → 4 String tronquées.
+* Fallback sécurité : si `compute` retourne vide ou lance → contenus
+  originaux non tronqués (comportement actuel préservé).
+* Non-régression : `PlannerIntegration.kt` (codebase) appelle toujours
+  `IntentionPlanner.plan(4 String)` — contrat d'appel inchangé.
 
-. *PLN-LIFECYCLE* (split-brain #3 reporté S-061) — `agent-contracts.AgentState`
-  8 phases sealed + `ContextAssembler`/`PlanExecutor` N0 que planner ignore.
-. *PLN-BUDGET* (split-brain #4 reporté S-061) — `agent-contracts.RelevanceBudget`
-  pondéré par similarité (cosine/naive) vs `codebase-contracts.ChannelBudget`
-  dumb 40/30/20/10.
-. Maintenance / bug fix selon besoins.
+## Prochaine session — 069 : PLN-BUDGET US-1 `BudgetAdapter`
+
+Baby-step TDD strict RED → GREEN → REFACTOR requis. Object pur, domaine
+`planning.budget` nouveau. ~8 unit.
+
+* RED : écrire `BudgetAdapterTest` (~8 unit) — assertions sur mapping
+  canaux → Map, compute → ChannelScore → 4 String tronquées, fallback
+  quand compute vide/exception. Compile fail (BudgetAdapter inexistant).
+* GREEN : créer `BudgetAdapter.kt` (object pur) — `applyRelevanceBudget(
+  intention, eagerCtx, ragCtx, graphifyCtx, docsCtx, totalTokens=8000):
+  RelevanceContext` (data class 4 String). Mapping noms
+  EAGER/RAG/GRAPHIFY/DOCS. Fallback try/catch.
+* REFACTOR : vérifier `:check` VERT (95 tests baseline + 8 nouveaux).
 
 Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`, `BACKLOG.adoc`.
 Vérifier `./gradlew :planner-plugin:compileKotlin` VERT avant de coder.
