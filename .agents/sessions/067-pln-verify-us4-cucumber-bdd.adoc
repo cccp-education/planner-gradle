@@ -1,0 +1,165 @@
+= Session 067 — PLN-VERIFY US-4 Cucumber BDD
+:date: 2026-08-11
+:type: dev
+:score: 9/10
+:epic: PLN-VERIFY
+:us: US-4
+:borough: Manhattan (planner-gradle)
+
+== Objectif
+
+US-4 de l'EPIC PLN-VERIFY (cadré S-063, US-1 BOM 0.0.3 publié S-064,
+US-2 planner consomme N0 S-065, US-3 codebase bridge S-066). Dernière
+US de l'EPIC : Cucumber BDD `planner_verify.feature` (~5 scénarios)
+documentant que le planner porte les métadonnées de vérification
+(`expectedOutput`/`maxRetries`/`verifyHook`) end-to-end, que les defaults
+backward compat sont préservés si le LLM omet, que le prompt expose le
+schéma JSON + les règles, et que `StdoutFormatter` applique l'économie
+d'encre (custom printed, default silent).
+
+== Méthode
+
+Baby-step BDD strict (RED → GREEN → REFACTOR). Zéro code de production
+modifié — pure BDD. English only code/Gherkin. Pattern `PlannerVibecodingSteps`
+(PLN-VIBE-5 S-059) + `planner_contracts.feature` (S-061).
+
+== Exécution
+
+=== Baseline
+
+- `./gradlew :planner-plugin:compileKotlin` UP-TO-DATE (VERT)
+- `git status` propre (branche `main`, HEAD = `8860049` S-066)
+- Cucumber infra existante : `CucumberTestRunner` (glue `planning.steps`,
+  `@SelectClasspathResource("features")`, `FILTER_TAGS=not @integration`)
+- 2 features existantes : `planner_vibecoding.feature` (4 scénarios
+  PLN-VIBE-5), `planner_contracts.feature` (4 scénarios PLN-CONTRACTS-5)
+- 1 step class : `PlannerVibecodingSteps` (232 lignes, `En` java8, AssertJ,
+  champs d'instance `rawJson`/`parsedPlan`/`parsingException`/`prompt`)
+
+=== RED — `planner_verify.feature` (5 scénarios)
+
+Nouveau fichier `planner-plugin/src/test/features/planner_verify.feature`
+(tag `@verify`). 5 scénarios :
+
+. A plan parsed from LLM carries custom expectedOutput, maxRetries and verifyHook
+. Defaults are preserved when the LLM omits verify metadata
+. The planner prompt exposes the three verify metadata fields in the task JSON schema
+. The planner prompt states that expectedOutput is required and maxRetries defaults to 3 in range 1..10
+. StdoutFormatter emits custom expectedOutput and stays silent on default
+
+Run initial : 13 tests completed, 5 failed — `UndefinedStepException`
+sur les 5 scénarios verify (pas de step definitions correspondantes).
+RED confirmé.
+
+=== GREEN — `PlannerVerifySteps` + shared state
+
+Création `PlannerVerifySteps.kt` (pattern `PlannerVibecodingSteps`,
+`En` java8, AssertJ). Problème : les steps `Given an intention {string}`,
+`When the response is parsed into a Plan`, `When the planner builds its
+prompt`, `Then the plan should contain {int} task(s)` sont déjà définis
+dans `PlannerVibecodingSteps` → `DuplicateStepDefinitionException`
+(Cucumber refuse les duplications à travers classes du glue path).
+
+Solution : introduire un **shared scenario state** ("World" pattern
+Cucumber) :
+
+. `PlannerScenarioState.kt` — `object` Kotlin singleton avec les 5 champs
+  mutables (`rawJson`, `parsedPlan`, `parsingException`, `prompt`,
+  `stdout`) + `reset()`.
+. `PlannerScenarioStateReset.kt` — `object` avec `@Before @JvmStatic`
+  hook Cucumber pour reset par scénario (le singleton otherwise
+  fuiterait l'état entre scénarios).
+. `PlannerVibecodingSteps` refactoré : champs d'instance supprimés,
+  imports `planning.steps.PlannerScenarioState.*` ajoutés (5 champs
+  lus/écrits via le singleton).
+. `PlannerVerifySteps` : step definitions verify-specifics uniquement
+  (les steps partagés sont delegués à `PlannerVibecodingSteps` — les
+  deux classes accèdent au même état partagé).
+
+Bug compilation : `assertThat(prompt).contains("x", ignoreCase = true)`
+invalide sur `AbstractStringAssert<*>` (AssertJ) — l'overload
+`ignoreCase` n'existe pas. Fix : `prompt.lowercase().contains("x")`
+(2 sites affectés : les steps `expectedOutput required` et `verifyHook
+optional rare`).
+
+Run : 13/13 Cucumber PASSED (4 PLN-CONTRACTS + 5 PLN-VERIFY + 4 PLN-VIBE),
+0 FAIL.
+
+=== REFACTOR
+
+- `:planner-plugin:check` BUILD SUCCESSFUL — 95 tests PASSED, 0 FAIL
+  (90 unit + 13 cucumber, hors `@integration` exclus).
+- `:planner-plugin:publishToMavenLocal` VERT.
+- Zéro code de production modifié (pure BDD).
+- Zéro régression : les 8 scénarios Cucumber existants (PLN-VIBE-5 4/4
+  + PLN-CONTRACTS-5 4/4) restent VERTS.
+
+== Fichiers
+
+=== Créés (4)
+
+. `planner-plugin/src/test/features/planner_verify.feature` (5 scénarios
+  `@verify`, 51 lignes)
+. `planner-plugin/src/test/scenarios/planning/steps/PlannerVerifySteps.kt`
+  (step definitions verify-specifics, 200 lignes)
+. `planner-plugin/src/test/scenarios/planning/steps/PlannerScenarioState.kt`
+  (shared World object, 35 lignes)
+. `planner-plugin/src/test/scenarios/planning/steps/PlannerScenarioStateReset.kt`
+  (`@Before` hook reset, 28 lignes)
+
+=== Modifiés (1)
+
+. `planner-plugin/src/test/scenarios/planning/steps/PlannerVibecodingSteps.kt`
+  — 4 champs d'instance supprimés, 4 imports `PlannerScenarioState.*`
+  ajoutés. Behaviour identique (les champs lisaient/écrivaient déjà
+  l'instance, désormais le singleton).
+
+== Décisions architecturales
+
+. *Shared state pattern* — Cucumber java8 instantiate chaque step class
+  indépendamment, les champs d'instance ne sont PAS partagés entre
+  classes. Le pattern "World" (singleton + `@Before` reset) est la
+  solution standard pour partager l'état entre step classes du même
+  glue path.
+. *Pas de runner dédié* — `CucumberTestRunner` existant découvre toutes
+  les features du classpath `features/`, pas besoin d'un runner
+  séparé pour `planner_verify.feature` (pattern S-061
+  `planner_contracts.feature` qui réutilisait déjà le runner).
+. *Zéro production modifié* — baby-step BDD pur. Les US-1/2/3 ont
+  étendu le code de production (BOM 0.0.3 + planner + codebase bridge),
+  l'US-4 documente que le contrat est tenu end-to-end via Cucumber.
+
+== EPIC PLN-VERIFY TERMINÉ 5/5 US
+
+|===
+| US | Description | Pts | Statut
+
+| PLN-VERIFY-0 | Cadrage EPIC | 1 | ✅ TERMINÉ (S-063)
+| PLN-VERIFY-1 | BOM cross-borough — GradleTask +3 champs | 2 | ✅ TERMINÉ (S-064)
+| PLN-VERIFY-2 | Planner consomme N0 étendu — LLMTask + prompt + formatter | 3 | ✅ TERMINÉ (S-065)
+| PLN-VERIFY-3 | codebase cross-borough — bridge extractCurrentStep | 1 | ✅ TERMINÉ (S-066)
+| PLN-VERIFY-4 | Cucumber BDD — planner_verify.feature 5 scénarios | 3 | ✅ TERMINÉ (S-067)
+|===
+
+_Total_ : 5 US, ~10 pts. Méthode baby-step DDD/TDD/BDD, 3 niveaux
+tests/US (unit → functional → cucumber), English only code/Gherkin.
+
+== Non-regression critique
+
+`PlannerIntegration.kt` (codebase) appelle `IntentionPlanner.plan()` puis
+construit `PlanState`. Le pont `Plan → VibecodingStep` via
+`extractCurrentStep` produit un `VibecodingStep` identique à aujourd'hui
+si le LLM ne fournit pas les métadonnées (defaults backward compat :
+`"BUILD SUCCESSFUL"`, `3`, `null`). Le scénario "Defaults are preserved
+when the LLM omits verify metadata" documente ce contrat Cucumber-side.
+
+== Prochaine session
+
+EPIC PLN-VERIFY TERMINÉ. Aucun EPIC en cours. Prochain EPIC à planifier
+(baby-step cadrage pattern S-057/S-063) :
+- *PLN-LIFECYCLE* (split-brain #3 reporté S-061) — `agent-contracts.AgentState`
+  8 phases sealed + `ContextAssembler`/`PlanExecutor` N0 que planner ignore.
+- *PLN-BUDGET* (split-brain #4 reporté S-061) — `agent-contracts.RelevanceBudget`
+  pondéré par similarité (cosine/naive) vs `codebase-contracts.ChannelBudget`
+  dumb 40/30/20/10.
+- Maintenance / bug fix selon besoins.

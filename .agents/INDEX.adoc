@@ -5,9 +5,9 @@ _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
 _Derniere mise a jour_ : 2026-08-11
-_Session terminee_ : 066 — PLN-VERIFY US-3 codebase cross-borough. Bridge codebase `VibecodingGraph.extractCurrentStep` (ligne 713) rendu `internal` + consomme `task.expectedOutput`/`task.maxRetries`/`task.verifyHook` du `GradleTask` N0 (0.0.3) au lieu de hardcoder `"BUILD SUCCESSFUL"`. Site rollback (ligne 741) clarifié : fallback conserve default N0 quand pas de step extractible (pas de `GradleTask` disponible, backward compat légitime). Bump `agent-contracts` codebase 0.0.2 → 0.0.3. Baby-step TDD strict RED → GREEN → REFACTOR (1 fichier test créé : 9 `VibecodingGraphVerifyStepTest`). 881 tests codebase 0 failures, 0 errors. `publishToMavenLocal` VERT (codebase-plugin). Non-régression planner UP-TO-DATE (consomme `agent-contracts:0.0.3` + `codebase-contracts:0.0.1`, pas de dépendance directe `codebase-plugin`). Backward compat prouvée : defaults N0 identiques au legacy si LLM omet les métadonnées.
-_Sessions precedent_ : 065/064/063/062/061/060/059/058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
-_Prochaine session_ : 067 — US-4 Cucumber BDD. `planner_verify.feature` ~5 scénarios (expectedOutput custom, maxRetries custom, verifyHook présent, defaults préservés, end-to-end planner → extractCurrentStep → StepVerifier). Steps `PlannerVerifySteps` pattern S-059. Baby-step BDD strict. EPIC PLN-VERIFY se fermera (5/5 US).
+_Session terminee_ : 067 — PLN-VERIFY US-4 Cucumber BDD. `planner_verify.feature` (5 scénarios `@verify`) documentant que le planner porte les métadonnées de vérification (`expectedOutput`/`maxRetries`/`verifyHook`) end-to-end, que les defaults backward compat sont préservés si LLM omet, que le prompt expose le schéma JSON + règles, et que `StdoutFormatter` applique l'économie d'encre. Baby-step BDD strict RED (5 `UndefinedStepException`) → GREEN (13/13 Cucumber PASSED) → REFACTOR (`:check` VERT 95 tests 0 FAIL). Shared state pattern : `PlannerScenarioState` (object Kotlin "World") + `PlannerScenarioStateReset` (`@Before` hook reset) + `PlannerVibecodingSteps` refactoré (champs → imports). `PlannerVerifySteps` créé. Zéro production modifié — pure BDD. `publishToMavenLocal` VERT. EPIC PLN-VERIFY TERMINÉ 5/5 US.
+_Sessions precedent_ : 066/065/064/063/062/061/060/059/058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
+_Prochaine session_ : 068 — Cadrage prochain EPIC (aucun en cours). Candidats : PLN-LIFECYCLE (split-brain #3 reporté S-061 — `AgentState` 8 phases sealed + `ContextAssembler`/`PlanExecutor` N0 ignorés par planner), PLN-BUDGET (split-brain #4 reporté S-061 — `RelevanceBudget` pondéré par similarité vs `ChannelBudget` dumb 40/30/20/10), maintenance/bug fix. Baby-step cadrage pattern S-057/S-063 requis avant de coder.
 
 '''
 == REGLES ABSOLUES
@@ -19,7 +19,7 @@ _Prochaine session_ : 067 — US-4 Cucumber BDD. `planner_verify.feature` ~5 sc�
 === 5. HOOK OUVERTURE — Checklist SESSION_CHECKLIST.adoc obligatoire
 
 '''
-== EPIC PLN-VERIFY — Planner Vibecoding Verification Metadata (Session 063 — Cadrage)
+== ✅ EPIC PLN-VERIFY — Planner Vibecoding Verification Metadata TERMINÉ (Session 067 — US-4 Cucumber BDD)
 
 _Source_ : Session 063 (cadrage). Split-brain #5 reporté en S-061 :
 `codebase.koog.planning.VibecodingStep` a `expectedOutput`/`maxRetries`/
@@ -58,12 +58,12 @@ sites `VibecodingGraph.kt:713/741`).
 | PLN-VERIFY-4
 | *Cucumber BDD* — `planner_verify.feature` : scénarios (plan avec expectedOutput custom, maxRetries custom, verifyHook présent, defaults préservés si LLM omet, end-to-end planner → extractCurrentStep → StepVerifier). ~5 scénarios. Inspiré slider Cucumber pipeline
 | 3
-| ⏳ À FAIRE
+| ✅ TERMINÉ (S-067)
 |===
 
 _Total_ : 5 US, ~10 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
 tests/US (unit → functional → cucumber), English only code/Gherkin.
-_Statut_ : 4/5 US (US-0 cadrage S-063 + US-1 BOM 0.0.3 S-064 + US-2 planner S-065 + US-3 codebase S-066). EPIC PLN-VERIFY EN COURS.
+_Statut_ : 5/5 US TERMINÉ (S-063 cadrage + S-064 US-1 BOM 0.0.3 + S-065 US-2 planner + S-066 US-3 codebase bridge + S-067 US-4 Cucumber BDD). EPIC PLN-VERIFY CLOS.
 
 _Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
 `IntentionPlanner.plan()` puis construit `PlanState`. Le pont
@@ -147,6 +147,7 @@ vibecoding n'était plus droppée silencieusement).
 
 |===
 | # | Date | Type | Sujet | Score
+| 067 | 2026-08-11 | dev | **PLN-VERIFY US-4 Cucumber BDD** — `planner_verify.feature` 5 scénarios `@verify` (expectedOutput/maxRetries/verifyHook custom, defaults préservés, prompt schéma JSON + règles, StdoutFormatter économie d'encre). Baby-step BDD strict RED (5 `UndefinedStepException`) → GREEN (13/13 Cucumber PASSED) → REFACTOR (`:check` VERT 95 tests 0 FAIL). Shared state pattern : `PlannerScenarioState` (object Kotlin "World") + `PlannerScenarioStateReset` (`@Before` hook reset par scénario) + `PlannerVibecodingSteps` refactoré (champs d'instance → imports singleton) + `PlannerVerifySteps` créé (steps verify-specifics). Bug `AbstractStringAssert.contains(ignoreCase=)` invalid → `prompt.lowercase().contains()` (2 sites). Zéro production modifié — pure BDD. `publishToMavenLocal` VERT. EPIC PLN-VERIFY TERMINÉ 5/5 US. | 9/10
 | 066 | 2026-08-11 | dev | **PLN-VERIFY US-3 codebase cross-borough** — bridge `VibecodingGraph.extractCurrentStep` (ligne 713) rendu `internal` + consomme `task.expectedOutput`/`maxRetries`/`verifyHook` du `GradleTask` N0 au lieu de hardcoder `"BUILD SUCCESSFUL"`. Site rollback (ligne 741) clarifié (fallback default N0). Bump `agent-contracts` codebase 0.0.2 → 0.0.3. Baby-step TDD strict RED (compile fail `extractCurrentStep` private) → GREEN (9/9 PASSED) → REFACTOR. 1 fichier test créé (9 unit `VibecodingGraphVerifyStepTest`). 881 tests codebase 0 failures. `publishToMavenLocal` VERT. Non-régression planner UP-TO-DATE. Cross-borough Queens. | 9/10
 | 065 | 2026-08-11 | dev | **PLN-VERIFY US-2 planner consomme N0 étendu** — étendu `LLMTask` (3 champs nullables) + `toTask()` defaults + `IntentionPlanner.buildPromptInternal` (schéma JSON +3 champs + 3 règles prompt) + `StdoutFormatter` (affiche custom expectedOutput). Baby-step TDD strict RED (7/10 + 6/7 + 3/4 FAILED) → GREEN → REFACTOR. 3 fichiers test créés (21 unit : 10 `LLMTaskVerifyTest` + 7 `IntentionPlannerVerifyTest` + 4 `StdoutFormatterVerifyTest`). 90 unit + 8 cucumber = 98 PASS, 0 FAIL (baseline 77 → +21). `publishToMavenLocal` VERT. Backward compat préservée. | 9/10
 | 064 | 2026-08-11 | dev | **PLN-VERIFY US-1 BOM cross-borough** — étendu `contracts.agent.GradleTask` (N0) avec `expectedOutput`/`maxRetries`/`verifyHook` + 2 invariants. Baby-step TDD RED (12 unit `GradleTaskVerifyTest` Unresolved) → GREEN (3 champs + 2 invariants `init`) → REFACTOR (none). 24 unit + 31 cucumber VERT. Bump `agent-contracts` 0.0.2 → 0.0.3 (bundle `cd4d2d44`) + BOM 0.0.17 → 0.0.18 (bundle `3d2702bf`). Non-régression planner `:check` VERT contre 0.0.3. Cross-borough MEMPHIS. | 9/10
@@ -184,7 +185,7 @@ vibecoding n'était plus droppée silencieusement).
 
 |===
 | EPIC | Description | Statut | Priorite
-| EPIC PLN-VERIFY | Planner Vibecoding Verification Metadata — GradleTask N0 étendu avec expectedOutput/maxRetries/verifyHook + prompt LLM + bridge codebase | 🟡 EN COURS (S-063 cadrage + S-064 US-1 BOM 0.0.3 + S-065 US-2 planner + S-066 US-3 codebase bridge) | P1
+| EPIC PLN-VERIFY | Planner Vibecoding Verification Metadata — GradleTask N0 étendu avec expectedOutput/maxRetries/verifyHook + prompt LLM + bridge codebase | ✅ TERMINÉ (S-067 — 5/5 US) | P1
 | EPIC PLN-CONTRACTS | Planner aligné sur contrats N0 (BOM + codebase) — éliminer 5 split-brain + US-4 stricte fusion N0/N1 | ✅ TERMINÉ (S-061 + S-062) | P1
 | EPIC K-1 | Renommage 4 verbes (GENERER/COLLECTER/TRANSFORMER/DÉPLOYER) | ✅ 2026-05-19 | P1
 | EPIC K-2 | Format pivot — Metadata.kt + metadataExpectedPath runner-gradle | ✅ 2026-05-19 | P1

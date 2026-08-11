@@ -13,6 +13,10 @@ import planning.IntentionPlanner
 import planning.LLMResponse
 import planning.PlanningContext
 import planning.toPlan
+import planning.steps.PlannerScenarioState.parsedPlan
+import planning.steps.PlannerScenarioState.prompt
+import planning.steps.PlannerScenarioState.parsingException
+import planning.steps.PlannerScenarioState.rawJson
 
 /**
  * Cucumber step definitions for the planner vibecoding-aware feature
@@ -34,11 +38,6 @@ class PlannerVibecodingSteps : En {
 
     private val mapper = jacksonObjectMapper()
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-
-    private var rawJson: String = ""
-    private var parsedPlan: Plan? = null
-    private var parsingException: Throwable? = null
-    private var prompt: String = ""
 
     init {
 
