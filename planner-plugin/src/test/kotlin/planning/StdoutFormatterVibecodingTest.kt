@@ -1,12 +1,16 @@
 package planning
 
+import contracts.agent.Epic
+import contracts.agent.GradleTask
+import contracts.agent.Plan
+import contracts.agent.TaskType
+import contracts.agent.UserStory
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class StdoutFormatterVibecodingTest {
 
-    private fun planWith(vararg tasks: Task): Plan = Plan(
+    private fun planWith(vararg tasks: GradleTask): Plan = Plan(
         title = "vibecode plan",
         epics = listOf(
             Epic(
@@ -24,7 +28,7 @@ class StdoutFormatterVibecodingTest {
 
     @Test
     fun `format emits toolType for GRADLE task`() {
-        val plan = planWith(Task(description = "Run tests", gradleTask = "./gradlew test"))
+        val plan = planWith(GradleTask(description = "Run tests", gradleTask = "./gradlew test"))
         val line = StdoutFormatter.format(plan).trim().lines().last()
         assertEquals(
             "    [TASK] description=\"Run tests\" toolType=GRADLE gradleTask=./gradlew test",
@@ -35,7 +39,7 @@ class StdoutFormatterVibecodingTest {
     @Test
     fun `format emits toolType and target for EDIT_FILE task`() {
         val plan = planWith(
-            Task(
+            GradleTask(
                 description = "Edit build",
                 gradleTask = "",
                 toolType = TaskType.EDIT_FILE,
@@ -52,7 +56,7 @@ class StdoutFormatterVibecodingTest {
     @Test
     fun `format emits toolType and target for EXEC_SHELL task`() {
         val plan = planWith(
-            Task(
+            GradleTask(
                 description = "List files",
                 gradleTask = "",
                 toolType = TaskType.EXEC_SHELL,
@@ -69,9 +73,9 @@ class StdoutFormatterVibecodingTest {
     @Test
     fun `format emits mixed tasks in a single plan`() {
         val plan = planWith(
-            Task(description = "Run tests", gradleTask = "./gradlew test"),
-            Task(description = "Edit config", gradleTask = "", toolType = TaskType.EDIT_FILE, target = "settings.gradle.kts"),
-            Task(description = "Git status", gradleTask = "", toolType = TaskType.EXEC_SHELL, target = "git status")
+            GradleTask(description = "Run tests", gradleTask = "./gradlew test"),
+            GradleTask(description = "Edit config", gradleTask = "", toolType = TaskType.EDIT_FILE, target = "settings.gradle.kts"),
+            GradleTask(description = "Git status", gradleTask = "", toolType = TaskType.EXEC_SHELL, target = "git status")
         )
         val lines = StdoutFormatter.format(plan).trim().lines()
         assertEquals(

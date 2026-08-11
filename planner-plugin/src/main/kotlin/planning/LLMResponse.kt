@@ -1,5 +1,10 @@
 package planning
 
+import contracts.agent.Epic
+import contracts.agent.GradleTask
+import contracts.agent.Plan
+import contracts.agent.TaskType
+import contracts.agent.UserStory
 import com.fasterxml.jackson.annotation.JsonProperty
 
 data class LLMResponse(
@@ -61,7 +66,7 @@ private fun LLMUserStory.toUserStory(): UserStory = UserStory(
     tasks = tasks.map { it.toTask() }
 )
 
-internal fun LLMTask.toTask(): Task = Task(
+internal fun LLMTask.toTask(): GradleTask = GradleTask(
     description = description,
     gradleTask = gradleTask,
     toolType = toolType ?: TaskType.GRADLE,

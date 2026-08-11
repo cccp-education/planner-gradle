@@ -5,9 +5,9 @@ _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
 _Derniere mise a jour_ : 2026-08-11
-_Session terminee_ : 060 — Maintenance @integration. 6 tests GradleRunner (`DecomposeIntentionMultiCanalTest` x4 + `DecomposeIntentionPluginTest` x2) marqués `@Tag("integration")` (JUnit5), exclus du `check` via `excludeTags("integration")` sur le `test` task. Tâche `integrationTest` dédiée créée (`includeTags`, `excludeEngines("cucumber")`, `excludeTestsMatching("planning.steps.CucumberTestRunner")`). `:check` VERT, non-régression Cucumber PLN-VIBE-5 (4/4 PASSED). Zéro production modifié.
-_Sessions precedent_ : 059/058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
-_Prochaine session_ : 061 — EPIC PLN-VIBE TERMINÉ. Options : PUB-2.2 (quick win commentaire relocation), PUB-3.10 (bloqué DNS/GPG), ou nouveau EPIC.
+_Session terminee_ : 061 — Cadrage + implémentation EPIC PLN-CONTRACTS TERMINÉ 6/6 US. Planner aligné sur contrats N0 : US-0 cadrage (audit 5 split-brain), US-1 BOM agent-contracts 0.0.2 (GradleTask + toolType/target + TaskType enum, 9 unit MEMPHIS), US-2 planner consomme N0 (Plan.kt local supprimé, LLMResponse/StdoutFormatter/IntentionPlanner consomment contracts.agent.*, 24 tests adaptés), US-3 ToolCatalog object (7 outils alignés sur vibecoding-contracts.ToolRegistry remplace string hardcodé, 5 unit), US-4 codebase bridge toContractPlan préserve toolType/target (split-brain #1 résolu — l'info vibecoding n'était plus droppée), US-5 Cucumber BDD planner_contracts.feature 4 scénarios PASSED + non-régression PLN-VIBE-5 4/4 PASSED. `:check` VERT, `publishToMavenLocal` VERT. Cross-borough MEMPHIS + codebase. Backlog/INDEX/PROMPT_REPRISE/AGENTS racine mis à jour.
+_Sessions precedent_ : 060/059/058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
+_Prochaine session_ : 062 — EPIC PLN-CONTRACTS TERMINÉ. Options : PUB-2.2 (quick win commentaire relocation), PUB-3.10 (publication Maven Central planner-plugin, bloqué DNS/GPG), nouvel EPIC (Agent lifecycle #3 / VibecodingStep #5 reportés, ou autre direction produit).
 
 '''
 == REGLES ABSOLUES
@@ -17,6 +17,60 @@ _Prochaine session_ : 061 — EPIC PLN-VIBE TERMINÉ. Options : PUB-2.2 (quick w
 === 3. DAG N2 — importable par N3 runner-gradle, jamais importe N3
 === 4. PROCEDURE DE FIN DE SESSION — 6 ETAPES OBLIGATOIRES
 === 5. HOOK OUVERTURE — Checklist SESSION_CHECKLIST.adoc obligatoire
+
+'''
+== ✅ EPIC PLN-CONTRACTS — Planner aligné sur les contrats N0 (BOM + codebase) TERMINÉ (S-061)
+
+_Source_ : Session 061 — audit planner + BOM + codebase. 5 points de
+split-brain entre planner, BOM (workspace-bom) et codebase
+(PlannerIntegration). PLN-VIBE a rendu planner vibecoding-aware mais
+en ré-déclarant localement des types déjà fournis par les contrats N0.
+
+_Dépendances_ : MEMPHIS (agent-contracts 0.0.2), codebase (bridge removal).
+
+[cols="1,3,1,2", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| PLN-CONTRACTS-0
+| *Cadrage EPIC* — audit planner + BOM + codebase, 5 split-brain, décisions, découpage US. Maj INDEX/BACKLOG/PROMPT_REPRISE/AGENTS racine
+| 1
+| ✅ TERMINÉ (S-061)
+
+| PLN-CONTRACTS-1
+| *BOM cross-borough* — Étendre `contracts.agent.GradleTask` avec `toolType: TaskType` + `target: String` (defaults `GRADLE`/`""`). Ajouter `enum class TaskType { GRADLE, EDIT_FILE, EXEC_SHELL }` dans `agent-contracts`. Bump 0.0.1 → 0.0.2. Publication Maven Central (MEMPHIS). Backward compatible. Tests invariants portés depuis planner `Task.init`. ~6 unit
+| 2
+| ✅ TERMINÉ (S-061)
+
+| PLN-CONTRACTS-2
+| *Planner consomme N0* — Supprimer `Plan.kt` local (`Plan`/`Epic`/`UserStory`/`Task`/`TaskType`). Consommer `contracts.agent` (Plan/Epic/UserStory/GradleTask/TaskType) depuis `agent-contracts` 0.0.2. Update `LLMResponse.toPlan()`. Port invariants `Task.init` vers `GradleTask`. Si US-1 non publiée : garder mapper `toContractPlan()` local. ~8 unit
+| 3
+| ✅ TERMINÉ (S-061)
+
+| PLN-CONTRACTS-3
+| *Tool catalogue from registry* — Remplacer le string hardcodé 6 outils dans `buildPromptInternal` par un adapter lisant `vibecoding-contracts.ToolRegistry` (`toolNames()` + `descriptions`). Nouveau `ToolCatalog` object. `IntentionPlanner.buildPrompt` consomme le catalogue. Dépend seulement de `vibecoding-contracts` (déjà publié). ~5 unit
+| 2
+| ✅ TERMINÉ (S-061)
+
+| PLN-CONTRACTS-4
+| *codebase cross-borough* — Supprimer le bridge `planning.Plan.toContractPlan()` dans `codebase.rag.PlannerIntegration` (devenu identité après US-2). Non-régression : codebase koog tests + PlannerIntegration. ~3 unit
+| 1
+| ✅ TERMINÉ (S-061)
+
+| PLN-CONTRACTS-5
+| *Cucumber BDD* — `planner_contracts.feature` : scenarios (plan output N0-typed, tool catalogue from registry 7 outils, multi-tool tasks preserved end-to-end sans drop, budget compositeContext respecté). ~4 scenarios. Inspire slider Cucumber pipeline
+| 3
+| ✅ TERMINÉ (S-061)
+|===
+
+_Total_ : 6 US, ~12 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
+tests/US (unit → functional → cucumber), English only code/Gherkin.
+_Statut_ : 6/6 US TERMINÉ (S-061). EPIC PLN-CONTRACTS CLOS.
+
+_Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
+`IntentionPlanner.plan()` puis `planningPlan.toContractPlan()`. Le bridge
+préserve maintenant `toolType`/`target` (corrige split-brain #1 — l'info
+vibecoding n'était plus droppée silencieusement).
 
 '''
 == EPIC K — Taxonomie Workspace
@@ -37,6 +91,7 @@ _Prochaine session_ : 061 — EPIC PLN-VIBE TERMINÉ. Options : PUB-2.2 (quick w
 
 |===
 | # | Date | Type | Sujet | Score
+| 061 | 2026-08-11 | dev | **EPIC PLN-CONTRACTS TERMINÉ 6/6 US** — planner aligné sur contrats N0. US-0 cadrage (audit 5 split-brain), US-1 BOM agent-contracts 0.0.2 (GradleTask + toolType/target + TaskType enum, 9 unit MEMPHIS), US-2 planner consomme N0 (Plan.kt local supprimé, 24 tests adaptés), US-3 ToolCatalog object (7 outils alignés sur vibecoding-contracts.ToolRegistry, 5 unit), US-4 codebase bridge préserve toolType/target (split-brain #1 résolu), US-5 Cucumber BDD planner_contracts.feature 4 scénarios PASSED + non-régression PLN-VIBE-5 4/4. `:check` VERT, `publishToMavenLocal` VERT. Cross-borough MEMPHIS + codebase. | 10/10
 | 060 | 2026-08-11 | maintenance | **@integration** — 6 tests GradleRunner (`DecomposeIntentionMultiCanalTest` x4 + `DecomposeIntentionPluginTest` x2) marqués `@Tag("integration")` (JUnit5), exclus du `check` via `excludeTags("integration")` sur `test` task. Tâche `integrationTest` dédiée créée (`includeTags`, `excludeEngines("cucumber")`, `excludeTestsMatching("planning.steps.CucumberTestRunner")`). `:check` VERT, Cucumber PLN-VIBE-5 4/4 PASSED. Zéro production modifié. | 9/10
 | 059 | 2026-08-11 | dev | **PLN-VIBE-5** — Cucumber BDD `planner_vibecoding.feature` 4 scénarios VERT. Infra Cucumber configurée (plugin `education.cccp.build.cucumber` 0.0.2, runner `CucumberTestRunner` glue `planning.steps`, dirs features/scenarios). `PlannerVibecodingSteps` (232 lignes, pattern `En` java8, AssertJ). Baby-step BDD strict RED → GREEN. Zéro production modifié — pure BDD. EPIC PLN-VIBE TERMINÉ 6/6 US. | 9/10
 | 058 | 2026-08-06 | dev | **PLN-VIBE-1/2/3/4** — TaskType enum (GRADLE/EDIT_FILE/EXEC_SHELL) + Task étendu (toolType, target, 3 invariants init). LLMTask étendu (toolType?, target? nullables) + toTask() internal. Prompt enrichi (catalogue 6 outils + cross-borough :slider:/:capsule:/:bakery:/:plantuml:). StdoutFormatter affiche toolType. 24 nouveaux tests unitaires VERT. Baby-step TDD strict. | 9/10
@@ -68,6 +123,7 @@ _Prochaine session_ : 061 — EPIC PLN-VIBE TERMINÉ. Options : PUB-2.2 (quick w
 
 |===
 | EPIC | Description | Statut | Priorite
+| EPIC PLN-CONTRACTS | Planner aligné sur contrats N0 (BOM + codebase) — éliminer 5 split-brain | ✅ TERMINÉ (S-061) | P1
 | EPIC K-1 | Renommage 4 verbes (GENERER/COLLECTER/TRANSFORMER/DÉPLOYER) | ✅ 2026-05-19 | P1
 | EPIC K-2 | Format pivot — Metadata.kt + metadataExpectedPath runner-gradle | ✅ 2026-05-19 | P1
 | EPIC K-3 | Configuration par domaine — PlannerExtension + rewiring | ✅ 2026-05-18 | P1

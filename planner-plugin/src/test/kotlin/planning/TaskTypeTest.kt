@@ -1,10 +1,10 @@
 package planning
 
+import contracts.agent.GradleTask
+import contracts.agent.TaskType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class TaskTypeTest {
 
@@ -15,15 +15,15 @@ class TaskTypeTest {
     }
 
     @Test
-    fun `Task default toolType is GRADLE and default target is blank`() {
-        val task = Task(description = "Run tests", gradleTask = "./gradlew test")
+    fun `GradleTask default toolType is GRADLE and default target is blank`() {
+        val task = GradleTask(description = "Run tests", gradleTask = "./gradlew test")
         assertEquals(TaskType.GRADLE, task.toolType)
         assertEquals("", task.target)
     }
 
     @Test
-    fun `Task accepts toolType EDIT_FILE with target`() {
-        val task = Task(
+    fun `GradleTask accepts toolType EDIT_FILE with target`() {
+        val task = GradleTask(
             description = "Edit build file",
             gradleTask = "",
             toolType = TaskType.EDIT_FILE,
@@ -34,8 +34,8 @@ class TaskTypeTest {
     }
 
     @Test
-    fun `Task accepts toolType EXEC_SHELL with target`() {
-        val task = Task(
+    fun `GradleTask accepts toolType EXEC_SHELL with target`() {
+        val task = GradleTask(
             description = "Run shell command",
             gradleTask = "",
             toolType = TaskType.EXEC_SHELL,
@@ -46,16 +46,16 @@ class TaskTypeTest {
     }
 
     @Test
-    fun `Task rejects blank description`() {
+    fun `GradleTask rejects blank description`() {
         assertFailsWith<IllegalArgumentException> {
-            Task(description = "", gradleTask = "./gradlew test")
+            GradleTask(description = "", gradleTask = "./gradlew test")
         }
     }
 
     @Test
-    fun `Task rejects blank description even for non-GRADLE toolType`() {
+    fun `GradleTask rejects blank description even for non-GRADLE toolType`() {
         assertFailsWith<IllegalArgumentException> {
-            Task(
+            GradleTask(
                 description = "   ",
                 gradleTask = "",
                 toolType = TaskType.EDIT_FILE,
@@ -65,16 +65,16 @@ class TaskTypeTest {
     }
 
     @Test
-    fun `Task with toolType GRADLE requires non-blank gradleTask`() {
+    fun `GradleTask with toolType GRADLE requires non-blank gradleTask`() {
         assertFailsWith<IllegalArgumentException> {
-            Task(description = "Run tests", gradleTask = "")
+            GradleTask(description = "Run tests", gradleTask = "")
         }
     }
 
     @Test
-    fun `Task with toolType EDIT_FILE requires non-blank target`() {
+    fun `GradleTask with toolType EDIT_FILE requires non-blank target`() {
         assertFailsWith<IllegalArgumentException> {
-            Task(
+            GradleTask(
                 description = "Edit file",
                 gradleTask = "",
                 toolType = TaskType.EDIT_FILE,
@@ -84,9 +84,9 @@ class TaskTypeTest {
     }
 
     @Test
-    fun `Task with toolType EXEC_SHELL requires non-blank target`() {
+    fun `GradleTask with toolType EXEC_SHELL requires non-blank target`() {
         assertFailsWith<IllegalArgumentException> {
-            Task(
+            GradleTask(
                 description = "Run shell",
                 gradleTask = "",
                 toolType = TaskType.EXEC_SHELL,

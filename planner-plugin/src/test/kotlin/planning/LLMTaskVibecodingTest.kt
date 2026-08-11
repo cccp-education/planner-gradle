@@ -1,5 +1,6 @@
 package planning
 
+import contracts.agent.TaskType
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -97,7 +98,7 @@ class LLMTaskVibecodingTest {
     }
 
     @Test
-    fun `toTask rejects EDIT_FILE without target via Task invariants`() {
+    fun `toTask rejects EDIT_FILE without target via GradleTask invariants`() {
         val json = """{"description":"Edit file","gradleTask":"","toolType":"EDIT_FILE"}"""
         val llmTask = mapper.readValue<LLMTask>(json)
         assertFailsWith<IllegalArgumentException> {

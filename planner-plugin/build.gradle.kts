@@ -25,6 +25,9 @@ dependencies {
     // N0 codebase contracts — source unique de vérité (ContextChannel, ChannelBudget, CompositeContext, CompositeContextConfig)
     implementation("education.cccp:codebase-contracts:0.0.1")
 
+    // N0 agent contracts — source unique de vérité (Plan, Epic, UserStory, GradleTask, TaskType, AgentState)
+    implementation("education.cccp:agent-contracts:0.0.2")
+
     testImplementation(kotlin("test-junit5"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

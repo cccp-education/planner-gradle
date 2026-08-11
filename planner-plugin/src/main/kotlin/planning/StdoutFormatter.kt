@@ -1,5 +1,8 @@
 package planning
 
+import contracts.agent.Plan
+import contracts.agent.TaskType
+
 object StdoutFormatter {
 
     fun format(plan: Plan): String = buildString {
@@ -15,7 +18,7 @@ object StdoutFormatter {
         }
     }
 
-    private fun formatTaskTail(task: Task): String = when (task.toolType) {
+    private fun formatTaskTail(task: contracts.agent.GradleTask): String = when (task.toolType) {
         TaskType.GRADLE -> "toolType=GRADLE gradleTask=${task.gradleTask}"
         TaskType.EDIT_FILE -> "toolType=EDIT_FILE target=${task.target}"
         TaskType.EXEC_SHELL -> "toolType=EXEC_SHELL target=${task.target}"

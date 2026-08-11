@@ -1,5 +1,9 @@
 package planning
 
+import contracts.agent.Epic
+import contracts.agent.GradleTask
+import contracts.agent.Plan
+import contracts.agent.UserStory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -17,7 +21,7 @@ class PlanTest {
                     userStories = listOf(
                         UserStory(
                             description = "Setup project",
-                            tasks = listOf(Task("Create files", "./gradlew init"))
+                            tasks = listOf(GradleTask("Create files", "./gradlew init"))
                         )
                     )
                 )

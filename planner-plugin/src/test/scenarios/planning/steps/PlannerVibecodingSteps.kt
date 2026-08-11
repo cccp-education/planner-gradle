@@ -3,15 +3,15 @@ package planning.steps
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import contracts.agent.GradleTask
+import contracts.agent.Plan
+import contracts.agent.TaskType
 import io.cucumber.java8.En
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import planning.IntentionPlanner
 import planning.LLMResponse
 import planning.PlanningContext
-import planning.Plan
-import planning.Task
-import planning.TaskType
 import planning.toPlan
 
 /**
@@ -19,14 +19,14 @@ import planning.toPlan
  * (PLN-VIBE-5 — `planner_vibecoding.feature`).
  *
  * Pure BDD — no production code is modified by this baby-step. The domain
- * layer (`Task` invariants, `LLMTask.toTask()`, `StdoutFormatter`,
+ * layer (`GradleTask` invariants, `LLMTask.toTask()`, `StdoutFormatter`,
  * `IntentionPlanner.buildPrompt()`) is exercised with in-memory JSON
  * fixtures, mirroring the unit tests of PLN-VIBE-1/2/3/4 and the BDD
  * pattern of `DeckPipelineKoogSteps` (slider SLD-8.3d).
  *
  * Scenarios cover the multi-tool plan parsing (GRADLE/EDIT_FILE/EXEC_SHELL),
  * the legacy default `GRADLE` fallback (non-regression of PlannerIntegration),
- * the `Task` invariants (EDIT_FILE requires a target), and the planner
+ * the `GradleTask` invariants (EDIT_FILE requires a target), and the planner
  * prompt exposing the vibecoding tool catalogue + cross-borough tasks +
  * the "do not re-plan an EPIC TERMINE" rule.
  */
@@ -223,9 +223,9 @@ class PlannerVibecodingSteps : En {
         }
     }
 
-    private fun firstTask(): Task = taskAt(0)
+    private fun firstTask(): GradleTask = taskAt(0)
 
-    private fun taskAt(index: Int): Task {
+    private fun taskAt(index: Int): GradleTask {
         val tasks = parsedPlan!!.epics.flatMap { it.userStories }.flatMap { it.tasks }
         return tasks[index]
     }

@@ -81,3 +81,100 @@ EPIC clos 6/6 US (S-057 cadrage + S-058 US-1/2/3/4 + S-059 US-5 Cucumber BDD).
 Planner est désormais vibecoding-aware : multi-outil (GRADLE/EDIT_FILE/
 EXEC_SHELL), prompt catalogue 6 outils + cross-borough, non-régression
 PlannerIntegration codebase préservée (default GRADLE).
+
+'''
+== ✅ EPIC PLN-CONTRACTS — Planner aligné sur les contrats N0 (BOM + codebase) TERMINÉ (S-061)
+
+_Source_ : Session 061 — audit planner (11 fichiers, 624 lignes) +
+dépendances cross-borough BOM (workspace-bom) + codebase (PlannerIntegration).
+PLN-VIBE a rendu planner vibecoding-aware mais en ré-déclarant
+localement des types et catalogues déjà fournis par les contrats N0.
+Cet EPIC élimine le split-brain en faisant consommer à planner les
+contrats N0 existants et en étendant le BOM là où il est trop étroit.
+
+=== Audit — 5 points de split-brain
+
+[cols="1,3,3", options="header"]
+|===
+| # | Split-brain | Constat
+
+| 1
+| Plan/Epic/UserStory/Task
+| planner re-déclare 4 types déjà dans `agent-contracts` N0 (`contracts.agent.Epic/UserStory/GradleTask`). `GradleTask` N0 manque `toolType`/`target` (ajoutés localement par PLN-VIBE). Le bridge `planning.Plan.toContractPlan()` côté codebase DROPPAIT l'info vibecoding (ne mappe que `description`+`gradleTask`).
+
+| 2
+| Tool catalogue
+| planner hardcode 6 outils en string dans `IntentionPlanner.buildPromptInternal`. `vibecoding-contracts.ToolRegistry` N0 expose 7 outils avec descriptions (`read_file`, `write_file`, `edit_file`, `list_directory`, `exit`, `exec_shell`, `exec_gradle`). Drift : planner dit 6, registry a 7.
+
+| 3
+| Agent lifecycle
+| `IntentionPlanner` est stateless (plan → throw/return). `agent-contracts.AgentState` (8 phases sealed : BUILD_CONTEXT→CLASSIFY→PLAN→EXECUTE→EVALUATE→REPLAN→FINALIZE→GIVE_UP) + `ContextAssembler`/`PlanExecutor` N0 existent mais planner les ignore. codebase `KoogAugmentedContextGraph` appelle planner puis alimente `PlanState` à la main.
+
+| 4
+| Budget contexte
+| planner utilise `codebase-contracts.ChannelBudget` (40/30/20/10 fixe). `agent-contracts.RelevanceBudget` N0 fait budget pondéré par similarité (cosine ou naive) — plus smart. planner utilise le budget dumb.
+
+| 5
+| VibecodingStep
+| codebase `VibecodingPlan.VibecodingStep` a `expectedOutput`/`maxRetries`/`verifyHook` que planner `Task` n'a pas. planner planifie des tâches sans métadonnées de vérification que l'exécuteur codebase attend.
+|===
+
+=== Décisions architecturales (cadrage S-061)
+
+. *Portée EPIC* : traiter les split-brain #1, #2, #4 (les plus sûrs et
+  haute valeur). #3 (lifecycle) et #5 (VibecodingStep) reportés à un
+  EPIC futur — ils changent le contrat d'exécution, pas juste les types.
+. *Dépendance cross-borough BOM* : pour éliminer #1 totalement, étendre
+  `contracts.agent.GradleTask` avec `toolType` + `target` (defaults
+  `GRADLE`/`""`) + ajouter `TaskType` enum dans `agent-contracts`.
+  Bump `agent-contracts` 0.0.1 → 0.0.2 + publication Maven Central
+  (MEMPHIS). Backward compatible (default args Kotlin data class).
+. *Dépendance cross-borough codebase* : une fois planner émettant des
+  types N0 directement, le bridge `toContractPlan()` dans
+  `codebase.rag.PlannerIntegration` devient identité → suppression.
+. *Non-régression critique* : `PlannerIntegration.kt` (codebase) appelle
+  `IntentionPlanner.plan()` puis `planningPlan.toContractPlan()`. Tant
+  que planner expose un `Plan` convertible en `contracts.agent.Plan`,
+  le contrat est préservé. L'US-2 garde un mapper `toContractPlan()` si
+  US-1 non publiée.
+. *Méthode* : baby-step DDD/TDD/BDD, 3 niveaux tests/US
+  (unit → functional → cucumber), English only code/Gherkin.
+. *Ordre* : US-3 (indépendant, single-borough) → US-1 (BOM cross-borough)
+  → US-2 (planner consomme N0) → US-4 (codebase bridge) → US-5 (cucumber).
+
+=== US découpage
+
+[cols="1,3,1,1", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| PLN-CONTRACTS-0
+| *Cadrage EPIC* — audit planner + BOM + codebase, 5 split-brain, décisions, découpage US. Maj INDEX/BACKLOG/PROMPT_REPRISE/AGENTS racine | 1 | ✅ TERMINÉ (S-061)
+
+| PLN-CONTRACTS-1
+| *BOM cross-borough* — Étendre `contracts.agent.GradleTask` avec `toolType: TaskType` + `target: String` (defaults `GRADLE`/`""`). Ajouter `enum class TaskType { GRADLE, EDIT_FILE, EXEC_SHELL }` dans `agent-contracts`. Bump 0.0.1 → 0.0.2. Publication Maven Central (MEMPHIS). Backward compatible. Tests invariants portés depuis planner `Task.init`. ~6 unit | 2 | ✅ TERMINÉ (S-061)
+
+| PLN-CONTRACTS-2
+| *Planner consomme N0* — Supprimer `Plan.kt` local (`Plan`/`Epic`/`UserStory`/`Task`/`TaskType`). Consommer `contracts.agent.Plan` (à créer si manquant) / `Epic`/`UserStory`/`GradleTask`/`TaskType` depuis `agent-contracts` 0.0.2. Update `LLMResponse.toPlan()`. Port invariants `Task.init` vers `GradleTask`. Si US-1 non publiée : garder mapper `toContractPlan()` local. ~8 unit | 3 | ✅ TERMINÉ (S-061)
+
+| PLN-CONTRACTS-3
+| *Tool catalogue from registry* — Remplacer le string hardcodé 6 outils dans `buildPromptInternal` par un adapter lisant `vibecoding-contracts.ToolRegistry` (`toolNames()` + `descriptions`). Nouveau `ToolCatalog` object. `IntentionPlanner.buildPrompt` consomme le catalogue. Dépend seulement de `vibecoding-contracts` (déjà publié). ~5 unit | 2 | ✅ TERMINÉ (S-061)
+
+| PLN-CONTRACTS-4
+| *codebase cross-borough* — Supprimer le bridge `planning.Plan.toContractPlan()` dans `codebase.rag.PlannerIntegration` (devenu identité après US-2). Non-régression : codebase koog tests + PlannerIntegration. ~3 unit | 1 | ✅ TERMINÉ (S-061)
+
+| PLN-CONTRACTS-5
+| *Cucumber BDD* — `planner_contracts.feature` : scenarios (plan output N0-typed, tool catalogue from registry 7 outils, multi-tool tasks preserved end-to-end sans drop, budget compositeContext respecté). ~4 scenarios. Inspire slider Cucumber pipeline | 3 | ✅ TERMINÉ (S-061)
+|===
+
+_Total_ : 6 US, ~12 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
+tests/US (unit → functional → cucumber), English only code/Gherkin.
+_Dépendances_ : MEMPHIS (agent-contracts 0.0.2), codebase (bridge
+removal). _Statut_ : 6/6 US TERMINÉ (S-061). EPIC PLN-CONTRACTS CLOS.
+
+Planner est désormais aligné sur les contrats N0 : types `Plan`/`Epic`/
+`UserStory`/`GradleTask`/`TaskType` consommés depuis `agent-contracts`
+(MEMPHIS), `ToolCatalog` object aligné sur les 7 outils de
+`vibecoding-contracts.ToolRegistry`, bridge codebase préserve `toolType`/
+`target` end-to-end (split-brain #1 résolu — l'info vibecoding n'était
+plus droppée silencieusement).

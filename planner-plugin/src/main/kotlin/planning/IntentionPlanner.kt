@@ -3,6 +3,7 @@ package planning
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import contracts.agent.Plan
 import dev.langchain4j.data.message.UserMessage
 import org.gradle.api.logging.Logger
 import org.slf4j.LoggerFactory as Slf4jLoggerFactory
@@ -120,6 +121,8 @@ object IntentionPlanner {
             """.trimMargin()
         } else ""
 
+        val toolCatalog = ToolCatalog.toPromptSection()
+
         return """
             |You are a Planning Expert. Your role is to decompose a high-level intention
             |into a structured execution plan for a Gradle plugin project.
@@ -128,21 +131,7 @@ object IntentionPlanner {
             |
             |$specsBlock
             |$extraContext
-            |Vibecoding tool catalogue (the plan may drive any of these):
-            |- read_file      — Read the contents of a file at the given path
-            |- write_file     — Write content to a file at the given path
-            |- edit_file      — Edit a file by replacing oldString with newString at the given path
-            |- list_directory — List the contents of a directory at the given path
-            |- exec_shell     — Execute a shell command via bash -c (DANGEROUS commands blocked)
-            |- exec_gradle    — Execute a Gradle task via ./gradlew
-            |
-            |Each task carries a `toolType` among GRADLE (default), EDIT_FILE, EXEC_SHELL:
-            |- GRADLE     → set `gradleTask` to a realistic invocation like "./gradlew test".
-            |               Cross-borough examples: ":slider:generateSlides", ":capsule:extractSpeakerNotes",
-            |               ":bakery:publishSite", ":plantuml:generateDiagram".
-            |- EDIT_FILE  → set `target` to the file path; leave `gradleTask` blank.
-            |- EXEC_SHELL → set `target` to the shell command; leave `gradleTask` blank.
-            |
+            |$toolCatalog
             |Output a valid JSON object with this exact structure:
             |{
             |  "title": "<intention summary>",

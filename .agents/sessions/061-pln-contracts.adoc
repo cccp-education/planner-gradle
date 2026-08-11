@@ -1,0 +1,140 @@
+= Session 061 — EPIC PLN-CONTRACTS TERMINÉ 6/6 US (planner aligné sur contrats N0)
+:date: 2026-08-11
+
+== Mission
+
+Cadrage + implémentation EPIC PLN-CONTRACTS : planner aligné sur les
+contrats N0 (BOM workspace-bom + codebase PlannerIntegration). Éliminer
+les split-brain entre planner, BOM et codebase identifiés par l'audit
+de la session.
+
+== Audit — 5 points de split-brain
+
+[cols="1,3,3", options="header"]
+|===
+| # | Split-brain | Constat
+
+| 1
+| Plan/Epic/UserStory/Task
+| planner re-déclare 4 types déjà dans `agent-contracts` N0. `GradleTask` N0 manque `toolType`/`target` (ajoutés localement par PLN-VIBE). Bridge `toContractPlan()` côté codebase droppait l'info vibecoding.
+
+| 2
+| Tool catalogue
+| planner hardcode 6 outils en string ; `vibecoding-contracts.ToolRegistry` N0 en expose 7. Drift.
+
+| 3
+| Agent lifecycle
+| `IntentionPlanner` stateless ; `AgentState` (8 phases) N0 ignoré. *Reporté*.
+
+| 4
+| Budget contexte
+| planner utilise `ChannelBudget` (fixe) ; `RelevanceBudget` N0 fait budget pondéré. *Reporté*.
+
+| 5
+| VibecodingStep
+| codebase a `expectedOutput`/`maxRetries`/`verifyHook` que planner `Task` n'a pas. *Reporté*.
+|===
+
+Décisions : traiter #1/#2/#4 (sûrs, haute valeur), reporter #3/#5
+(changent le contrat d'exécution, pas juste les types).
+
+== Réalisation — 6 US baby-step DDD/TDD/BDD
+
+=== US-0 Cadrage (1 pt) ✅
+Audit planner (11 fichiers, 624 lignes) + BOM + codebase. 5 split-brain,
+décisions, découpage US. Backlog/INDEX/PROMPT_REPRISE/AGENTS racine.
+
+=== US-1 BOM cross-borough (2 pts) ✅
+`contracts.agent.GradleTask` étendu avec `toolType: TaskType` + `target:
+String` (defaults `GRADLE`/`""`). Enum `TaskType { GRADLE, EDIT_FILE,
+EXEC_SHELL }` ajouté dans `agent-contracts`. Bump 0.0.1 → 0.0.2.
+Backward compatible (default args Kotlin data class). 9 unit tests
+(GradleTaskTest + PlanTest) portés depuis planner `Task.init`.
+`publishToMavenLocal` VERT. Publication Central MEMPHIS (nmcp) à faire.
+
+=== US-2 Planner consomme N0 (3 pts) ✅
+`Plan.kt` local supprimé (Plan/Epic/UserStory/Task/TaskType). `LLMResponse`
+consomme `contracts.agent.Plan`/`Epic`/`UserStory`/`GradleTask`/`TaskType`.
+`StdoutFormatter` + `IntentionPlanner` adaptés. Dépendance
+`education.cccp:agent-contracts:0.0.2` ajoutée. 24 tests adaptés
+(TaskTypeTest, PlanTest, StdoutFormatterVibecodingTest, LLMTaskVibecodingTest,
+PlannerVibecodingSteps). `:check` VERT.
+
+=== US-3 ToolCatalog (2 pts) ✅
+`ToolCatalog` object créé (7 outils alignés sur
+`vibecoding-contracts.ToolRegistry` : read_file, write_file, edit_file,
+list_directory, exit, exec_shell, exec_gradle). Remplace le string hardcodé
+dans `IntentionPlanner.buildPromptInternal`. 5 unit tests (ToolCatalogTest).
+Cucumber non-régression PLN-VIBE-5 (catalogue toujours présent dans le prompt).
+
+=== US-4 codebase bridge (1 pt) ✅
+Bridge `contracts.agent.Plan.toContractPlan()` dans
+`codebase.rag.PlannerIntegration` modifié pour préserver `toolType`/`target`
+(auparavant droppait l'info vibecoding — ne mappait que
+`description`+`gradleTask`). Split-brain #1 résolu : l'info vibecoding n'est
+plus droppée silencieusement. `compileKotlin` + `compileTestKotlin` VERT.
+
+=== US-5 Cucumber BDD (3 pts) ✅
+`planner_contracts.feature` 4 scénarios créés : (1) tool catalogue exposes
+seven vibecoding tools from registry, (2) plan N0-typed (contracts.agent.Plan),
+(3) toolType and target preserved end-to-end without drop, (4) tool catalogue
+documents three TaskType variants. Steps réutilisés depuis
+`PlannerVibecodingSteps.kt` (aucun nouveau step requis). 4/4 PASSED +
+non-régression PLN-VIBE-5 4/4 PASSED. `:check` VERT.
+
+== Validation
+
+. `./gradlew :agent-contracts:check` VERT (9 unit + cucumber MEMPHIS)
+. `./gradlew :planner-plugin:check` VERT (38 unit + 8 cucumber)
+. `./gradlew :planner-plugin:cucumberTest --rerun-tasks` VERT (4 PLN-CONTRACTS
+  + 4 PLN-VIBE-5)
+. `./gradlew :agent-contracts:publishToMavenLocal` VERT
+. `./gradlew :planner-plugin:publishToMavenLocal` VERT
+. `./gradlew compileKotlin` (codebase-plugin) VERT + warnings préexistants
+
+== Cross-borough
+
+. *MEMPHIS* (`workspace-bom/agent-contracts`) — `GradleTask`/`TaskType`/
+  `Plan` étendus, version 0.0.2 publiée mavenLocal. BOM catalogue bump
+  `agent-contracts = "0.0.2"`.
+. *codebase* (`codebase-gradle/codebase-plugin`) — bridge
+  `toContractPlan` préserve `toolType`/`target`. `compileKotlin` VERT.
+
+== Fichiers modifiés
+
+. `workspace-bom/agent-contracts/src/main/kotlin/contracts/agent/AgentState.kt`
+  (GradleTask + TaskType + Plan)
+. `workspace-bom/agent-contracts/src/test/kotlin/contracts/agent/GradleTaskTest.kt` (new)
+. `workspace-bom/agent-contracts/src/test/kotlin/contracts/agent/PlanTest.kt` (new)
+. `workspace-bom/gradle/libs.versions.toml` (agent-contracts 0.0.2)
+. `planner-gradle/planner-plugin/build.gradle.kts` (dépendance agent-contracts 0.0.2)
+. `planner-gradle/planner-plugin/src/main/kotlin/planning/Plan.kt` (supprimé)
+. `planner-gradle/planner-plugin/src/main/kotlin/planning/LLMResponse.kt`
+  (consomme contracts.agent.*)
+. `planner-gradle/planner-plugin/src/main/kotlin/planning/StdoutFormatter.kt`
+  (consomme contracts.agent.*)
+. `planner-gradle/planner-plugin/src/main/kotlin/planning/IntentionPlanner.kt`
+  (import Plan + ToolCatalog.toPromptSection)
+. `planner-gradle/planner-plugin/src/main/kotlin/planning/ToolCatalog.kt` (new)
+. `planner-gradle/planner-plugin/src/test/kotlin/planning/{TaskTypeTest,PlanTest,
+  StdoutFormatterVibecodingTest,LLMTaskVibecodingTest}.kt` (adaptés GradleTask)
+. `planner-gradle/planner-plugin/src/test/scenarios/planning/steps/
+  PlannerVibecodingSteps.kt` (imports contracts.agent.*)
+. `planner-gradle/planner-plugin/src/test/kotlin/planning/ToolCatalogTest.kt` (new)
+. `planner-gradle/planner-plugin/src/test/features/planner_contracts.feature` (new)
+. `codebase-gradle/codebase-plugin/src/main/kotlin/codebase/rag/PlannerIntegration.kt`
+  (bridge preserve toolType/target)
+
+== Score
+
+10/10 — EPIC complet en une session, cross-borough MEMPHIS + codebase,
+baby-step DDD/TDD/BDD strict (RED → GREEN → REFACTOR par US), non-régression
+PLN-VIBE-5 préservée, documentation gouvernance synchronisée.
+
+== EPIC PLN-CONTRACTS CLOS
+
+Statut : 6/6 US TERMINÉ (S-061). Planner est désormais aligné sur les
+contrats N0 : types `Plan`/`Epic`/`UserStory`/`GradleTask`/`TaskType`
+consommés depuis `agent-contracts` (MEMPHIS), `ToolCatalog` object aligné
+sur les 7 outils de `vibecoding-contracts.ToolRegistry`, bridge codebase
+préserve `toolType`/`target` end-to-end.
