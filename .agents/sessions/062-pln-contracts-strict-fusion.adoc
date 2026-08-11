@@ -1,0 +1,80 @@
+= Session 062 — PLN-CONTRACTS US-4 stricte (fusion codebase.koog.planning.Plan → contracts.agent.Plan)
+:date: 2026-08-11
+
+== Mission
+
+Suite de l'EPIC PLN-CONTRACTS (clos S-061). L'US-4 de S-061 était une
+version prudente : le bridge `toContractPlan()` était enrichi pour
+préserver `toolType`/`target` (non-régression), mais le duplicat
+`codebase.koog.planning.Plan` (N1) vis-à-vis de `contracts.agent.Plan`
+(N0) subsistait — deux types structurellement identiques.
+
+Cette session 062 fait l'**US-4 stricte** : fusion totale. Le type
+`codebase.koog.planning.Plan` est supprimé. Tous les consommateurs
+codebase consomment désormais `contracts.agent.Plan` (N0) directement.
+Le bridge `toContractPlan()` devient identité → suppression.
+
+== Décision
+
+L'US-4 prudente (S-061) gardait un duplicat pour limiter le blast radius.
+L'audit révèle que les deux types sont structurellement identiques
+(`title`, `epics: List<Epic>`, `totalPoints`, `estimatedSessions`) et
+que `Epic`/`UserStory`/`GradleTask` sont déjà partagés depuis N0. La
+fusion est un rename d'import — pas un refactor sémantique.
+
+== Réalisation
+
+=== Fusion `codebase.koog.planning.Plan` → `contracts.agent.Plan`
+
+. `KoogPlan.kt` — `Plan` data class supprimée. `PlanState` conservé
+  (champ `plan: Plan?` → `plan: contracts.agent.Plan?`).
+. `PlannerIntegration.kt` — bridge `toContractPlan()` supprimé (identité).
+  `planningPlan` est directement un `contracts.agent.Plan` ( planner US-2
+  consomme déjà N0). Warnings elvis `?: return null` résiduels nettoyés.
+. `VibecodingState.kt` — import `codebase.koog.planning.Plan` → `contracts.agent.Plan`.
+. `AugmentedState.kt` — idem.
+. 7 fichiers test — import `codebase.koog.planning.Plan` → `contracts.agent.Plan`
+  (VibecodingContractsTest, VibecodingGraphTest, VibecodingGraphAutofocusTest,
+  VibecodingSteps, EpicZ7CrossBoroughSteps, E2EPlanFailAdaptSteps,
+  EpicZ6AutofocusSteps).
+
+== Validation
+
+. `./gradlew compileKotlin` (codebase-plugin) VERT, zéro warning.
+. `./gradlew compileTestKotlin` VERT (warnings préexistants
+  SessionRepositorySteps.kt non liés).
+. `./gradlew test --tests "codebase.koog.*"` VERT
+  (VibecodingContractsTest, VibecodingGraphTest, VibecodingGraphAutofocusTest).
+. `./gradlew cucumberTestEpicX6` VERT (E2E Plan→Fail→Adapt).
+. `./gradlew cucumberTestEpicZ7` VERT (Cross-Borough Autofocus).
+
+== Diff
+
+. `codebase-plugin/src/main/kotlin/codebase/koog/planning/KoogPlan.kt`
+  — `Plan` supprimée, `PlanState` conservé (déjà dans HEAD).
+. `codebase-plugin/src/main/kotlin/codebase/rag/PlannerIntegration.kt`
+  — bridge supprimé (déjà dans HEAD), elvis nettoyés (mon diff 2 lignes).
+. 9 fichiers (main + test) imports redirectés (déjà dans HEAD).
+
+== Constat découverte
+
+Les commits `5af3a56` (MEMPHIS), `5f5a1d3` (codebase) et `aa7955a`
+(planner) avaient déjà fait l'US-4 stricte (fusion) en plus de l'EPIC
+PLN-CONTRACTS complet. La gouvernance S-061 ne documentait que l'US-4
+prudente (bridge enrichi). Cette session 062 documente l'US-4 stricte
+(fusion) et nettoie les 2 warnings résiduels.
+
+== Score
+
+9/10 — Fusion propre, zéro régression, mais découverte que le travail
+était déjà committé sans documentation gouvernance. Le diff net de
+cette session est 2 lignes (nettoyage warnings) ; le reste était déjà
+dans HEAD. Gouvernance rattrapée.
+
+== État EPIC PLN-CONTRACTS
+
+EPIC clos (S-061 6/6 US + S-062 US-4 stricte bonus). Planner est aligné
+sur les contrats N0 : types `Plan`/`Epic`/`UserStory`/`GradleTask`/
+`TaskType` consommés depuis `agent-contracts` (MEMPHIS), `ToolCatalog`
+aligné sur les 7 outils de `vibecoding-contracts.ToolRegistry`, et
+codebase n'a plus de duplicat `Plan` local (fusion US-4 stricte).

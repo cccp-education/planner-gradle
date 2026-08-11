@@ -1,44 +1,47 @@
-= PROMPT_REPRISE — planner-gradle (Session 061 terminée)
+= PROMPT_REPRISE — planner-gradle (Session 062 terminée)
 :date: 2026-08-11
 
-== Session 061 terminée — EPIC PLN-CONTRACTS TERMINÉ 6/6 US
+== Session 062 terminée — PLN-CONTRACTS US-4 stricte (fusion N0/N1)
 
-Planner aligné sur les contrats N0 (BOM + codebase). 5 split-brain
-audités, 3 traités (#1 types, #2 tool catalogue, #4 bridge drop), 2
-reportés (#3 Agent lifecycle, #5 VibecodingStep — changent le contrat
-d'exécution).
+Suite de l'EPIC PLN-CONTRACTS (clos S-061). L'US-4 de S-061 était une
+version prudente : le bridge `toContractPlan()` était enrichi pour
+préserver `toolType`/`target` (non-régression), mais le duplicat
+`codebase.koog.planning.Plan` (N1) vis-à-vis de `contracts.agent.Plan`
+(N0) subsistait — deux types structurellement identiques.
 
-Réalisation :
-. *US-0* Cadrage (audit 5 split-brain, 6 US ~12 pts)
-. *US-1* BOM `agent-contracts` 0.0.2 — `GradleTask` étendu avec
-  `toolType`/`target`, enum `TaskType` ajouté, 9 unit tests (MEMPHIS)
-. *US-2* Planner consomme N0 — `Plan.kt` local supprimé,
-  `LLMResponse`/`StdoutFormatter`/`IntentionPlanner` consomment
-  `contracts.agent.*`, 24 tests adaptés
-. *US-3* `ToolCatalog` object (7 outils alignés sur
-  `vibecoding-contracts.ToolRegistry`) remplace string hardcodé, 5 unit
-. *US-4* codebase bridge `toContractPlan` préserve `toolType`/`target`
-  (split-brain #1 résolu — l'info vibecoding n'était plus droppée)
-. *US-5* Cucumber BDD `planner_contracts.feature` 4 scénarios PASSED +
-  non-régression PLN-VIBE-5 4/4 PASSED
+S-062 fait l'US-4 stricte : fusion totale. Le type
+`codebase.koog.planning.Plan` est supprimé. Tous les consommateurs
+codebase consomment `contracts.agent.Plan` (N0) directement. Le bridge
+`toContractPlan()` devient identité → suppression. 10 fichiers codebase
+(2 main + 7 test + KoogPlan.kt), imports redirectés. `compileKotlin`/
+`compileTestKotlin` VERT zéro warning, tests koog + cucumberTestEpicX6/Z7
+VERTS. Diff net 2 lignes (nettoyage elvis) — le reste était déjà
+committé dans HEAD (découverte : commits 5af3a56/5f5a1d3/aa7955a avaient
+déjà fait la fusion sans doc governance). Gouvernance rattrapée.
 
-`:check` VERT, `publishToMavenLocal` VERT. Cross-borough MEMPHIS
-(agent-contracts 0.0.2) + codebase (bridge preserve toolType/target).
-Backlog/INDEX/PROMPT_REPRISE/AGENTS racine synchronisés.
+== État EPIC PLN-CONTRACTS
 
-== Prochaine session — 062 : options
+EPIC CLOS (6/6 US S-061 + US-4 stricte S-062). Planner est aligné sur
+les contrats N0 : types `Plan`/`Epic`/`UserStory`/`GradleTask`/`TaskType`
+consommés depuis `agent-contracts` (MEMPHIS), `ToolCatalog` aligné sur les
+7 outils de `vibecoding-contracts.ToolRegistry`, et codebase n'a plus de
+duplicat `Plan` local (fusion US-4 stricte).
 
-EPIC PLN-CONTRACTS TERMINÉ. Borough planner n'a plus d'EPIC actif.
+== Prochaine session — 063 : options
 
-Options :
-. *PUB-2.2* — Mise à jour commentaire relocation build.gradle.kts
-  (1 pt, P1, pas de dépendance — quick win).
-. *PUB-3.10* — Publication Maven Central planner-plugin (bloqué :
-  nécessite PUB-0/PUB-1 DNS TXT + GPG).
-. *Nouvel EPIC* — Agent lifecycle #3 (AgentState 8 phases +
-  ContextAssembler/PlanExecutor N0 ignorés par planner stateless) ou
-  VibecodingStep #5 (expectedOutput/maxRetries/verifyHook que planner
-  Task n'a pas). Besoin d'une direction produit.
+EPIC PLN-CONTRACTS CLOS. Options pour la prochaine session :
+
+. *PUB-2.2* (quick win) — Mise à jour commentaire relocation dans
+  `build.gradle.kts` planner-plugin. ~1 pt.
+. *PUB-3.10* — Publication Maven Central planner-plugin. Bloqué DNS TXT
+  + GPG (PUB-0/PUB-1 pré-requis).
+. *Nouvel EPIC* — Split-brain reportés S-061 :
+  * #3 Agent lifecycle (`AgentState` 8 phases sealed, `ContextAssembler`/
+    `PlanExecutor` N0 ignorés par planner stateless). Change le contrat
+    d'exécution.
+  * #5 VibecodingStep (`expectedOutput`/`maxRetries`/`verifyHook` que
+    planner `Task` n'a pas). Change le contrat d'exécution.
+  * Autre direction produit (à cadrer).
 
 Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`, `BACKLOG.adoc`.
 Vérifier `./gradlew :planner-plugin:compileKotlin` VERT avant de coder.

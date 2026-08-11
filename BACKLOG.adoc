@@ -83,7 +83,7 @@ EXEC_SHELL), prompt catalogue 6 outils + cross-borough, non-régression
 PlannerIntegration codebase préservée (default GRADLE).
 
 '''
-== ✅ EPIC PLN-CONTRACTS — Planner aligné sur les contrats N0 (BOM + codebase) TERMINÉ (S-061)
+== ✅ EPIC PLN-CONTRACTS — Planner aligné sur les contrats N0 (BOM + codebase) TERMINÉ (S-061 + US-4 stricte S-062)
 
 _Source_ : Session 061 — audit planner (11 fichiers, 624 lignes) +
 dépendances cross-borough BOM (workspace-bom) + codebase (PlannerIntegration).
@@ -91,6 +91,9 @@ PLN-VIBE a rendu planner vibecoding-aware mais en ré-déclarant
 localement des types et catalogues déjà fournis par les contrats N0.
 Cet EPIC élimine le split-brain en faisant consommer à planner les
 contrats N0 existants et en étendant le BOM là où il est trop étroit.
+Session 062 — US-4 stricte : fusion `codebase.koog.planning.Plan` →
+`contracts.agent.Plan` (le duplicat N1 est supprimé, codebase consomme
+le N0 directement, bridge `toContractPlan()` supprimé car identité).
 
 === Audit — 5 points de split-brain
 
@@ -161,7 +164,7 @@ contrats N0 existants et en étendant le BOM là où il est trop étroit.
 | *Tool catalogue from registry* — Remplacer le string hardcodé 6 outils dans `buildPromptInternal` par un adapter lisant `vibecoding-contracts.ToolRegistry` (`toolNames()` + `descriptions`). Nouveau `ToolCatalog` object. `IntentionPlanner.buildPrompt` consomme le catalogue. Dépend seulement de `vibecoding-contracts` (déjà publié). ~5 unit | 2 | ✅ TERMINÉ (S-061)
 
 | PLN-CONTRACTS-4
-| *codebase cross-borough* — Supprimer le bridge `planning.Plan.toContractPlan()` dans `codebase.rag.PlannerIntegration` (devenu identité après US-2). Non-régression : codebase koog tests + PlannerIntegration. ~3 unit | 1 | ✅ TERMINÉ (S-061)
+| *codebase cross-borough* — Supprimer le bridge `planning.Plan.toContractPlan()` dans `codebase.rag.PlannerIntegration` (devenu identité après US-2). Non-régression : codebase koog tests + PlannerIntegration. ~3 unit | 1 | ✅ TERMINÉ (S-061 prudent + S-062 stricte fusion)
 
 | PLN-CONTRACTS-5
 | *Cucumber BDD* — `planner_contracts.feature` : scenarios (plan output N0-typed, tool catalogue from registry 7 outils, multi-tool tasks preserved end-to-end sans drop, budget compositeContext respecté). ~4 scenarios. Inspire slider Cucumber pipeline | 3 | ✅ TERMINÉ (S-061)
@@ -170,11 +173,12 @@ contrats N0 existants et en étendant le BOM là où il est trop étroit.
 _Total_ : 6 US, ~12 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
 tests/US (unit → functional → cucumber), English only code/Gherkin.
 _Dépendances_ : MEMPHIS (agent-contracts 0.0.2), codebase (bridge
-removal). _Statut_ : 6/6 US TERMINÉ (S-061). EPIC PLN-CONTRACTS CLOS.
+removal). _Statut_ : 6/6 US TERMINÉ (S-061 + S-062 US-4 stricte). EPIC
+PLN-CONTRACTS CLOS.
 
 Planner est désormais aligné sur les contrats N0 : types `Plan`/`Epic`/
 `UserStory`/`GradleTask`/`TaskType` consommés depuis `agent-contracts`
 (MEMPHIS), `ToolCatalog` object aligné sur les 7 outils de
-`vibecoding-contracts.ToolRegistry`, bridge codebase préserve `toolType`/
-`target` end-to-end (split-brain #1 résolu — l'info vibecoding n'était
-plus droppée silencieusement).
+`vibecoding-contracts.ToolRegistry`, et codebase n'a plus de duplicat
+`Plan` local (fusion US-4 stricte S-062 — `codebase.koog.planning.Plan`
+supprimé, `contracts.agent.Plan` est la source unique de vérité).
