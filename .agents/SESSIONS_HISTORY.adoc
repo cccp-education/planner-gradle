@@ -1,9 +1,10 @@
 = HISTORIQUE DES SESSIONS — Planner Gradle
-:date: 2026-08-06
+:date: 2026-08-11
 
 [cols="2,2,3,3", options="header"]
 |===
 | Session | Date | Type | Sujet
+| 059 | 2026-08-11 | dev | PLN-VIBE-5 — Cucumber BDD `planner_vibecoding.feature` 4 scénarios VERT. Infra Cucumber configurée (plugin `education.cccp.build.cucumber` 0.0.2, runner `CucumberTestRunner` glue `planning.steps`, dirs features/scenarios). `PlannerVibecodingSteps` (232 lignes, pattern `En` java8, AssertJ, fakes JSON en mémoire). Baby-step BDD strict RED (4 PendingException) → GREEN (4/4 PASSED). Bug singulier/pluriel "task(s)" corrigé regex. Zéro production modifié — pure BDD. EPIC PLN-VIBE TERMINÉ 6/6 US.
 | 058 | 2026-08-06 | dev | PLN-VIBE-1/2/3/4 — TaskType enum (GRADLE/EDIT_FILE/EXEC_SHELL) + Task étendu (toolType, target, 3 invariants init, pattern DeckState). LLMTask étendu (toolType?, target? nullables compat JSON legacy) + toTask() internal. Prompt IntentionPlanner enrichi (catalogue 6 outils vibecoding + cross-borough :slider:/:capsule:/:bakery:/:plantuml: + JSON schema toolType/target). StdoutFormatter affiche toolType (+target non-GRADLE). 24 nouveaux tests unitaires VERT. Baby-step TDD strict RED→GREEN→REFACTOR. Non-régression vérifiée (PlannerIntegration.kt codebase — champ gradleTask + défauts préservés). US-5 Cucumber reportée S-059.
 | 057 | 2026-08-06 | governance | Cadrage EPIC PLN-VIBE (planner vibecoding-aware) — audit planner existant (11 fichiers) + code reutilisable 4 boroughs (codebase ToolRegistry/VibecodingPlan/StepVerifier, workspace-bom AgentState/GradleTask, slider ValidationResult/DeckState). 6 US ~12 pts validees. Gap : Task ne modelise que gradleTask.
 | 056 | 2026-07-03 | dev | CNV-6 Migration — convention plugins education.cccp.build.* v0.0.1 appliquées (pattern bakery gradle-plugin + publishing). build.gradle.kts 125→72 lignes (-53). Variantes gardées : kotlin.serialization, plugin-publish, exceptionFormat FULL, EnableDynamicAgentLoading. compileKotlin SUCCESS, BUILD SUCCESS.

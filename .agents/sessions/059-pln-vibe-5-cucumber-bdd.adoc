@@ -1,0 +1,78 @@
+= Session 059 — PLN-VIBE-5 Cucumber BDD
+:date: 2026-08-11
+:borough: Manhattan (planner-gradle)
+
+== Sujet
+
+PLN-VIBE-5 — Cucumber BDD `planner_vibecoding.feature`. EPIC PLN-VIBE
+TERMINÉ 6/6 US.
+
+== Méthode
+
+Baby-step BDD strict (RED → GREEN → REFACTOR). Zéro production modifié —
+pure BDD (infra Cucumber + feature + step defs). DDD : le domaine `planning`
+(Task invariants, LLMTask.toTask() internal, IntentionPlanner.buildPrompt)
+est exercé via fakes JSON en mémoire, pas de réseau, pas de clé LLM.
+
+== Livrables
+
+. *Infra Cucumber* (PLN-VIBE-5a) — plugin `education.cccp.build.cucumber`
+  0.0.2 appliqué. Runner `CucumberTestRunner` (glue `planning.steps`,
+  exclude `@integration`). Dirs `src/test/features/` +
+  `src/test/scenarios/planning/steps/`.
+. *Feature* (PLN-VIBE-5b) — `planner_vibecoding.feature` 4 scénarios
+  `@vibecoding` :
+  . Multi-tool plan parses GRADLE/EDIT_FILE/EXEC_SHELL (3 tasks, invariants).
+  . Legacy LLM response without toolType defaults to GRADLE (non-regression
+    PlannerIntegration codebase).
+  . Task invariants reject EDIT_FILE without target.
+  . Planner prompt exposes tool catalogue + cross-borough `:slider:` +
+    "do not re-plan EPIC TERMINE".
+. *Step defs* (PLN-VIBE-5c/d) — `PlannerVibecodingSteps` (232 lignes,
+  pattern `En` java8, AssertJ). RED (4 PendingException) → GREEN (4/4
+  scénarios PASSED). Bug singulier/pluriel "task(s)" corrigé via regex
+  `{int} task(s)`.
+
+== Vérification
+
+. `./gradlew :planner-plugin:compileKotlin` VERT.
+. `./gradlew :planner-plugin:cucumberTest` VERT — 4/4 scénarios PASSED.
+. `./gradlew :planner-plugin:test` — 60/66 PASS. 6 échecs préexistants
+   (ConnectException Ollama `localhost:1` — `DecomposeIntentionMultiCanalTest`,
+   documentés S-058, pas liés au changement). Tests vibecoding unitaires
+   (TaskTypeTest, LLMTaskVibecodingTest, IntentionPlannerVibecodingTest,
+   StdoutFormatterVibecodingTest) 33/33 PASS.
+. `./gradlew :planner-plugin:publishToMavenLocal` VERT (Règle 2).
+. Zéro secret (`TOKEN_BUDGET` = constante budget LLM, pas un token).
+
+== Statut EPIC
+
+EPIC PLN-VIBE TERMINÉ 6/6 US (S-057 cadrage + S-058 US-1/2/3/4 + S-059
+US-5). Planner est désormais vibecoding-aware : multi-outil (GRADLE/EDIT_FILE/
+EXEC_SHELL), prompt catalogue 6 outils + cross-borough, non-régression
+PlannerIntegration codebase préservée (default GRADLE).
+
+== Non-régression
+
+`PlannerIntegration.kt` (codebase) appelle `IntentionPlanner.plan()` et
+fait `planningPlan.toContractPlan()` via `t.gradleTask` — champ + valeurs
+défaut préservés (default GRADLE, target ""). Aucun fichier de production
+modifié cette session.
+
+== Score
+
+9/10 — Baby-step BDD strict respecté, infra Cucumber réutilisée (convention
+plugin 0.0.2), 4 scénarios couvrent les 4 dimensions clés (multi-outil,
+default legacy, invariants, prompt). 1 point retiré : le bug
+singulier/pluriel "task(s)" détecté en GREEN (aurait dû être anticipé au
+moment de la rédaction feature).
+
+== Fichiers créés
+
+. `planner-plugin/src/test/scenarios/planning/steps/CucumberTestRunner.kt`
+. `planner-plugin/src/test/scenarios/planning/steps/PlannerVibecodingSteps.kt`
+. `planner-plugin/src/test/features/planner_vibecoding.feature`
+
+== Fichiers modifiés
+
+. `planner-plugin/build.gradle.kts` (+1 ligne : plugin cucumber 0.0.2)

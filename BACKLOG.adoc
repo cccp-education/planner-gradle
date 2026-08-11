@@ -68,9 +68,16 @@ _Dependances_ : codebase (ToolRegistry catalogue), workspace-bom (AgentState/Gra
 | PLN-VIBE-2 | `LLMTask` etendu (toolType, target) + `LLMResponse.toPlan()` mis a jour. ~6 unit | 2 | ✅ TERMINÉ (S-058)
 | PLN-VIBE-3 | Prompt `IntentionPlanner` enrichi : catalogue outils + cross-borough. ~5 unit | 2 | ✅ TERMINÉ (S-058)
 | PLN-VIBE-4 | `StdoutFormatter` etendu — affiche `toolType`. `DecomposeIntentionTask` passe nouveau modele. ~4 unit | 1 | ✅ TERMINÉ (S-058)
-| PLN-VIBE-5 | Cucumber BDD — `planner_vibecoding.feature` : scenarios multi-outil. ~4 scenarios | 3 | ⬜ TODO
+| PLN-VIBE-5 | Cucumber BDD — `planner_vibecoding.feature` : scenarios multi-outil. ~4 scenarios | 3 | ✅ TERMINÉ (S-059)
 |===
 
 _Total_ : 6 US, ~12 pts. _Methode_ : baby-step TDD/BDD, English only.
 _Non-regression_ : `toolType` defaut `GRADLE` + `target` defaut `""` preserve
 `PlannerIntegration.kt` (codebase).
+
+== ✅ EPIC PLN-VIBE — Planner Vibecoding-Aware TERMINÉ (S-059)
+
+EPIC clos 6/6 US (S-057 cadrage + S-058 US-1/2/3/4 + S-059 US-5 Cucumber BDD).
+Planner est désormais vibecoding-aware : multi-outil (GRADLE/EDIT_FILE/
+EXEC_SHELL), prompt catalogue 6 outils + cross-borough, non-régression
+PlannerIntegration codebase préservée (default GRADLE).

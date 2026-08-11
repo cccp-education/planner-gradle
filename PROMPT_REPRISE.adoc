@@ -1,29 +1,36 @@
-= PROMPT_REPRISE — planner-gradle (Session 058 terminée)
-:date: 2026-08-06
+= PROMPT_REPRISE — planner-gradle (Session 059 terminée)
+:date: 2026-08-11
 
-== Session 058 terminée — PLN-VIBE-1/2/3/4 ✅
+== Session 059 terminée — PLN-VIBE-5 ✅ EPIC PLN-VIBE CLOS (6/6 US)
 
-4 US exécutées en baby-step TDD strict (RED → GREEN → REFACTOR), 24 nouveaux
-tests unitaires VERT. Modèle multi-outil du planner en place.
+Cucumber BDD `planner_vibecoding.feature` 4 scénarios `@vibecoding` VERT.
+Infra Cucumber configurée (plugin `education.cccp.build.cucumber` 0.0.2,
+runner `CucumberTestRunner` glue `planning.steps`, dirs features/scenarios).
+`PlannerVibecodingSteps` (232 lignes, pattern `En` java8, AssertJ).
+Baby-step BDD strict RED (4 PendingException) → GREEN (4/4 PASSED). Zéro
+production modifié — pure BDD.
 
-. PLN-VIBE-1 ✅ `TaskType` enum (GRADLE/EDIT_FILE/EXEC_SHELL) + `Task` étendu
-  (`toolType` défaut GRADLE, `target` défaut "") + 3 invariants `init`.
-. PLN-VIBE-2 ✅ `LLMTask` étendu (`toolType?`, `target?` nullables pour compat
-  JSON legacy) + `toTask()` `internal` applique défauts → délègue aux invariants.
-. PLN-VIBE-3 ✅ Prompt `IntentionPlanner` enrichi : catalogue 6 outils, 3
-  TaskType, cross-borough `:slider:`/`:capsule:`/`:bakery:`/`:plantuml:`.
-. PLN-VIBE-4 ✅ `StdoutFormatter` affiche `toolType` (+target pour non-GRADLE).
+Scénarios : multi-tool plan (GRADLE/EDIT_FILE/EXEC_SHELL), legacy default
+GRADLE (non-régression PlannerIntegration), Task invariants (EDIT_FILE
+requires target), prompt catalogue + cross-borough `:slider:` + "no replan
+EPIC TERMINE".
 
-Non-régression : `PlannerIntegration.kt` (codebase) appelle `t.gradleTask` —
-champ + valeurs défaut préservés. `compileKotlin` VERT après chaque US.
-`publishToMavenLocal` exécuté (Règle 2). 6 échecs tests fonctionnels
-préexistants (ConnectException Ollama `localhost:1` — pas liés au changement).
+`./gradlew :planner-plugin:cucumberTest` VERT 4/4. `publishToMavenLocal`
+VERT (Règle 2). 6 échecs tests préexistants (ConnectException Ollama
+`localhost:1` — `DecomposeIntentionMultiCanalTest`, documentés S-058).
 
-== Prochaine session — 059 : PLN-VIBE-5 (Cucumber BDD)
+== Prochaine session — 060 : maintenance / prochain EPIC
 
-- Infrastructure Cucumber absente du borough (jamais configurée).
-- À ajouter : plugin `cucumber` + glue + step defs (s'inspirer slider).
-- `planner_vibecoding.feature` ~4 scénarios : intention → plan avec tasks
-  edit/gradle/shell, validation invariants, pas de replan EPIC TERMINÉ.
-- Baby-step BDD strict. Vérifier `./gradlew :planner-plugin:compileKotlin` VERT.
-- Une fois US-5 terminé, EPIC PLN-VIBE clos (6/6 US).
+EPIC PLN-VIBE TERMINÉ. Borough planner n'a plus d'EPIC actif.
+
+Options :
+. *PUB-3.10* — Publication Maven Central planner-plugin (bloqué : nécessite
+  PUB-0/PUB-1 DNS TXT + GPG, dépendances externes).
+. *PUB-2.2* — Mise à jour commentaire relocation build.gradle.kts (1 pt,
+  P1, pas de dépendance — quick win).
+. *Maintenance* — Marquer les 6 tests `DecomposeIntentionMultiCanalTest`
+  `@integration` (ConnectException Ollama hors CI) pour les exclure du
+  `check` normal, comme slider le fait avec `@integration`.
+
+Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`, `BACKLOG.adoc`.
+Vérifier `./gradlew :planner-plugin:compileKotlin` VERT avant de coder.
