@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import contracts.agent.Plan
 import dev.langchain4j.data.message.UserMessage
+import dev.langchain4j.model.chat.ChatModel
 import org.gradle.api.logging.Logger
 import org.slf4j.LoggerFactory as Slf4jLoggerFactory
 
@@ -19,13 +20,10 @@ object IntentionPlanner {
         intention: String,
         context: PlanningContext,
         specContents: List<SpecReader.SpecContent>,
-        logger: Logger,
-        ollamaModel: String = "gemma4:31b-cloud",
-        ollamaBaseUrl: String = "http://localhost:11437"
+        model: ChatModel,
+        logger: Logger
     ): Plan {
-        val model = OllamaBridge.chatModel(ollamaModel = ollamaModel, ollamaBaseUrl = ollamaBaseUrl)
         val prompt = buildPrompt(intention, context, specContents)
-
         return callLlm(model, prompt) { msg -> logger.lifecycle(msg) }
     }
 
@@ -37,13 +35,10 @@ object IntentionPlanner {
         ragContext: String,
         graphifyContext: String,
         docsContext: String,
-        logger: Logger,
-        ollamaModel: String = "gemma4:31b-cloud",
-        ollamaBaseUrl: String = "http://localhost:11437"
+        model: ChatModel,
+        logger: Logger
     ): Plan {
-        val model = OllamaBridge.chatModel(ollamaModel = ollamaModel, ollamaBaseUrl = ollamaBaseUrl)
         val prompt = buildPrompt(intention, context, specContents, eagerContext, ragContext, graphifyContext, docsContext)
-
         return callLlm(model, prompt) { msg -> logger.lifecycle(msg) }
     }
 
@@ -55,17 +50,14 @@ object IntentionPlanner {
         ragContext: String,
         graphifyContext: String,
         docsContext: String,
-        ollamaModel: String = "gemma4:31b-cloud",
-        ollamaBaseUrl: String = "http://localhost:11437"
+        model: ChatModel
     ): Plan {
         val log = Slf4jLoggerFactory.getLogger(IntentionPlanner::class.java)
-        val model = OllamaBridge.chatModel(ollamaModel = ollamaModel, ollamaBaseUrl = ollamaBaseUrl)
         val prompt = buildPrompt(intention, context, specContents, eagerContext, ragContext, graphifyContext, docsContext)
-
         return callLlm(model, prompt) { msg -> log.info(msg) }
     }
 
-    private fun callLlm(model: dev.langchain4j.model.chat.ChatModel, prompt: String, log: (String) -> Unit): Plan {
+    private fun callLlm(model: ChatModel, prompt: String, log: (String) -> Unit): Plan {
         var lastError: Exception? = null
         for (attempt in 1..MAX_ATTEMPTS) {
             try {

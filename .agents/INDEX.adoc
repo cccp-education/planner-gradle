@@ -5,9 +5,9 @@ _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
 _Derniere mise a jour_ : 2026-08-12
-_Session terminee_ : 071 — PLN-BUDGET US-3 Cucumber BDD + EPIC CLOS. `planner_budget.feature` créé (4 scénarios `@budget` : dynamic allocation EAGER > RAG/GRAPHIFY/DOCS, fallback original content si compute vide, 4 channels preserved + shorter-than-or-equal, total tokens <= 8000 + 1000 tolerance). `PlannerBudgetSteps.kt` créé (13 step defs, pattern `PlannerVerifySteps` S-067). `PlannerScenarioState.kt` étendu (+7 champs budget : intention, 4 contexts, budgetedContext, budgetLogs). Baby-step BDD strict RED → GREEN → REFACTOR. `:check` VERT 113 tests 0 FAIL (baseline 109 → +4 cucumber). `publishToMavenLocal` VERT. Zéro production modifié — pure BDD. EPIC PLN-BUDGET TERMINÉ 4/4 US.
-_Sessions precedent_ : 070/069/068/067/066/065/064/063/062/061/060/059/058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
-_Prochaine session_ : 072 — Cadrage prochain EPIC ou maintenance (PUB-3.10 publication Maven Central, PUB-2.2 commentaire relocation, ou nouvel EPIC PLN-LIFECYCLE split-brain #3 AgentState). Backlog global suggère EPIC L (migration langgraph4j → koog+langchain4j) impacte planner. `./gradlew :planner-plugin:compileKotlin` VERT avant de coder.
+_Session terminee_ : 072 — EPIC PLN-LLM-HUB TERMINÉ 4/4 US (planner consomme codebase N1 comme socle LLM unifié). US-0 cadrage (6 constats, 10 décisions, doc CADRAGE_EPIC_PLN_LLM_HUB.adoc articulation N0→N1→N2). US-1 PlanningLlmService (113 lignes mirror CapsuleLlmService) + LlmProviderChatModelAdapter (49 lignes copy) + 14 unit. US-2 wiring DecomposeIntentionTask (@ServiceReference LlmBuildService + aiProvider) + IntentionPlanner (3 surcharges acceptent ChatModel injecté) + PlanningPlugin (registerLlmBuildService) + PlannerExtension (aiProvider) + suppression OllamaBridge.kt (24 lignes) + OllamaBridgeTest.kt + 3 unit IntentionPlannerLlmHubTest. US-3 Cucumber BDD planner_llm_hub.feature (6 scénarios @llm-hub, 23 steps) + PlannerLlmHubSteps + FakeChatModel fixture + PlannerScenarioState étendu (+7 champs hub). Baby-step TDD/BDD strict RED → GREEN → REFACTOR. `:check` VERT 132 tests 0 FAIL (109 unit + 23 cucumber). `publishToMavenLocal` VERT. Zéro bump BOM (codebase-plugin 0.0.5 déjà Central). LlmProviderChatModelAdapter dupliqué 3× (slider/capsule/planner) → candidat extraction N0 (EPIC futur LLM-ADAPTER-EXTRACT).
+_Sessions precedent_ : 071/070/069/068/067/066/065/064/063/062/061/060/059/058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
+_Prochaine session_ : 073 — Cadrage prochain EPIC ou maintenance (PUB-3.10 publication Maven Central, PUB-2.2 commentaire relocation, EPIC LLM-ADAPTER-EXTRACT extraction adapter N0, EPIC PLN-LIFECYCLE split-brain #3 AgentState, ou EPIC L migration koog). `./gradlew :planner-plugin:compileKotlin` VERT avant de coder.
 
 '''
 == REGLES ABSOLUES
@@ -70,6 +70,77 @@ _Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
 `Plan → VibecodingStep` via `extractCurrentStep` doit produire un
 `VibecodingStep` identique à aujourd'hui si le LLM ne fournit pas les
 métadonnées (defaults backward compat : `"BUILD SUCCESSFUL"`, `3`, `null`).
+
+'''
+== ✅ EPIC PLN-LLM-HUB — Planner consomme codebase (N1) comme socle LLM unifié TERMINÉ (Session 072 — 4/4 US)
+
+_Source_ : Session 072. Planner est le dernier borough N2 actif encore en
+`OllamaBridge` standalone (singleton 24 lignes, instance unique
+`localhost:11437`, zéro pool, zéro failover). slider (SLD-8 US-8.1/8.2)
+et capsule (CAP-ARCH-1) ont déjà migré vers `codebase.koog.llm.service.LlmBuildService`
+(Gradle BuildService DI, pool round-robin 11437-11465, quota failover,
+cycling 2 modèles). Planner devient le 3e consommateur du hub N1 standardisé.
+
+_Dépendances_ : codebase-plugin 0.0.5 (déjà publié Central, zéro bump BOM).
+
+=== Articulation de la consommation
+
+[cols="1,1,3,3", options="header"]
+|===
+| Niveau | Borough | Rôle | EPIC
+
+| N0
+| MEMPHIS
+| Contrats (LlmInstancePool, RotationStrategy)
+| MEM-2 llm-pool-contracts
+
+| N1
+| Queens (codebase)
+| Hub LLM — LlmProviderResolver + OllamaPool + LlmBuildService
+| SLD-8 US-8.1 (côté codebase)
+
+| N2
+| MIAMI (slider)
+| 1er consommateur — AssistantManager + Adapter
+| SLD-8 US-8.2
+
+| N2
+| Détroit (capsule)
+| 2e consommateur — CapsuleLlmService + Adapter
+| CAP-ARCH-1
+
+| N2
+| Manhattan (planner)
+| 3e consommateur — PlanningLlmService + Adapter
+| PLN-LLM-HUB (S-072)
+|===
+
+=== US découpage
+
+[cols="1,3,1,1", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| PLN-LLM-HUB-0
+| *Cadrage EPIC* — audit planner + codebase + slider/capsule, 6 constats, décisions, découpage US. Maj INDEX/BACKLOG/PROMPT_REPRISE/AGENTS racine. Création `CADRAGE_EPIC_PLN_LLM_HUB.adoc` | 1
+| ✅ TERMINÉ (S-072)
+
+| PLN-LLM-HUB-1
+| *`PlanningLlmService` + `LlmProviderChatModelAdapter`* (domaine `planning.llm`, nouveau) — object pur mirror `CapsuleLlmService` : `registerLlmBuildService()` + `resolveModel()` + `aiProvider` + mock-LLM fallback. Adapter copy slider/capsule (49 lignes). Dépendance `codebase-plugin` 0.0.5. ~10 unit | 3
+| ✅ TERMINÉ (S-072)
+
+| PLN-LLM-HUB-2
+| *Wiring + suppression `OllamaBridge`* — `IntentionPlanner.plan()` accepte `ChatModel` param. `DecomposeIntentionTask` `@ServiceReference LlmBuildService`. `OllamaBridge.kt` supprimé. `OllamaBridgeTest` → `PlanningLlmServiceTest`. `PlannerExtension` : `aiProvider`. ~8 unit + 2 functional | 3
+| ✅ TERMINÉ (S-072)
+
+| PLN-LLM-HUB-3
+| *Cucumber BDD* — `planner_llm_hub.feature` : scénarios (pool consumption, mock-LLM fallback, ai.provider default, backward compat). ~4 scénarios. Inspiré slider `capsule_ai.feature` | 3
+| ✅ TERMINÉ (S-072)
+|===
+
+_Total_ : 4 US, ~10 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
+tests/US (unit → functional → cucumber), English only code/Gherkin.
+_Statut_ : 4/4 US TERMINÉ (S-072 — cadrage + US-1 PlanningLlmService + US-2 wiring+suppression OllamaBridge + US-3 Cucumber BDD). EPIC PLN-LLM-HUB CLOS.
 
 '''
 == ✅ EPIC PLN-BUDGET — Relevance Budget Dynamique TERMINÉ (Session 071 — US-3 Cucumber BDD)
@@ -257,6 +328,7 @@ vibecoding n'était plus droppée silencieusement).
 
 |===
 | # | Date | Type | Sujet | Score
+| 072 | 2026-08-12 | dev | **EPIC PLN-LLM-HUB TERMINÉ 4/4 US** — planner consomme codebase (N1) comme socle LLM unifié. US-0 cadrage (6 constats, 10 décisions, doc CADRAGE_EPIC_PLN_LLM_HUB.adoc articulation N0→N1→N2). US-1 PlanningLlmService (113 lignes mirror CapsuleLlmService) + LlmProviderChatModelAdapter (49 lignes copy) + 14 unit. US-2 wiring DecomposeIntentionTask (@ServiceReference LlmBuildService + aiProvider) + IntentionPlanner (3 surcharges acceptent ChatModel injecté) + PlanningPlugin (registerLlmBuildService) + PlannerExtension (aiProvider) + suppression OllamaBridge.kt (24 lignes) + OllamaBridgeTest.kt + 3 unit IntentionPlannerLlmHubTest. US-3 Cucumber BDD planner_llm_hub.feature (6 scénarios @llm-hub, 23 steps) + PlannerLlmHubSteps + FakeChatModel + PlannerScenarioState étendu. Baby-step TDD/BDD strict RED → GREEN → REFACTOR. `:check` VERT 132 tests 0 FAIL (109 unit + 23 cucumber). `publishToMavenLocal` VERT. Zéro bump BOM (codebase-plugin 0.0.5 déjà Central). LlmProviderChatModelAdapter dupliqué 3× (slider/capsule/planner) → candidat extraction N0 (EPIC futur LLM-ADAPTER-EXTRACT). | 9/10
 | 071 | 2026-08-12 | dev | **PLN-BUDGET US-3 Cucumber BDD + EPIC CLOS** — `planner_budget.feature` 4 scénarios `@budget` (dynamic allocation EAGER > RAG/GRAPHIFY/DOCS, fallback original content si compute vide, 4 channels preserved + shorter-than-or-equal, total tokens <= 8000 + 1000 tolerance). `PlannerBudgetSteps.kt` créé (13 step defs, pattern `PlannerVerifySteps` S-067). `PlannerScenarioState.kt` étendu (+7 champs budget : intention, 4 contexts, budgetedContext, budgetLogs). Baby-step BDD strict RED → GREEN → REFACTOR. `:check` VERT 113 tests 0 FAIL (baseline 109 → +4 cucumber). `publishToMavenLocal` VERT. Zéro production modifié — pure BDD. EPIC PLN-BUDGET TERMINÉ 4/4 US. | 9/10
 | 070 | 2026-08-12 | dev | **PLN-BUDGET US-2 Wiring `DecomposeIntentionTask`** — `BudgetWiring` (object pur, domaine `planning.budget`) créé — `resolveBudgetedContexts` délègue à `BudgetAdapter` (US-1) + log token counts via `ContextChannel.estimateTokens`. `DecomposeIntentionTask` câblé : budget AVANT LLM, log AVANT LLM, contenu budgetisé passé au plan. Bloc `CompositeContext`/`ChannelBudget` (39 lignes) supprimé. Imports nettoyés (-3). Baby-step TDD strict RED (8 `Unresolved reference 'BudgetWiring'`) → GREEN (5/5 `BudgetWiringTest` PASSED + bug `String.format {}` corrigé interpolation Kotlin) → REFACTOR. `:check` VERT 109 tests 0 FAIL (baseline 104 → +5). `publishToMavenLocal` VERT. 2 fichiers créés (1 prod `BudgetWiring.kt` + 1 test `BudgetWiringTest.kt`) + 1 test functional `DecomposeIntentionBudgetTest.kt` (2 `@integration`). 1 fichier modifié (`DecomposeIntentionTask.kt` -39 lignes). Zéro bump BOM. EPIC PLN-BUDGET 3/4 US. | 9/10
 | 069 | 2026-08-11 | dev | **PLN-BUDGET US-1 `BudgetAdapter`** (domaine `planning.budget`) — object pur mappe 4 canaux planner → `Map<String,String>` (EAGER/RAG/GRAPHIFY/DOCS) → `RelevanceBudget.compute(intention, channels, totalTokens=8000)` → `List<ChannelScore>` → `RelevanceContext` (4 String tronquées). `compute` injectable (défaut = `RelevanceBudget.Companion::compute`) pour testabilité des fallbacks. Fallback : compute retourne `channels.isEmpty()` ou lance → contenus originaux non tronqués (backward compat). Baby-step TDD strict RED (9 `Unresolved reference 'BudgetAdapter'`) → GREEN (9/9 PASSED) → REFACTOR (`:check` VERT 104 tests 0 FAIL, baseline 95 → +9). `publishToMavenLocal` VERT. 2 fichiers créés (1 prod `BudgetAdapter.kt` + 1 test `BudgetAdapterTest.kt`). Zéro bump BOM. EPIC PLN-BUDGET 2/4 US. | 10/10
@@ -299,6 +371,7 @@ vibecoding n'était plus droppée silencieusement).
 
 |===
 | EPIC | Description | Statut | Priorite
+| EPIC PLN-LLM-HUB | Planner consomme codebase (N1) comme socle LLM unifié — remplacement OllamaBridge standalone par LlmBuildService (pool rotation 11437-11465, quota failover, cycling 2 modèles). Mirror CapsuleLlmService (SLD-8/CAP-ARCH-1 pattern). 3e consommateur du hub N1 | ✅ TERMINÉ (S-072 — 4/4 US) | P1
 | EPIC PLN-BUDGET | Relevance Budget Dynamique — consommer `agent-contracts.RelevanceBudget` (N0 orphan, cosinus+softmax) au lieu de `ChannelBudget` fixe 40/30/20/10 dans `DecomposeIntentionTask`. Adapter `BudgetAdapter` (domaine `planning.budget`) + `BudgetWiring` + wiring + Cucumber. Codebase HORS SCOPE (DORMANT) | ✅ TERMINÉ (S-071 — 4/4 US) | P1
 | EPIC PLN-VERIFY | Planner Vibecoding Verification Metadata — GradleTask N0 étendu avec expectedOutput/maxRetries/verifyHook + prompt LLM + bridge codebase | ✅ TERMINÉ (S-067 — 5/5 US) | P1
 | EPIC PLN-CONTRACTS | Planner aligné sur contrats N0 (BOM + codebase) — éliminer 5 split-brain + US-4 stricte fusion N0/N1 | ✅ TERMINÉ (S-061 + S-062) | P1

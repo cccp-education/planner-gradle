@@ -41,6 +41,138 @@ Par :
 ```
 
 '''
+== ✅ EPIC PLN-LLM-HUB — Planner consomme codebase (N1) comme socle LLM unifié TERMINÉ (Session 072 — 4/4 US)
+
+_Source_ : Session 072. Planner est le dernier borough N2 actif encore en
+`OllamaBridge` standalone (singleton 24 lignes, instance unique
+`localhost:11437`, zéro pool, zéro failover). slider (SLD-8 US-8.1/8.2)
+et capsule (CAP-ARCH-1) ont déjà migré vers `codebase.koog.llm.service.LlmBuildService`
+(Gradle BuildService DI, pool round-robin 11437-11465, quota failover,
+cycling 2 modèles). Planner devient le 3e consommateur du hub N1 standardisé.
+
+_Dépendances_ : codebase-plugin 0.0.5 (déjà publié Central, zéro bump BOM).
+
+=== Articulation de la consommation
+
+[cols="1,1,3,3", options="header"]
+|===
+| Niveau | Borough | Rôle | EPIC
+
+| N0
+| MEMPHIS
+| Contrats (LlmInstancePool, RotationStrategy)
+| MEM-2 llm-pool-contracts
+
+| N1
+| Queens (codebase)
+| Hub LLM — LlmProviderResolver + OllamaPool + LlmBuildService
+| SLD-8 US-8.1 (côté codebase)
+
+| N2
+| MIAMI (slider)
+| 1er consommateur — AssistantManager + Adapter
+| SLD-8 US-8.2
+
+| N2
+| Détroit (capsule)
+| 2e consommateur — CapsuleLlmService + Adapter
+| CAP-ARCH-1
+
+| N2
+| Manhattan (planner)
+| 3e consommateur — PlanningLlmService + Adapter
+| PLN-LLM-HUB (S-072)
+|===
+
+=== Audit — 6 constats
+
+[cols="1,3,3", options="header"]
+|===
+| # | Constat | Preuve
+
+| 1
+| Planner a un bridge LLM standalone minimaliste
+| `OllamaBridge.kt:1-24` — object singleton 24 lignes, `OllamaChatModel.builder()` direct, instance unique. Zéro pool, zéro failover.
+
+| 2
+| Port hardcoded 11437 (extrême plage autorisée)
+| `OllamaBridge.kt:9`, `PlanningPlugin.kt:11`, `IntentionPlanner.kt:24,42,59`. Si 11437 tombe, build échoue.
+
+| 3
+| Modèle hardcoded `gemma4:31b-cloud` (un seul)
+| `OllamaBridge.kt:10`, 4 sites. codebase cycle 2 modèles. Planner ne bénéficie pas du cycling.
+
+| 4
+| 3 surcharges `IntentionPlanner.plan()` construisent un ChatModel interne
+| `IntentionPlanner.kt:26,44,62`. ChatModel non injectable — testabilité requiert mock HTTP.
+
+| 5
+| `DecomposeIntentionTask` passe 2 propriétés string (model/baseUrl)
+| `DecomposeIntentionTask.kt:32-35`. Pas de `@ServiceReference`. Pattern pré-SLD-8.
+
+| 6
+| slider + capsule ont déjà migré, planner est le dernier holdout
+| `AssistantManager.kt:75-113` + `CapsuleLlmService.kt:63-97` — pattern identique. Planner seul N2 actif en OllamaBridge standalone.
+|===
+
+=== Décisions architecturales (cadrage S-072)
+
+. *Portée EPIC* : remplacer `OllamaBridge` par consommation
+  `codebase.koog.llm.service.LlmBuildService`. Pool round-robin 11437-11465
+  + quota failover + cycling 2 modèles. Zéro bump BOM.
+. *Pattern consommateur* : mirror strict `CapsuleLlmService.kt` (113 lignes,
+  le plus propre, sans legacy factories). Nouveau `PlanningLlmService`
+  (domaine `planning.llm`) + `LlmProviderChatModelAdapter` (copy 49 lignes).
+. *Backward compat mock-LLM* : `-Pollama.baseUrl` → `OllamaChatModel` mock
+  (pattern slider/capsule). Production → `LlmBuildService` pool.
+. *Injection ChatModel* : `IntentionPlanner.plan()` accepte `ChatModel`
+  param au lieu de construire interne. 3 surcharges → 2 (avec/sans multi-channel).
+. *Suppression `OllamaBridge.kt`* : 24 lignes + 2 tests null-check supprimés,
+  remplacés par `PlanningLlmServiceTest` (10 tests supérieurs).
+. *Suppression propriétés `ollamaModel`/`ollamaBaseUrl`* : remplacées par
+  `@ServiceReference LlmBuildService` + `aiProvider` (`-Pai.provider`, défaut `"ollama"`).
+. *Dépendance Gradle* : `implementation(libs.codebase.plugin)` ajouté.
+  codebase-plugin 0.0.5 déjà Central. Pas de bump BOM racine.
+. *Non-régression critique* : `PlannerIntegration.kt` (codebase) appelle
+  `IntentionPlanner.plan(4 String + Logger)`. Contrat préservé.
+. *Méthode* : baby-step DDD/TDD/BDD, 3 niveaux tests/US
+  (unit → functional → cucumber), English only code/Gherkin.
+. *Ordre* : US-1 (indépendant) → US-2 (wiring) → US-3 (Cucumber).
+
+=== US découpage
+
+[cols="1,3,1,1", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| PLN-LLM-HUB-0
+| *Cadrage EPIC* — audit planner + codebase + slider/capsule, 6 constats, décisions, découpage US. Maj INDEX/BACKLOG/PROMPT_REPRISE/AGENTS racine. Création `CADRAGE_EPIC_PLN_LLM_HUB.adoc` | 1
+| ✅ TERMINÉ (S-072)
+
+| PLN-LLM-HUB-1
+| *`PlanningLlmService` + `LlmProviderChatModelAdapter`* (domaine `planning.llm`, nouveau) — object pur mirror `CapsuleLlmService` : `registerLlmBuildService()` + `resolveModel(provider, serviceProvider)` + `aiProvider` extension + mock-LLM fallback `-Pollama.baseUrl`. Adapter copy slider/capsule (49 lignes). Dépendance `codebase-plugin` 0.0.5 ajoutée `build.gradle.kts`. ~10 unit | 3
+| ✅ TERMINÉ (S-072)
+
+| PLN-LLM-HUB-2
+| *Wiring `DecomposeIntentionTask` + suppression `OllamaBridge`* — `IntentionPlanner.plan()` accepte `ChatModel` param (3 surcharges → 2). `DecomposeIntentionTask` remplace `ollamaModel`/`ollamaBaseUrl` par `@ServiceReference LlmBuildService` + `PlanningLlmService.resolveModel()`. `PlanningPlugin` enregistre le service. `OllamaBridge.kt` supprimé (24 lignes). `OllamaBridgeTest` supprimé, remplacé par `PlanningLlmServiceTest`. `PlannerExtension` : `ollamaModel`/`ollamaBaseUrl` → `aiProvider`. ~8 unit + 2 functional | 3
+| ✅ TERMINÉ (S-072)
+
+| PLN-LLM-HUB-3
+| *Cucumber BDD* — `planner_llm_hub.feature` : scénarios (planner consomme LlmBuildService pool, mock-LLM fallback via -Pollama.baseUrl, ai.provider property ollama default, backward compat IntentionPlanner.plan contract preserved). ~4 scénarios. Inspiré slider `capsule_ai.feature` + pattern `PlannerVerifySteps` shared state | 3
+| ✅ TERMINÉ (S-072)
+|===
+
+_Total_ : 4 US, ~10 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
+tests/US (unit → functional → cucumber), English only code/Gherkin.
+_Dépendances_ : codebase-plugin 0.0.5 (déjà publié Central, zéro bump BOM).
+_Statut_ : 4/4 US TERMINÉ (S-072 — cadrage + US-1 PlanningLlmService + US-2 wiring+suppression OllamaBridge + US-3 Cucumber BDD). EPIC PLN-LLM-HUB CLOS.
+
+_Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
+`IntentionPlanner.plan(eagerContext, ragContext, graphifyContext, docsContext)`.
+Le contrat d'appel (4 String + Logger → Plan) est préservé. Seul le
+résolveur ChatModel change (pool au lieu de singleton).
+
+'''
 == ✅ EPIC PLN-BUDGET — Relevance Budget Dynamique TERMINÉ (Session 071 — US-3 Cucumber BDD)
 
 _Source_ : Session 068. Split-brain #4 reporté S-061 :

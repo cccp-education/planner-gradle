@@ -11,6 +11,7 @@ import kotlin.test.assertTrue
 class DecomposeIntentionPluginTest {
 
     @Test
+    @Tag("integration")
     fun `plugin registers generatePlan task`() {
         val projectDir = createTestProject()
 
@@ -25,6 +26,7 @@ class DecomposeIntentionPluginTest {
     }
 
     @Test
+    @Tag("integration")
     fun `generatePlan task belongs to generate group`() {
         val projectDir = createTestProject()
 

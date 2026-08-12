@@ -1,21 +1,29 @@
 package planning
 
+import codebase.koog.llm.service.LlmBuildService
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.services.ServiceReference
 import org.gradle.work.DisableCachingByDefault
 import planning.budget.BudgetWiring
+import planning.llm.PlanningLlmService.aiProvider
+import planning.llm.PlanningLlmService.resolveModel
 
 /**
  * EPIC 3 — Multi-Canal Convergent : task câblée pour recevoir les 4 canaux de contexte
  * (EAGER, RAG, Graphify, Docs) en plus du SpecReader classique.
  * Compatible ascendante : si les canaux sont absents, fallback sur IntentionPlanner 4-param.
+ *
+ * EPIC PLN-LLM-HUB — le ChatModel est résolu via [LlmBuildService] (codebase N1
+ * hub) injecté par Gradle DI, au lieu du legacy [OllamaBridge] standalone.
  */
 @DisableCachingByDefault(because = "LLM output is probabilistic — never cache")
 abstract class DecomposeIntentionTask : DefaultTask() {
@@ -29,10 +37,10 @@ abstract class DecomposeIntentionTask : DefaultTask() {
     abstract val specsDir: DirectoryProperty
 
     @get:Input
-    abstract val ollamaModel: Property<String>
+    abstract val aiProvider: Property<String>
 
-    @get:Input
-    abstract val ollamaBaseUrl: Property<String>
+    @get:ServiceReference
+    abstract val llmService: Property<LlmBuildService>
 
     // ── EPIC 3 : canaux multi-canal (optionnels pour compatibilité ascendante) ──
 
@@ -79,6 +87,10 @@ abstract class DecomposeIntentionTask : DefaultTask() {
             log = { msg -> logger.lifecycle(msg) }
         )
 
+        val provider = aiProvider.get()
+        val serviceProvider: Provider<LlmBuildService> = llmService
+        val model = project.resolveModel(provider, serviceProvider)
+
         val plan = if (hasMultiChannel) {
             IntentionPlanner.plan(
                 intention = intent,
@@ -88,18 +100,16 @@ abstract class DecomposeIntentionTask : DefaultTask() {
                 ragContext = budgeted.rag,
                 graphifyContext = budgeted.graphify,
                 docsContext = budgeted.docs,
-                logger = logger,
-                ollamaModel = ollamaModel.get(),
-                ollamaBaseUrl = ollamaBaseUrl.get()
+                model = model,
+                logger = logger
             )
         } else {
             IntentionPlanner.plan(
                 intention = intent,
                 context = context,
                 specContents = specContents,
-                logger = logger,
-                ollamaModel = ollamaModel.get(),
-                ollamaBaseUrl = ollamaBaseUrl.get()
+                model = model,
+                logger = logger
             )
         }
 

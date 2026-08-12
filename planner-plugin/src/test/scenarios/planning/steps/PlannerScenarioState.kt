@@ -1,6 +1,11 @@
 package planning.steps
 
 import contracts.agent.Plan
+import dev.langchain4j.model.chat.ChatModel
+import org.gradle.api.Project
+import org.gradle.api.provider.Provider
+import org.gradle.testfixtures.ProjectBuilder
+import codebase.koog.llm.service.LlmBuildService
 import planning.budget.RelevanceContext
 
 /**
@@ -9,11 +14,13 @@ import planning.budget.RelevanceContext
  * Cucumber instantiates each step-definition class independently, so fields
  * declared on a step class are not visible to steps defined on another class.
  * To let `PlannerVibecodingSteps` (PLN-VIBE-5), `PlannerVerifySteps`
- * (PLN-VERIFY-4) and `PlannerBudgetSteps` (PLN-BUDGET-3) share the same
- * scenario-scoped state — the raw LLM JSON fixture, the parsed plan, the
- * built prompt, the parsing exception, the formatted stdout, the budget
- * intention/contexts/result and the budget logs — all classes read and
- * write through this object.
+ * (PLN-VERIFY-4), `PlannerBudgetSteps` (PLN-BUDGET-3) and
+ * `PlannerLlmHubSteps` (PLN-LLM-HUB-3) share the same scenario-scoped
+ * state — the raw LLM JSON fixture, the parsed plan, the built prompt,
+ * the parsing exception, the formatted stdout, the budget
+ * intention/contexts/result, the budget logs, the LLM-hub project/service/
+ * provider/model and the fake ChatModel — all classes read and write
+ * through this object.
  *
  * The state is reset by Cucumber before each scenario via the
  * `@Before`-annotated hook in [PlannerScenarioStateReset] — Cucumber
@@ -36,6 +43,13 @@ object PlannerScenarioState {
     var budgetedContext: RelevanceContext? = null
     val budgetLogs: MutableList<String> = mutableListOf()
 
+    var hubProject: Project? = null
+    var hubServiceProvider: Provider<LlmBuildService>? = null
+    var hubResolvedModel: ChatModel? = null
+    var hubAiProvider: String? = null
+    var hubFakeModel: FakeChatModel? = null
+    var hubFakeInvokeCount: Int = 0
+
     fun reset() {
         rawJson = ""
         parsedPlan = null
@@ -49,5 +63,17 @@ object PlannerScenarioState {
         budgetDocs = ""
         budgetedContext = null
         budgetLogs.clear()
+        hubProject = null
+        hubServiceProvider = null
+        hubResolvedModel = null
+        hubAiProvider = null
+        hubFakeModel = null
+        hubFakeInvokeCount = 0
+    }
+
+    fun freshProject(properties: Map<String, Any?> = emptyMap()): Project {
+        val p = ProjectBuilder.builder().build()
+        properties.forEach { (k, v) -> p.extensions.extraProperties.set(k, v) }
+        return p
     }
 }

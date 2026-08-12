@@ -2,13 +2,16 @@ package planning
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import planning.llm.PlanningLlmService.aiProvider
+import planning.llm.PlanningLlmService.registerLlmBuildService
 
 class PlanningPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         val ext = project.extensions.create("planner", PlannerExtension::class.java)
-        ext.ollamaModel.convention("gemma4:31b-cloud")
-        ext.ollamaBaseUrl.convention("http://localhost:11437")
+        ext.aiProvider.convention("ollama")
+
+        val llmServiceProvider = project.registerLlmBuildService()
 
         project.tasks.register(
             "generatePlan",
@@ -23,12 +26,16 @@ class PlanningPlugin : Plugin<Project> {
             } else {
                 task.specsDir.set(ext.specsDir)
             }
-            task.ollamaModel.set(project.providers.gradleProperty("ollamaModel").orElse(ext.ollamaModel))
-            task.ollamaBaseUrl.set(project.providers.gradleProperty("ollamaBaseUrl").orElse(ext.ollamaBaseUrl))
+            task.aiProvider.set(project.providers.gradleProperty("ai.provider").orElse(ext.aiProvider))
+            task.llmService.set(llmServiceProvider)
+            task.usesService(llmServiceProvider)
         }
 
         // NOTE: vibecode task supprimee de planner (split-brain resolution).
         // La tache vibecode est dans codebase-gradle (N1) uniquement.
         // Appel cross-projet: ./gradlew :codebase-plugin:vibecode --intention="..."
+        //
+        // EPIC PLN-LLM-HUB — planner consomme codebase (N1) comme socle LLM unifié
+        // via LlmBuildService (Gradle BuildService DI). OllamaBridge standalone supprimé.
     }
 }

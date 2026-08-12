@@ -28,6 +28,9 @@ dependencies {
     // N0 agent contracts — source unique de vérité (Plan, Epic, UserStory, GradleTask, TaskType, AgentState)
     implementation("education.cccp:agent-contracts:0.0.3")
 
+    // N1 codebase — LLM socle (EPIC PLN-LLM-HUB): LlmBuildService + LlmProvider
+    implementation(libs.codebase.plugin)
+
     testImplementation(kotlin("test-junit5"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

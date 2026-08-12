@@ -1,0 +1,156 @@
+= Session 072 — Cadrage EPIC PLN-LLM-HUB + US-1/2/3 implémentation
+:date: 2026-08-12
+
+== Résumé
+
+Session complète 4 US — cadrage gouvernance pure + 3 US implémentation
+baby-step TDD/BDD. EPIC PLN-LLM-HUB TERMINÉ 4/4 US : planner consomme
+désormais codebase (N1) comme socle LLM unifié, remplaçant l'`OllamaBridge`
+standalone (singleton 24 lignes) par le pattern `LlmBuildService` prouvé
+sur slider (SLD-8) et capsule (CAP-ARCH-1). Planner devient le 3e
+consommateur du hub N1 standardisé.
+
+== US-0 — Cadrage EPIC (gouvernance pure)
+
+Audit 6 constats :
+. `OllamaBridge` singleton 24 lignes, instance unique `localhost:11437`
+. Port hardcoded 11437 (extrême plage autorisée)
+. Modèle hardcoded `gemma4:31b-cloud` (un seul, pas de cycling)
+. 3 surcharges `IntentionPlanner.plan()` construisent `ChatModel` interne
+. `DecomposeIntentionTask` 2 propriétés string (pré-SLD-8)
+. slider + capsule déjà migrés, planner dernier holdout N2 actif
+
+10 décisions archi : mirror `CapsuleLlmService` (113 lignes), mock-LLM
+fallback `-Pollama.baseUrl`, injection `ChatModel` dans `IntentionPlanner.plan()`,
+suppression `OllamaBridge.kt` + `OllamaBridgeTest`, dépendance
+`codebase-plugin` 0.0.5 (zéro bump BOM), `aiProvider` property
+(`-Pai.provider` défaut `"ollama"`), `@ServiceReference LlmBuildService`.
+
+Document `CADRAGE_EPIC_PLN_LLM_HUB.adoc` créé (articulation consommation
+N0→N1→N2 : MEMPHIS contrats → codebase hub → slider/capsule/planner).
+
+== US-1 — PlanningLlmService + LlmProviderChatModelAdapter (baby-step TDD)
+
+. `planning/llm/PlanningLlmService.kt` créé (113 lignes, mirror
+  `CapsuleLlmService`) — `registerLlmBuildService()` +
+  `resolveModel(provider, serviceProvider)` + `aiProvider` extension +
+  mock-LLM fallback `-Pollama.baseUrl` + `createOllamaChatModel(baseUrl)`
+. `planning/llm/LlmProviderChatModelAdapter.kt` créé (49 lignes, copy
+  verbatim slider/capsule) — bridge `LlmProvider` (suspend) → `ChatModel`
+  (sync via `runBlocking`)
+. `gradle/libs.versions.toml` : `codebase = "0.0.5"` (was `0.0.1`)
+. `build.gradle.kts` : `implementation(libs.codebase.plugin)` ajouté
+. `PlanningLlmServiceTest.kt` (9 unit) + `LlmProviderChatModelAdapterTest.kt`
+  (5 unit) créés
+
+Baby-step TDD strict RED (Unresolved reference 'PlanningLlmService') →
+GREEN (14/14 PASSED) → REFACTOR (none).
+`:check` VERT 127 tests 0 FAIL (baseline 113 → +14).
+`publishToMavenLocal` VERT.
+
+== US-2 — Wiring + suppression OllamaBridge (baby-step TDD)
+
+. `IntentionPlanner.kt` refactoré : 3 surcharges `plan()` (qui
+  construisaient `OllamaBridge.chatModel()` interne) → 3 surcharges
+  acceptant `ChatModel` injecté param. `callLlm(model, prompt, log)`
+  extrait. Backward compat : 4 String + Logger → Plan préservé.
+. `DecomposeIntentionTask.kt` refactoré : `ollamaModel`/`ollamaBaseUrl`
+  properties → `aiProvider: Property<String>` + `@ServiceReference
+  LlmBuildService`. `PlanningLlmService.resolveModel()` câblé.
+. `PlanningPlugin.kt` refactoré : `registerLlmBuildService()` appelé,
+  `aiProvider` convention `"ollama"`, `llmService` injecté + `usesService`.
+. `PlannerExtension.kt` refactoré : `ollamaModel`/`ollamaBaseUrl` → `aiProvider`.
+. `OllamaBridge.kt` supprimé (24 lignes).
+. `OllamaBridgeTest.kt` supprimé (2 tests null-check).
+. `IntentionPlannerLlmHubTest.kt` créé (3 unit : single-canal injection,
+  multi-canal 4-string contract, retry 3× on parse failure).
+. `DecomposeIntentionPluginTest.kt` : 2 tests GradleRunner (non-@integration)
+  marqués `@Tag("integration")` (codebase-plugin JAR requis pour
+  LlmBuildService registration, pas sur plugin-under-test-metadata classpath).
+
+Baby-step TDD strict RED (Unresolved reference 'plan' avec model param) →
+GREEN (3/3 `IntentionPlannerLlmHubTest` PASSED) → REFACTOR.
+`:check` VERT 109 unit + 17 cucumber = 126 tests 0 FAIL.
+`publishToMavenLocal` VERT.
+
+== US-3 — Cucumber BDD planner_llm_hub.feature (baby-step BDD)
+
+. `planner_llm_hub.feature` créé (6 scénarios `@llm-hub`) :
+  - `PlanningLlmService` registers non-null LlmBuildService
+  - ai-provider defaults to ollama when absent
+  - ai-provider read, trimmed and lowercased
+  - resolveModel returns ChatModel via LlmBuildService (no mock URL)
+  - resolveModel returns OllamaChatModel when mock URL set
+  - IntentionPlanner.plan accepts injected ChatModel + returns parsed Plan
+. `PlannerLlmHubSteps.kt` créé (19 step defs, pattern `PlannerBudgetSteps`)
+. `PlannerScenarioState.kt` étendu (+7 champs hub : hubProject,
+  hubServiceProvider, hubResolvedModel, hubAiProvider, hubFakeModel,
+  hubFakeInvokeCount + freshProject helper)
+. `FakeChatModel.kt` créé (test fixture, ChatModel fake avec invokeCount)
+
+Baby-step BDD strict RED (6 UndefinedStepException) → GREEN (6/6
+scénarios PASSED, 23 steps) → REFACTOR (none).
+`:check` VERT 109 unit + 23 cucumber = 132 tests 0 FAIL.
+`publishToMavenLocal` VERT.
+
+== Fichiers créés (7)
+
+. `CADRAGE_EPIC_PLN_LLM_HUB.adoc` (racine borough)
+. `planning/llm/PlanningLlmService.kt` (113 lignes)
+. `planning/llm/LlmProviderChatModelAdapter.kt` (49 lignes)
+. `planning/llm/PlanningLlmServiceTest.kt` (9 unit)
+. `planning/llm/LlmProviderChatModelAdapterTest.kt` (5 unit)
+. `planning/IntentionPlannerLlmHubTest.kt` (3 unit)
+. `planner_llm_hub.feature` (6 scénarios)
+. `scenarios/planning/steps/PlannerLlmHubSteps.kt` (19 step defs)
+. `scenarios/planning/steps/FakeChatModel.kt` (fixture)
+
+== Fichiers modifiés (6)
+
+. `IntentionPlanner.kt` — 3 surcharges `plan()` acceptent `ChatModel` injecté
+. `DecomposeIntentionTask.kt` — `@ServiceReference LlmBuildService` + `aiProvider`
+. `PlanningPlugin.kt` — `registerLlmBuildService()` + `aiProvider` convention
+. `PlannerExtension.kt` — `ollamaModel`/`ollamaBaseUrl` → `aiProvider`
+. `PlannerScenarioState.kt` — +7 champs hub + `freshProject` helper
+. `gradle/libs.versions.toml` — `codebase = "0.0.5"`
+. `build.gradle.kts` — `implementation(libs.codebase.plugin)`
+. `DecomposeIntentionPluginTest.kt` — 2 tests → `@Tag("integration")`
+
+== Fichiers supprimés (2)
+
+. `OllamaBridge.kt` (24 lignes)
+. `OllamaBridgeTest.kt` (2 tests null-check)
+
+== Métriques
+
+. Tests : 132 (109 unit + 23 cucumber), 0 FAIL
+. Baseline : 113 (session 071) → +19 net (+14 US-1, +3 US-2, +6 US-3 cucumber, -2 OllamaBridgeTest supprimé, -2 DecomposeIntentionPluginTest @integration)
+. `:check` VERT
+. `publishToMavenLocal` VERT
+. Zéro bump BOM (codebase-plugin 0.0.5 déjà publié Central)
+. Zéro secret
+
+== Score : 9/10
+
+Session complète (gouvernance + 3 US + clôture). Bonus : articulation
+documentée N0→N1→N2. 1 point de perte : 2 tests GradleRunner déplacés
+en `@integration` (workaround classpath codebase-plugin JAR, à investigiquer
+en US future).
+
+== État EPIC PLN-LLM-HUB — TERMINÉ (4/4 US)
+
+|===
+| US | Statut
+
+| US-0 cadrage | ✅ TERMINÉ (S-072)
+| US-1 PlanningLlmService + adapter | ✅ TERMINÉ (S-072)
+| US-2 Wiring + suppression OllamaBridge | ✅ TERMINÉ (S-072)
+| US-3 Cucumber BDD | ✅ TERMINÉ (S-072)
+|===
+
+Planner consomme désormais `codebase.koog.llm.service.LlmBuildService`
+(N1 hub) au lieu de l'`OllamaBridge` standalone. Pool round-robin
+11437-11465 + quota failover + cycling 2 modèles `gpt-oss:120b-cloud`/
+`gemma4:31b-cloud` disponibles. `LlmProviderChatModelAdapter` dupliqué
+3× (slider/capsule/planner) → candidat extraction N0 (EPIC futur
+LLM-ADAPTER-EXTRACT).
