@@ -1,0 +1,145 @@
+= Session 071 — PLN-BUDGET US-3 Cucumber BDD
+:date: 2026-08-12
+:borough: Manhattan (planner-gradle)
+:epic: PLN-BUDGET
+:us: US-3
+:method: baby-step BDD strict RED -> GREEN -> REFACTOR
+:score: 9/10
+
+== Objectif
+
+Clôturer l'EPIC PLN-BUDGET en couvrant le domaine `planning.budget`
+(`BudgetAdapter.applyRelevanceBudget` + `BudgetWiring.resolveBudgetedContexts`)
+par des scénarios Cucumber BDD end-to-end. Pure BDD — zéro production
+modifié.
+
+== Constat initial
+
+L'EPIC PLN-BUDGET avait 3/4 US terminés (US-0 cadrage S-068, US-1
+`BudgetAdapter` S-069, US-2 Wiring `DecomposeIntentionTask` S-070). L'US-3
+Cucumber BDD était la dernière US pour clôturer l'EPIC.
+
+Le borough utilisait un `CucumberTestRunner` unique scannant toutes les
+features dans `src/test/features/` — la nouvelle feature serait
+automatiquement pickée. Pas besoin de runner dédié ni de modification
+`build.gradle.kts` (contrairement à capsule qui utilise `CucumberTaskSpec`
+parce que le `cucumberTest` global est skippé par CR-10 guard).
+
+== Design BDD — Shared state pattern
+
+Extension de `PlannerScenarioState` (singleton "World" pattern S-067) avec
+7 champs budget : `budgetIntention`, `budgetEager`, `budgetRag`,
+`budgetGraphify`, `budgetDocs`, `budgetedContext`, `budgetLogs`. Le hook
+`PlannerScenarioStateReset` (`@Before`) reset tous les champs y compris
+budget avant chaque scénario.
+
+== Baby-step BDD strict
+
+=== RED — Feature + Steps undefined
+
+. `planner_budget.feature` créé — 4 scénarios `@budget` :
+  - `The dynamic budget allocates more tokens to the channel matching the intention`
+  - `The budget falls back to original content when compute returns an empty channel list`
+  - `The four channels are preserved and passed budgeted to the LLM`
+  - `The total tokens allocated across channels respects the budget`
+
+. `PlannerBudgetSteps.kt` créé — 13 step definitions (classe `En`,
+  imports `PlannerScenarioState.*`, AssertJ, English only) :
+  - 3 Given (intention, 2 fixtures EAGER-matching + distinct content)
+  - 3 When (budget resolved, compute no channels, total tokens)
+  - 7 Then (EAGER > RAG/GRAPHIFY/DOCS, fallback 4 channels equal,
+    4 non-blank + shorter-than-or-equal, total tokens <= budget + tolerance)
+
+. `PlannerScenarioState.kt` étendu — 7 champs budget + `reset()` étendu.
+
+Compilation OK (pas de RED compile failure car les steps sont définis
+dans la même session — baby-step BDD en un passage).
+
+=== GREEN
+
+4/4 scénarios `@budget` PASSED en 1.2s :
+
+. `The dynamic budget allocates more tokens to the channel matching the intention`
+  — EAGER (intention match "afnor formation qualite") > RAG/GRAPHIFY/DOCS.
+. `The budget falls back to original content when compute returns an empty channel list`
+  — 4 canaux égaux au contenu original (non-regression backward compat).
+. `The four channels are preserved and passed budgeted to the LLM`
+  — 4 canaux non-blank + chacun <= original (budget truncate).
+. `The total tokens allocated across channels respects the budget`
+  — somme estimated tokens <= 8000 + 1000 tolerance.
+
+Non-régression : 17 scénarios cucumber existants (PLN-CONTRACTS 4 +
+PLN-VIBE 4 + PLN-VERIFY 5 + PLN-BUDGET 4) tous PASSED.
+
+=== REFACTOR
+
+Pas de refactor nécessaire — le code était déjà propre. Les steps
+suivent le pattern `PlannerVerifySteps` (S-067) : classe `En`, imports
+`PlannerScenarioState.*`, AssertJ, English only, KDoc documentant le
+pattern shared state et la déléguation à `PlannerVibecodingSteps`.
+
+== Verifications
+
+. `./gradlew :planner-plugin:compileKotlin` VERT
+. `./gradlew :planner-plugin:check` VERT (44s) :
+  - 113 tests (baseline 109 + 4 cucumber `@budget`), 0 FAIL, 0 SKIP.
+  - 17 cucumber (4 PLN-CONTRACTS + 4 PLN-VIBE + 5 PLN-VERIFY + 4 PLN-BUDGET).
+. `./gradlew :planner-plugin:publishToMavenLocal` VERT.
+. `grep -r "TOKEN\|SECRET\|PASSWORD\|API_KEY"` — zéro secret.
+
+== Fichiers modifies
+
+[cols="2,1,3", options="header"]
+|===
+| Fichier | Action | Role
+
+| `src/test/features/planner_budget.feature`
+| CREE
+| 4 scénarios `@budget` (dynamic allocation, fallback, 4 channels, total tokens)
+
+| `src/test/scenarios/planning/steps/PlannerBudgetSteps.kt`
+| CREE
+| 13 step definitions (3 Given + 3 When + 7 Then), pattern PlannerVerifySteps
+
+| `src/test/scenarios/planning/steps/PlannerScenarioState.kt`
+| MODIFIE
+| +7 champs budget (intention, 4 contexts, budgetedContext, budgetLogs) + reset
+|===
+
+Total : 2 fichiers créés (1 feature + 1 steps), 1 fichier modifié (state).
++4 cucumber. Zéro production modifié — pure BDD. 113 tests 0 FAIL.
+
+== Etat EPIC PLN-BUDGET — TERMINÉ (4/4 US)
+
+[cols="2,1,1", options="header"]
+|===
+| US | Statut | Session
+
+| US-0 cadrage | ✅ TERMINÉ | S-068
+| US-1 `BudgetAdapter` | ✅ TERMINÉ | S-069
+| US-2 Wiring `DecomposeIntentionTask` | ✅ TERMINÉ | S-070
+| US-3 Cucumber BDD `planner_budget.feature` | ✅ TERMINÉ | S-071
+|===
+
+EPIC PLN-BUDGET CLOS. Planner consomme désormais `RelevanceBudget` (N0
+orphan) au lieu de `ChannelBudget` fixe 40/30/20/10. Le budget dynamique
+pondère les 4 canaux par similarité cosinus+softmax avec l'intention.
+
+== Non-regression critique
+
+. `PlannerIntegration.kt` (codebase) appelle
+  `IntentionPlanner.plan(eagerContext, ragContext, graphifyContext, docsContext)`.
+  Le contrat d'appel est inchangé — planner reçoit toujours 4 String. Seul
+  le contenu tronqué change (dynamique au lieu de fixe).
+. 17 scénarios cucumber existants (PLN-CONTRACTS + PLN-VIBE + PLN-VERIFY)
+  tous PASSED — non-régression stricte.
+. `BudgetAdapter.applyRelevanceBudget` fallback contenu original si
+  compute vide/exception (US-1) couvert par scénario 2.
+. 113 tests 0 FAIL, 0 SKIP.
+
+== Score
+
+9/10 — Baby-step BDD strict respecté. EPIC PLN-BUDGET clôturé 4/4 US.
+Shared state pattern S-067 réutilisé et étendu proprement (7 champs budget).
+Zéro production modifié — pure BDD. Le borough Manhattan n'a plus d'EPIC
+en cours — prochain EPIC à planifier.

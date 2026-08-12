@@ -41,7 +41,7 @@ Par :
 ```
 
 '''
-== 🟡 EPIC PLN-BUDGET — Relevance Budget Dynamique (Session 070 — US-2 Wiring ✅)
+== ✅ EPIC PLN-BUDGET — Relevance Budget Dynamique TERMINÉ (Session 071 — US-3 Cucumber BDD)
 
 _Source_ : Session 068. Split-brain #4 reporté S-061 :
 `agent-contracts.RelevanceBudget` (N0, 0.0.3 déjà publié) fait un budget
@@ -135,13 +135,13 @@ zéro bump BOM). Codebase HORS SCOPE (borough DORMANT — EPIC planner-only).
 
 | PLN-BUDGET-3
 | *Cucumber BDD* — `planner_budget.feature` : scénarios (budget dynamique alloue plus de tokens au canal pertinent, fallback fixe si similarity indisponible, non-régression 4 canaux préservés, total tokens respecté). ~4 scénarios. Inspiré slider Cucumber pipeline | 3
-| ⏳ À FAIRE
+| ✅ TERMINÉ (S-071)
 |===
 
 _Total_ : 4 US, ~8 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
 tests/US (unit → functional → cucumber), English only code/Gherkin.
 _Dépendances_ : MEMPHIS (agent-contracts 0.0.3 déjà publié, zéro bump).
-_Statut_ : 3/4 US (S-068 cadrage + S-069 US-1 `BudgetAdapter` ✅ + S-070 US-2 Wiring ✅). US-3 à faire (prochaine session 071).
+_Statut_ : 4/4 US TERMINÉ (S-068 cadrage + S-069 US-1 `BudgetAdapter` ✅ + S-070 US-2 Wiring ✅ + S-071 US-3 Cucumber BDD ✅). EPIC PLN-BUDGET CLOS.
 
 _Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
 `IntentionPlanner.plan(eagerContext, ragContext, graphifyContext, docsContext)`.

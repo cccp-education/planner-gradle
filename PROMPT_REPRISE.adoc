@@ -1,18 +1,17 @@
-= PROMPT_REPRISE — planner-gradle (Session 070 terminée)
+= PROMPT_REPRISE — planner-gradle (Session 071 terminée)
 :date: 2026-08-12
 
-== Session 070 terminée — PLN-BUDGET US-2 Wiring DecomposeIntentionTask
+== Session 071 terminée — PLN-BUDGET US-3 Cucumber BDD + EPIC CLOS
 
-Baby-step TDD strict RED → GREEN → REFACTOR. 5/5 unit PASSED + 2
-functional `@integration`. `:check` VERT 109 tests 0 FAIL (baseline 104
-→ +5). `publishToMavenLocal` VERT. `BudgetWiring` (object pur, domaine
-`planning.budget`) créé — `resolveBudgetedContexts` délègue à
-`BudgetAdapter` (US-1) + log token counts. `DecomposeIntentionTask`
-câblé : budget AVANT LLM, log AVANT LLM, contenu budgetisé passé au plan.
-Bloc `CompositeContext`/`ChannelBudget` (39 lignes) supprimé. Imports
-nettoyés (-3).
+Baby-step BDD strict RED → GREEN → REFACTOR. 4/4 scénarios `@budget`
+PASSED. `:check` VERT 113 tests 0 FAIL (baseline 109 → +4 cucumber).
+`publishToMavenLocal` VERT. `planner_budget.feature` créé (4 scénarios :
+dynamic allocation, fallback original content, 4 channels preserved,
+total tokens respecté). `PlannerBudgetSteps.kt` créé (13 step defs,
+pattern `PlannerVerifySteps` S-067). `PlannerScenarioState.kt` étendu
+(+7 champs budget). Zéro production modifié — pure BDD.
 
-## État EPIC PLN-BUDGET — EN COURS (3/4 US)
+## État EPIC PLN-BUDGET — TERMINÉ (4/4 US)
 
 |===
 | US | Statut
@@ -20,25 +19,38 @@ nettoyés (-3).
 | US-0 cadrage | ✅ TERMINÉ (S-068)
 | US-1 `BudgetAdapter` (domaine `planning.budget`, object pur) | ✅ TERMINÉ (S-069)
 | US-2 Wiring `DecomposeIntentionTask` | ✅ TERMINÉ (S-070)
-| US-3 Cucumber BDD `planner_budget.feature` | ⏳ À FAIRE
+| US-3 Cucumber BDD `planner_budget.feature` | ✅ TERMINÉ (S-071)
 |===
 
-## Prochaine session — 071 : PLN-BUDGET US-3 Cucumber BDD
+EPIC PLN-BUDGET CLOS. Planner consomme désormais `RelevanceBudget` (N0
+orphan) au lieu de `ChannelBudget` fixe 40/30/20/10.
 
-`planner_budget.feature` ~4 scénarios `@budget` :
-* Budget dynamique alloue plus de tokens au canal pertinent (EAGER >
-  RAG/GRAPHIFY/DOCS quand intention match EAGER).
-* Fallback contenu original si `compute` retourne vide (non-regression).
-* Non-regression 4 canaux préservés (budgeted content passed to LLM).
-* Total tokens respecté (somme <= 8000 + tolerance).
+## État global — TOUS EPICs TERMINÉS
 
-Pattern Cucumber shared state `PlannerScenarioState` (S-067) +
-`PlannerVerifySteps` (S-067) + `PlannerVibecodingSteps` (S-059).
-`CucumberTaskSpec` 4ème cucumber runner.
+|===
+| EPIC | Statut
+| PLN-BUDGET | ✅ TERMINÉ (S-071 — 4/4 US)
+| PLN-VERIFY | ✅ TERMINÉ (S-067 — 5/5 US)
+| PLN-CONTRACTS | ✅ TERMINÉ (S-062 — 6/6 US)
+| PLN-VIBE | ✅ TERMINÉ (S-059 — 6/6 US)
+|===
 
-* Baby-step BDD strict RED → GREEN → REFACTOR requis. English only.
-* Après : vérifier `./gradlew :planner-plugin:check` VERT puis
-  `./gradlew :planner-plugin:publishToMavenLocal`.
+Le borough Manhattan n'a plus d'EPIC en cours. Backlog n'a que
+maintenance (PUB-3.10 publication Maven Central + PUB-2.2 commentaire
+relocation).
+
+## Prochaine session — 072 : Cadrage prochain EPIC ou maintenance
+
+Options :
+. *PUB-3.10* — Publication Maven Central planner-plugin (P0, 1 pt).
+  Dépend PUB-0/PUB-1 (DNS TXT + GPG) déjà complets.
+. *PUB-2.2* — Mise à jour commentaire relocation build.gradle.kts (P1).
+. *Nouvel EPIC* — à cadrer. Backlog global workspace suggère :
+  - EPIC L (migration langgraph4j → koog+langchain4j) impacte planner
+    (IJ-5 Chain Monitor koog) — reporté au PLAN_GLOBAL.adoc.
+  - EPIC PLN-LIFECYCLE (split-brain #3 AgentState lifecycle) — planner
+    ignore `agent-contracts.AgentState` (8 phases sealed) +
+    `ContextAssembler`/`PlanExecutor` N0. Reporté en S-061.
 
 Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`, `BACKLOG.adoc`.
 Vérifier `./gradlew :planner-plugin:compileKotlin` VERT avant de coder.
