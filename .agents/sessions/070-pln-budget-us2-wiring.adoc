@@ -1,0 +1,178 @@
+= Session 070 — PLN-BUDGET US-2 Wiring DecomposeIntentionTask
+:date: 2026-08-12
+:borough: Manhattan (planner-gradle)
+:epic: PLN-BUDGET
+:us: US-2
+:method: baby-step TDD strict RED -> GREEN -> REFACTOR
+:score: 9/10
+
+== Objectif
+
+Remplacer le budget fixe `ChannelBudget` (40/30/20/10) dans
+`DecomposeIntentionTask` par le budget dynamique `BudgetAdapter` (EPIC
+PLN-BUDGET US-1, domaine `planning.budget`). Le budget dynamique tronque
+les 4 canaux selon la similarite cosinus+softmax avec l'intention.
+
+== Constat initial
+
+`DecomposeIntentionTask.kt:101-139` construisait un `CompositeContext` typé
+via `ChannelBudget` (40/30/20/10 fixe) *uniquement pour le log*
+`[planner] Multi-canal activé`. Le resultat `typedCtx` n'etait **jamais
+injecte dans le LLM** — l'appel `IntentionPlanner.plan(eagerContext = eagerCtx, ...)`
+utilisait le contenu original non tronqué.
+
+Le budget fixe allouait 3200 tokens EAGER quoi que l'intention soit. Un
+intention "planifier formation AFNOR" et "generer README" recevaient le
+même budget.
+
+== Design DDD — Extraction `BudgetWiring`
+
+Extraction de la logique budget+log dans `BudgetWiring` (object pur,
+domaine `planning.budget`) pour que la tâche Gradle délègue et que la
+logique soit testable unitairement sans GradleRunner.
+
+`BudgetWiring.resolveBudgetedContexts(intention, eagerCtx, ragCtx,
+graphifyCtx, docsCtx, totalTokens=8000, log={})` :
+. Detecte `hasMultiChannel` (au moins 1 canal non-blank).
+. Si pas multi-channel : retourne `RelevanceContext` original sans log
+  (economie d'encre).
+. Si multi-channel : appelle `BudgetAdapter.applyRelevanceBudget` (US-1)
+  qui mappe 4 canaux -> Map -> `RelevanceBudget.compute` (cosinus+softmax)
+  -> `ChannelScore` -> `RelevanceContext` (4 String tronquées).
+. Log `[planner] Multi-canal activé : E=N R=N G=N D=N tokens` avec
+  `ContextChannel.estimateTokens` (N0, toujours dans le classpath).
+
+`DecomposeIntentionTask.decompose()` :
+. Appelle `BudgetWiring.resolveBudgetedContexts` AVANT l'appel LLM.
+. Log apparait AVANT l'appel LLM (testable sans Ollama réel —
+  `buildAndFail` avec `localhost:1` suffit pour valider le log).
+. Passe le contenu **budgetisé** (et non original) a `IntentionPlanner.plan`.
+
+== Baby-step TDD strict
+
+=== RED
+Creation de 2 fichiers test :
+
+. `planning/budget/BudgetWiringTest.kt` (5 tests unitaires) :
+  - `returns a RelevanceContext with the four channels budgeted`
+  - `returns blank context when all channels are blank`
+  - `logs multi-canal token counts when at least one channel is non-blank`
+  - `does not log when no multi-channel is active`
+  - `log token counts reflect the estimated tokens of the budgeted content`
+
+. `planning/DecomposeIntentionBudgetTest.kt` (2 tests functional
+  `@Tag("integration")`) :
+  - `generatePlan with multi-channel logs budget token counts before LLM call`
+  - `generatePlan without multi-channel does not log budget`
+
+Compilation echoue : 8 `Unresolved reference 'BudgetWiring'` (5 sites
+directs + 3 cascades `it` sur lambda `log`).
+
+=== GREEN
+. Creation `planning/budget/BudgetWiring.kt` (object pur, 35 lignes) :
+  - `resolveBudgetedContexts` delegue a `BudgetAdapter.applyRelevanceBudget`
+    (US-1) + log token counts via `ContextChannel.estimateTokens`.
+. Câblage `DecomposeIntentionTask.decompose()` :
+  - `BudgetWiring.resolveBudgetedContexts(...)` AVANT l'appel LLM.
+  - `IntentionPlanner.plan(eagerContext = budgeted.eager, ...)` contenu
+    budgetise.
+  - Bloc `CompositeContext`/`ChannelBudget` (lignes 101-139) supprime.
+  - Imports `ChannelBudget`/`CompositeContext`/`CompositeContextConfig`
+    supprimes (plus consommes). `ContextChannel` deplace vers `BudgetWiring`.
+
+Bug decouvert GREEN : `String.format` avec `{}` placeholders (style SLF4J)
+ne fonctionne pas en Kotlin (c'est `%s`). Corrige en interpolation Kotlin
+directe `E=${...}`.
+
+. 5/5 `BudgetWiringTest` PASSED.
+. 14/14 `BudgetAdapterTest` + `BudgetWiringTest` PASSED (non-regression
+  US-1 preservee).
+
+=== REFACTOR
+Imports nettoyes dans `DecomposeIntentionTask` (3 imports supprimes :
+`ChannelBudget`, `CompositeContext`, `CompositeContextConfig`). `ContextChannel`
+deplace vers `BudgetWiring` (seul consommateur de `estimateTokens`).
+
+== Verifications
+
+. `./gradlew :planner-plugin:compileKotlin` VERT
+. `./gradlew :planner-plugin:check` VERT (26s) :
+  - 109 unit tests (baseline 104 + 5 `BudgetWiringTest`), 0 FAIL, 0 SKIP.
+  - 13 cucumber tests (PLN-CONTRACTS 4 + PLN-VIBE 4 + PLN-VERIFY 5), 0 FAIL.
+  - 2 `DecomposeIntentionMultiCanalTest` `typed context types`/`ChannelBudget
+    truncates` (N0, toujours dans classpath) VERTS — non-regression.
+. `./gradlew :planner-plugin:publishToMavenLocal` VERT.
+
+== Fichiers modifies
+
+[cols="2,1,3", options="header"]
+|===
+| Fichier | Action | Role
+
+| `planning/budget/BudgetWiring.kt`
+| CREE
+| Object pur `resolveBudgetedContexts` (budget+log, 35 lignes)
+
+| `planning/DecomposeIntentionTask.kt`
+| MODIFIE
+| Câblage `BudgetWiring` AVANT LLM, contenu budgetise passe au plan, bloc
+  `CompositeContext` supprime (-39 lignes), imports nettoyes (-3)
+
+| `planning/budget/BudgetWiringTest.kt`
+| CREE
+| 5 tests unitaires (budget+log, blank, multi-channel, token counts)
+
+| `planning/DecomposeIntentionBudgetTest.kt`
+| CREE
+| 2 tests functional `@Tag("integration")` (log before LLM, no log when
+  no multi-channel)
+|===
+
+Total : 2 fichiers crees (1 prod + 1 test unit), 1 fichier modifie (task),
+1 fichier test functional cree. +5 unit, +2 functional. 109 unit 0 FAIL.
+
+== Etat EPIC PLN-BUDGET — EN COURS (3/4 US)
+
+[cols="2,1,1", options="header"]
+|===
+| US | Statut | Session
+
+| US-0 cadrage | ✅ TERMINÉ | S-068
+| US-1 `BudgetAdapter` | ✅ TERMINÉ | S-069
+| US-2 Wiring `DecomposeIntentionTask` | ✅ TERMINÉ | S-070
+| US-3 Cucumber BDD `planner_budget.feature` | ⏳ À FAIRE | S-071
+|===
+
+== Prochaine session — 071 : PLN-BUDGET US-3 Cucumber BDD
+
+`planner_budget.feature` ~4 scénarios `@budget` :
+. Budget dynamique alloue plus de tokens au canal pertinent (EAGER >
+  RAG/GRAPHIFY/DOCS quand intention match EAGER).
+. Fallback contenu original si `compute` retourne vide (non-regression).
+. Non-regression 4 canaux preserves (budgeted content passed to LLM).
+. Total tokens respecte (somme <= 8000 + tolerance).
+
+Pattern Cucumber slider `PlannerScenarioState` shared state (S-067) +
+`PlannerVerifySteps` (S-067) + `PlannerVibecodingSteps` (S-059).
+`CucumberTaskSpec` 4ème cucumber runner.
+
+== Non-regression critique
+
+. `PlannerIntegration.kt` (codebase) appelle
+  `IntentionPlanner.plan(eagerContext, ragContext, graphifyContext, docsContext)`.
+  Le contrat d'appel est inchangé — planner reçoit toujours 4 String. Seul
+  le contenu tronqué change (dynamique au lieu de fixe).
+. `DecomposeIntentionMultiCanalTest` `typed context types` et `ChannelBudget
+  truncates` (N0, toujours dans classpath) VERTS — `ChannelBudget` N0
+  reste disponible pour autres consommateurs.
+. `BudgetAdapter.applyRelevanceBudget` fallback contenu original si
+  compute vide/exception (US-1) preserve.
+. 109 unit + 13 cucumber = 122 tests, 0 FAIL, 0 SKIP.
+
+== Score
+
+9/10 — Baby-step TDD strict respecte. Bug `String.format` {} découvert en
+  GREEN (1 iteration supplementaire). Design DDD `BudgetWiring` extraction
+  rend la logique budget testable unitairement sans GradleRunner. Bloc
+  cosmétique `CompositeContext` (39 lignes) supprime — le budget fixe
+  40/30/20/10 n'est plus dans le path hot de planner.
