@@ -1,77 +1,57 @@
-= PROMPT_REPRISE — planner-gradle (Session 072 terminée — EPIC PLN-LLM-HUB CLOS)
-:date: 2026-08-12
+= PROMPT_REPRISE — planner-gradle (Session 073 terminée — EPIC LLM-ADAPTER-EXTRACT CLOS)
+:date: 2026-08-13
 
-== Session 072 terminée — EPIC PLN-LLM-HUB TERMINÉ 4/4 US
+== Session 073 terminée — Triple livraison
 
-Session complète : cadrage + 3 US implémentation baby-step TDD/BDD.
-Planner consomme désormais codebase (N1) comme socle LLM unifié,
-remplaçant `OllamaBridge` standalone (singleton 24 lignes) par
-`codebase.koog.llm.service.LlmBuildService` (Gradle BuildService DI,
-pool round-robin 11437-11465, quota failover, cycling 2 modèles).
-Planner est le 3e consommateur du hub N1 standardisé (après slider
-SLD-8 et capsule CAP-ARCH-1).
+. PUB-2.2 CADUQUE (commentaire RELOCATION supprimé en CNV-6)
+. PUB-3.10 publication planner-plugin 0.0.2 Maven Central (bundle 47064425)
+. EPIC LLM-ADAPTER-EXTRACT 6/6 US CLOS — extraction `LlmProviderChatModelAdapter`
+  vers `codebase.koog.llm.adapter` (N1). 3 copies identiques (49 lignes)
+  → 1 source unique N1. 4 boroughs modifiés. codebase-plugin 0.0.7 Central.
+  Bug préexistant `PlannerIntegration.kt` (build cassé depuis S-072) réparé.
 
-. US-0 cadrage (gouvernance pure) — 6 constats, 10 décisions, doc
-  `CADRAGE_EPIC_PLN_LLM_HUB.adoc`
-. US-1 `PlanningLlmService` + `LlmProviderChatModelAdapter` (14 unit)
-. US-2 Wiring `DecomposeIntentionTask`/`IntentionPlanner`/`PlanningPlugin`
-  + suppression `OllamaBridge.kt` (24 lignes) + `OllamaBridgeTest.kt`
-. US-3 Cucumber BDD `planner_llm_hub.feature` (6 scénarios, 23 steps)
-
-`:check` VERT 132 tests 0 FAIL (109 unit + 23 cucumber).
-`publishToMavenLocal` VERT. Zéro bump BOM.
-
-## État EPIC PLN-LLM-HUB — TERMINÉ (4/4 US)
+## État EPIC LLM-ADAPTER-EXTRACT — TERMINÉ (6/6 US)
 
 |===
 | US | Statut
 
-| US-0 cadrage | ✅ TERMINÉ (S-072)
-| US-1 PlanningLlmService + adapter | ✅ TERMINÉ (S-072)
-| US-2 Wiring + suppression OllamaBridge | ✅ TERMINÉ (S-072)
-| US-3 Cucumber BDD | ✅ TERMINÉ (S-072)
+| US-0 cadrage | ✅ TERMINÉ (S-073)
+| US-1 codebase N1 + tests + publish 0.0.7 | ✅ TERMINÉ (S-073)
+| US-2 slider consomme N1 | ✅ TERMINÉ (S-073)
+| US-3 capsule consomme N1 | ✅ TERMINÉ (S-073)
+| US-4 planner consomme N1 | ✅ TERMINÉ (S-073)
+| US-5 Cucumber BDD 4 scénarios | ✅ TERMINÉ (S-073)
 |===
 
 ## État global — TOUS EPICs TERMINÉS
 
 |===
 | EPIC | Statut
+| LLM-ADAPTER-EXTRACT | ✅ TERMINÉ (S-073 — 6/6 US)
 | PLN-LLM-HUB | ✅ TERMINÉ (S-072 — 4/4 US)
 | PLN-BUDGET | ✅ TERMINÉ (S-071 — 4/4 US)
 | PLN-VERIFY | ✅ TERMINÉ (S-067 — 5/5 US)
-| PLN-CONTRACTS | ✅ TERMINÉ (S-062 — 6/6 US)
+| PLN-CONTRACTS | ✅ TERMINÉ (S-061 — 6/6 US)
 | PLN-VIBE | ✅ TERMINÉ (S-059 — 6/6 US)
 |===
 
-Le borough Manhattan n'a plus d'EPIC en cours. Backlog n'a que
-maintenance (PUB-3.10 publication Maven Central + PUB-2.2 commentaire
-relocation).
+Le borough Manhattan n'a plus d'EPIC en cours. Backlog = maintenance
+uniquement (PUB-2.2 CADUQUE, PUB-3.10 ✅ publié 0.0.2).
 
-## Découvertes session
+## Publications Maven Central session
 
-. `LlmProviderChatModelAdapter` (49 lignes) est désormais dupliqué
-  3× (slider/capsule/planner) → candidat propre à extraction vers
-  `llm-pool-contracts` (N0) ou `codebase-contracts`. EPIC futur
-  LLM-ADAPTER-EXTRACT non cadré.
-. 2 tests GradleRunner `DecomposeIntentionPluginTest` déplacés en
-  `@integration` (workaround : `codebase-plugin` JAR non sur
-  `pluginUnderTestMetadata` classpath). À investigiquer en US future
-  si on veut les remettre en non-integration.
+| Artefact | Version | Bundle
+| planner-plugin | 0.0.2 | 47064425-d42e-485c-b3f0-44245b623a97
+| codebase-plugin | 0.0.7 | e08acb47-a336-46a5-bb4d-be939ef3770d
 
-## Prochaine session — 073 : Cadrage prochain EPIC ou maintenance
+## Prochaine session — 074 : Cadrage prochain EPIC ou maintenance
 
 Options :
-. *PUB-3.10* — Publication Maven Central planner-plugin (P0, 1 pt).
-  Dépend PUB-0/PUB-1 (DNS TXT + GPG) déjà complets.
-. *PUB-2.2* — Mise à jour commentaire relocation build.gradle.kts (P1).
-. *Nouvel EPIC* — à cadrer. Backlog global workspace suggère :
-  - EPIC LLM-ADAPTER-EXTRACT — extraction `LlmProviderChatModelAdapter`
-    vers N0 (3 consommateurs identiques slider/capsule/planner).
-  - EPIC PLN-LIFECYCLE (split-brain #3 AgentState lifecycle) — planner
-    ignore `agent-contracts.AgentState` (8 phases sealed) +
-    `ContextAssembler`/`PlanExecutor` N0. Reporté en S-061.
-  - EPIC L (migration langgraph4j → koog+langchain4j) impacte planner
-    (IJ-5 Chain Monitor koog) — reporté au PLAN_GLOBAL.adoc.
+. *PLN-LIFECYCLE* — split-brain #3 AgentState (planner ignore 8 phases
+  sealed + ContextAssembler/PlanExecutor N0, reporté S-061)
+. *EPIC L* — migration langgraph4j → koog+langchain4j (PLAN_GLOBAL.adoc)
+. *Maintenance* — slider/capsule n'ont pas republié après consommation N1
+  (bump slider 0.0.14→0.0.15, capsule bump version)
 
 Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`, `BACKLOG.adoc`.
 Vérifier `./gradlew :planner-plugin:compileKotlin` VERT avant de coder.

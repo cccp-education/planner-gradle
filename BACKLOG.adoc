@@ -1,6 +1,6 @@
 = Backlog — Manhattan (planner-gradle)
 :description: Backlog de publication Maven Central — EPIC PUB
-:date: 2026-08-06
+:date: 2026-08-13
 :toc: left
 :sectnums:
 
@@ -15,30 +15,70 @@ Plugin N2 de generation SPG/SPD via LLM (gpt-oss:120b-cloud). VAGUE 4 (plugins m
 **Priorite** : P0
 **Estimation** : 1 pt
 **Dependances** : PUB-0 et PUB-1 complets (DNS TXT + GPG)
+**Statut** : ✅ TERMINÉ (S-073)
 
 . `cd foundry/public/planner-gradle && ./gradlew publish closeAndRelease`
 . Plugin ID : `education.cccp.planner`
 . Artefact : `education.cccp:planner-plugin`
+. Version 0.0.2 publiée Maven Central (bundle `47064425-d42e-485c-b3f0-44245b623a97` AUTOMATIC)
 . Verifier sur https://central.sonatype.com/artifact/education.cccp/planner-plugin
 
 === PUB-2.2 — Mise a jour commentaire relocation dans build.gradle.kts
 **Priorite** : P1
 **Estimation** : 1 pt
 **Dependances** : Aucune
+**Statut** : ✅ CADUQUE (S-073)
 
-Dans le `build.gradle.kts` de planner-plugin, remplacer le commentaire :
+Le commentaire RELOCATION à mettre à jour a été supprimé lors de la migration
+CNV-6 (session 056). La relocation est désormais gérée par la convention plugin
+`education.ccp.build.publishing` via `publishingConventions { relocationGroupId = ... }`.
+Rien à modifier.
 
-```kotlin
-// RELOCATION : prepare la migration du groupId education.cccp →
-// <futur-domaine>. Activer avec -Prem relocationGroup="io.github.cccp-education"
-```
+'''
+== ✅ EPIC LLM-ADAPTER-EXTRACT — Extraction LlmProviderChatModelAdapter vers N1 TERMINÉ (Session 073 — 6/6 US)
 
-Par :
+_Source_ : Session 072 découverte. `LlmProviderChatModelAdapter` (49 lignes)
+était dupliqué à l'identique dans 3 boroughs N2 (slider, capsule, planner).
+Extrait vers `codebase-plugin` (N1) package `codebase.koog.llm.adapter`.
+`langchain4j` core promu `api` dans codebase pour visibilité transitive.
+Bug préexistant `PlannerIntegration.kt` (build codebase cassé depuis S-072)
+réparé.
 
-```kotlin
-// RELOCATION : garde comme echappatoire future.
-// Activable avec -Prem relocationGroup="<futur-namespace>"
-```
+_Dépendances_ : codebase-plugin 0.0.7 (publié Central bundle `e08acb47`).
+Cross-borough 4 repos (Queens + MIAMI + Détroit + Manhattan).
+
+[cols="1,3,1,1", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| LLM-ADAPTER-EXTRACT-0
+| *Cadrage EPIC* — audit 3 copies, 6 constats, 10 décisions, découpage US. Maj INDEX/BACKLOG/PROMPT_REPRISE/AGENTS racine. Création `CADRAGE_EPIC_LLM_ADAPTER_EXTRACT.adoc` | 1
+| ✅ TERMINÉ (S-073)
+
+| LLM-ADAPTER-EXTRACT-1
+| *Codebase N1* — Créer `codebase.koog.llm.adapter.LlmProviderChatModelAdapter` + 5 unit tests. `api(libs.langchain4j)` + `implementation` pgvector/minilm/ollama. Fix `PlannerIntegration.kt` (bug S-072). Bump 0.0.5→0.0.7. Publish Central bundle `e08acb47` | 3
+| ✅ TERMINÉ (S-073)
+
+| LLM-ADAPTER-EXTRACT-2
+| *Slider consomme N1* — Supprimer copie locale + test. Import `codebase.koog.llm.adapter`. Aligner langchain4j 1.14.1→1.16.3. Bump codebase 0.0.7 | 2
+| ✅ TERMINÉ (S-073)
+
+| LLM-ADAPTER-EXTRACT-3
+| *Capsule consomme N1* — Supprimer copie locale + test. Import aligné. Bump codebase 0.0.7 | 2
+| ✅ TERMINÉ (S-073)
+
+| LLM-ADAPTER-EXTRACT-4
+| *Planner consomme N1* — Supprimer copie locale + test. Import aligné. Aligner langchain4j 1.16.3. Bump codebase 0.0.7. Wrapper autonome planner-plugin/ | 2
+| ✅ TERMINÉ (S-073)
+
+| LLM-ADAPTER-EXTRACT-5
+| *Cucumber BDD planner* — `planner_adapter_extract.feature` 4 scénarios `@adapter-extract`. `PlannerAdapterExtractSteps` (steps préfixés "adapter extract" pattern S-088) | 3
+| ✅ TERMINÉ (S-073)
+|===
+
+_Total_ : 6 US, ~13 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
+tests/US (unit → functional → cucumber), English only code/Gherkin.
+_Statut_ : 6/6 US TERMINÉ (S-073). EPIC LLM-ADAPTER-EXTRACT CLOS.
 
 '''
 == ✅ EPIC PLN-LLM-HUB — Planner consomme codebase (N1) comme socle LLM unifié TERMINÉ (Session 072 — 4/4 US)

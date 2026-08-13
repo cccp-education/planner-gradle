@@ -2,6 +2,7 @@
 
 package planning.llm
 
+import codebase.koog.llm.adapter.LlmProviderChatModelAdapter
 import codebase.koog.llm.service.LlmBuildService
 import dev.langchain4j.model.chat.ChatModel
 import org.gradle.api.Project

@@ -1,0 +1,149 @@
+= CADRAGE_EPIC_LLM_ADAPTER_EXTRACT.adoc — Extraction LlmProviderChatModelAdapter vers N1
+:date: 2026-08-13
+:toc: left
+:sectnums:
+
+== Contexte
+
+Session 072 (EPIC PLN-LLM-HUB) a découvert que `LlmProviderChatModelAdapter`
+(49 lignes) est dupliqué à l'identique dans 3 boroughs N2 :
+
+. `slider-gradle/slider-plugin/src/main/kotlin/slider/ai/LlmProviderChatModelAdapter.kt`
+. `capsule-gradle/capsule-plugin/src/main/kotlin/capsule/ai/LlmProviderChatModelAdapter.kt`
+. `planner-gradle/planner-plugin/src/main/kotlin/planning/llm/LlmProviderChatModelAdapter.kt`
+
+Les 3 fichiers sont identiques à 100% (seul le `package` et le KDoc changent).
+L'adapter pont `codebase.koog.llm.LlmProvider` (koog suspend) →
+`dev.langchain4j.model.chat.ChatModel` (langchain4j sync).
+
+== Audit — 6 constats
+
+[cols="1,3,3", options="header"]
+|===
+| # | Constat | Preuve
+
+| 1
+| 3 copies identiques (49 lignes chacune)
+| `slider/ai/`, `capsule/ai/`, `planning/llm/` — diff = package + KDoc uniquement. Le corps (`doChat`, `ChatMessage.text()` extension) est byte-pour-byte identique.
+
+| 2
+| L'adapter dépend de 2 sources externes
+| `codebase.koog.llm.LlmProvider` (N1 codebase-plugin) + `dev.langchain4j.model.chat.{ChatModel,ChatRequest,ChatResponse}` + `dev.langchain4j.data.message.{AiMessage,ChatMessage,SystemMessage,UserMessage}` (langchain4j). Les 3 boroughs ont déjà les deux en classpath.
+
+| 3
+| Version langchain4j divergente
+| codebase 1.16.3, slider 1.14.1, capsule (hérite codebase 1.16.3), planner 1.14.1. L'adapter ne utilise que `ChatModel`/`ChatRequest`/`ChatResponse`/`AiMessage`/`ChatMessage`/`SystemMessage`/`UserMessage` — API stable entre 1.14 et 1.16.
+
+| 4
+| `LlmProvider` est dans codebase-plugin (N1)
+| `codebase-plugin/src/main/kotlin/codebase/koog/llm/LlmProvider.kt` — fun interface `suspend fun call(prompt: String): String`. Codebase est DORMANT (0.0.6 Central).
+
+| 5
+| Codebase a déjà langchain4j en `implementation`
+| `codebase-plugin/build.gradle.kts:37` — `implementation(libs.bundles.langchain4j.rag)`. Mais `implementation` ne réexporte pas — un consommateur ne voit pas les classes langchain4j transitivement. Pour que les boroughs voient l'adapter (qui implémente `ChatModel`), langchain4j core doit être `api` dans codebase-plugin.
+
+| 6
+| Aucun test dédié dans les 3 boroughs
+| L'adapter est testé indirectement via les tests LLM service (SliderAssistantTest, CapsuleLlmServiceTest, PlanningLlmServiceTest). Pas de test unit direct sur `LlmProviderChatModelAdapter.doChat()`.
+|===
+
+== Décisions architecturales
+
+. *Portée EPIC* : extraire `LlmProviderChatModelAdapter` vers
+  `codebase-plugin` (N1) dans un nouveau package
+  `codebase.koog.llm.adapter`. Les 3 boroughs consommeront la classe N1
+  et supprimeront leur copie locale. Codebase est le hub LLM N1 —
+  l'adapter y vit naturellement.
+
+. *Bump codebase-plugin 0.0.6 → 0.0.7* + publication Maven Central.
+  Borough Queens sort de DORMANT pour cet EPIC ciblé. BOM racine
+  constraint mise à jour.
+
+. *Visibilité `api`* : changer `implementation(libs.bundles.langchain4j.rag)`
+  → `api(libs.langchain4j)` + `implementation(libs.langchain4j.pgvector)`
+  + `implementation(libs.langchain4j.minilm)` + `implementation(libs.langchain4j.ollama)`
+  dans codebase-plugin. Seul `langchain4j` core (ChatModel/ChatRequest/etc)
+  doit être `api` — les autres modules (pgvector, minilm, ollama) restent
+  `implementation` (non consommés par les boroughs via l'adapter).
+
+. *Version langchain4j alignée* : codebase 1.16.3 est la version N1.
+  Slider/planner (1.14.1) devront s'aligner sur 1.16.3 OU l'adapter est
+  compatible binaire 1.14↔1.16 (API ChatModel stable). Décision : aligner
+  slider/planner sur 1.16.3 dans l'US de consommation (US-2/3/4) pour éviter
+  toute drift.
+
+. *Tests unit dédiés* : créer `LlmProviderChatModelAdapterTest` dans
+  codebase-plugin (test direct `doChat` avec fake `LlmProvider`). L'US-1
+  inclut ce test. Les boroughs suppriment leur copie mais gardent leurs
+  tests LLM service (qui consomment l'adapter N1).
+
+. *Suppression boroughs* : chaque borough supprime son fichier
+  `LlmProviderChatModelAdapter.kt` + ajuste ses imports vers
+  `codebase.koog.llm.adapter.LlmProviderChatModelAdapter`. Les tests LLM
+  service (SliderAssistantTest, CapsuleLlmServiceTest, PlanningLlmServiceTest)
+  continuent de passer — ils instancient l'adapter N1 au lieu de la copie locale.
+
+. *Non-régression critique* : les 3 boroughs ont déjà
+  `implementation(libs.codebase.plugin)` — l'adapter N1 sera sur leur
+  classpath de compilation après bump 0.0.6 → 0.0.7. Le contrat
+  `ChatModel` est préservé — les consommateurs (IntentionPlanner,
+  AssistantManager, CapsuleLlmService) appellent
+  `adapter.doChat(request)` qui délègue à `provider.call(prompt)`.
+
+. *Ordre US* : US-0 cadrage → US-1 codebase (créer adapter + tests + bump
+  + publier) → US-2 slider (consommer N1 + supprimer copie + aligner
+  langchain4j 1.16.3) → US-3 capsule (idem) → US-4 planner (idem) →
+  US-5 Cucumber BDD (planner — scénario "planner consumes N1 adapter,
+  local copy removed").
+
+. *Méthode* : baby-step DDD/TDD/BDD, 3 niveaux tests/US
+  (unit → functional → cucumber), English only code/Gherkin.
+
+== Découpage US
+
+[cols="1,3,1,1", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| LLM-ADAPTER-EXTRACT-0
+| *Cadrage EPIC* — audit 3 copies, décisions architecturales, découpage US. Maj INDEX/BACKLOG/PROMPT_REPRISE/AGENTS racine. Création `CADRAGE_EPIC_LLM_ADAPTER_EXTRACT.adoc` | 1
+| ⏳ À FAIRE
+
+| LLM-ADAPTER-EXTRACT-1
+| *Codebase N1* — Créer `codebase.koog.llm.adapter.LlmProviderChatModelAdapter` (copy du corps, package `codebase.koog.llm.adapter`). Changer `implementation(libs.bundles.langchain4j.rag)` → `api(libs.langchain4j)` + `implementation` pour pgvector/minilm/ollama. Créer `LlmProviderChatModelAdapterTest` (5 unit : doChat single UserMessage, SystemMessage+UserMessage concatenation, AiMessage, empty messages, fake provider). Bump codebase-plugin 0.0.6 → 0.0.7. `publishToMavenLocal`. ~8 unit | 3
+| ⏳ À FAIRE
+
+| LLM-ADAPTER-EXTRACT-2
+| *Slider consomme N1* — Supprimer `slider/ai/LlmProviderChatModelAdapter.kt`. Ajuster imports vers `codebase.koog.llm.adapter.LlmProviderChatModelAdapter`. Aligner langchain4j 1.14.1 → 1.16.3 dans `slider-plugin/gradle/libs.versions.toml`. Non-régression `:slider:check` VERT. ~3 unit (imports) | 2
+| ⏳ À FAIRE
+
+| LLM-ADAPTER-EXTRACT-3
+| *Capsule consomme N1* — Supprimer `capsule/ai/LlmProviderChatModelAdapter.kt`. Ajuster imports. Non-régression `:capsule:check` VERT. ~3 unit | 2
+| ⏳ À FAIRE
+
+| LLM-ADAPTER-EXTRACT-4
+| *Planner consomme N1* — Supprimer `planning/llm/LlmProviderChatModelAdapter.kt`. Ajuster imports. Aligner langchain4j 1.14.1 → 1.16.3. Non-régression `:planner-plugin:check` VERT. ~3 unit | 2
+| ⏳ À FAIRE
+
+| LLM-ADAPTER-EXTRACT-5
+| *Cucumber BDD planner* — `planner_adapter_extract.feature` : scénarios (planner consumes N1 adapter from codebase, local copy removed, ChatModel contract preserved, fake provider response forwarded). ~4 scénarios | 3
+| ⏳ À FAIRE
+|===
+
+_Total_ : 6 US, ~13 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
+tests/US (unit → functional → cucumber), English only code/Gherkin.
+
+== Risques
+
+. *Codebase DORMANT* : sortir Queens de DORMANT pour un EPIC ciblé est
+  légitime (cross-borough N1 → 3 boroughs N2). Le bump 0.0.6 → 0.0.7 est
+  minimal (1 fichier créé + 1 ligne `api` + tests).
+
+. *Version langchain4j 1.14→1.16* : l'API `ChatModel`/`ChatRequest`/
+  `ChatResponse` est stable entre 1.14 et 1.16. Le risque de casser
+  slider/planner est faible. L'alignement 1.16.3 est une décision de
+  cohérence N1/N2.
+
+. *BOM racine* : bump constraint codebase-plugin 0.0.6 → 0.0.7 dans
+  `workspace-bom/gradle/libs.versions.toml`. Publication BOM 0.0.18 → 0.0.19
+  si MEMPHIS nécessaire. À vérifier dans US-1.

@@ -12,7 +12,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.logging.Logging
 import planning.IntentionPlanner
 import planning.PlanningContext
-import planning.llm.LlmProviderChatModelAdapter
+import codebase.koog.llm.adapter.LlmProviderChatModelAdapter
 import planning.llm.PlanningLlmService.aiProvider
 import planning.llm.PlanningLlmService.registerLlmBuildService
 import planning.llm.PlanningLlmService.resolveModel

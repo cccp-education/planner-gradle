@@ -1,0 +1,125 @@
+= Session 073 — PUB-2.2 CADUQUE + PUB-3.10 publication + EPIC LLM-ADAPTER-EXTRACT 6/6 US CLOS
+:date: 2026-08-13
+:toc: left
+
+== Résumé
+
+Session triple : maintenance (PUB-2.2, PUB-3.10) + nouvel EPIC cross-borough
+(LLM-ADAPTER-EXTRACT — extraction `LlmProviderChatModelAdapter` vers N1).
+4 boroughs modifiés (codebase, slider, capsule, planner). 3 copies identiques
+(49 lignes) → 1 source unique N1 `codebase.koog.llm.adapter`. Bug préexistant
+`PlannerIntegration.kt` (build codebase cassé depuis S-072) réparé.
+
+== PUB-2.2 — CADUQUE
+
+Le commentaire RELOCATION à mettre à jour dans `build.gradle.kts` a été
+supprimé lors de la migration CNV-6 (session 056). La relocation est désormais
+gérée par la convention plugin `education.cccp.build.publishing` via
+`publishingConventions { relocationGroupId = ... ; relocationArtifactId = ... }`.
+Rien à modifier — US caduque.
+
+== PUB-3.10 — Publication Maven Central planner-plugin 0.0.2
+
+. Bump version `gradle/libs.versions.toml` : `planner = "0.0.1"` → `"0.0.2"`
+. Fix bug Gradle 9.6.1 `pluginUnderTestMetadata` + `validatePlugins` (implicit
+  dependency on `jar`) — ajout `dependsOn("jar")` dans `build.gradle.kts`
+. `:check` VERT (132 tests 0 FAIL — 109 unit + 23 cucumber)
+. `publishToMavenLocal` VERT
+. Publication Maven Central via `publishAggregationToCentralPortal` depuis
+  build autonome `planner-plugin/` (wrapper + libs.versions.toml copiés)
+. Bundle `47064425-d42e-485c-b3f0-44245b623a97` — AUTOMATIC
+. 5 EPICs livrés depuis 0.0.1 (PLN-VIBE, PLN-CONTRACTS, PLN-VERIFY,
+  PLN-BUDGET, PLN-LLM-HUB)
+
+== EPIC LLM-ADAPTER-EXTRACT — 6/6 US CLOS
+
+=== US-0 Cadrage (gouvernance pure)
+
+Audit 3 copies identiques `LlmProviderChatModelAdapter` (49 lignes chacune)
+dans slider/capsule/planner. 6 constats, 10 décisions architecturales.
+Document `CADRAGE_EPIC_LLM_ADAPTER_EXTRACT.adoc` créé. Décision clé :
+extraire vers `codebase-plugin` (N1) dans package `codebase.koog.llm.adapter`,
+changer `implementation(libs.bundles.langchain4j.rag)` → `api(libs.langchain4j)`
++ `implementation` pour pgvector/minilm/ollama.
+
+=== US-1 Codebase N1 (baby-step TDD strict RED → GREEN → REFACTOR)
+
+. Création `codebase-plugin/src/main/kotlin/codebase/koog/llm/adapter/LlmProviderChatModelAdapter.kt`
+  (49 lignes, copie du corps, package `codebase.koog.llm.adapter`)
+. Création `LlmProviderChatModelAdapterTest` (5 unit : forward single message,
+  concatenate system+user, AiMessage wrapping, single-space prompt, exception
+  propagation)
+. Changement `implementation(libs.bundles.langchain4j.rag)` →
+  `api(libs.langchain4j)` + `implementation` pour pgvector/minilm/ollama
+. Fix bug préexistant `PlannerIntegration.kt` : build codebase cassé depuis
+  S-072 (PLN-LLM-HUB) car `IntentionPlanner.plan()` exigeait un `ChatModel`
+  param non passé. Réparation : `LlmServiceResolver.resolveProvider()` +
+  `LlmProviderChatModelAdapter(provider)` + passage `model = model`
+. Fix bug Gradle 9.6.1 `pluginUnderTestMetadata` + `validatePlugins`
+  (dependsOn jar)
+. Bump codebase-plugin 0.0.5 → 0.0.7 (0.0.6 déjà Central mais non committé)
+. `publishToMavenLocal` VERT
+. Publication Maven Central bundle `e08acb47-a336-46a5-bb4d-be939ef3770d` AUTOMATIC
+
+=== US-2 Slider consomme N1
+
+. Suppression `slider-plugin/src/main/kotlin/slider/ai/LlmProviderChatModelAdapter.kt`
+. Suppression `slider-plugin/src/test/kotlin/slider/ai/LlmProviderChatModelAdapterTest.kt`
+. `AssistantManager.kt` : import `codebase.koog.llm.adapter.LlmProviderChatModelAdapter`
+. Alignement langchain4j 1.14.1 → 1.16.3 dans `slider-plugin/gradle/libs.versions.toml`
+. Bump codebase 0.0.5 → 0.0.7
+. `compileKotlin` VERT, `test` VERT
+
+=== US-3 Capsule consomme N1
+
+. Suppression `capsule-plugin/src/main/kotlin/capsule/ai/LlmProviderChatModelAdapter.kt`
+. Suppression `capsule-plugin/src/test/kotlin/capsule/ai/LlmProviderChatModelAdapterTest.kt`
+. `CapsuleLlmService.kt` : import `codebase.koog.llm.adapter.LlmProviderChatModelAdapter`
+. Bump codebase 0.0.5 → 0.0.7
+. `compileKotlin` VERT, `test` VERT
+
+=== US-4 Planner consomme N1
+
+. Suppression `planner-plugin/src/main/kotlin/planning/llm/LlmProviderChatModelAdapter.kt`
+. Suppression `planner-plugin/src/test/kotlin/planning/llm/LlmProviderChatModelAdapterTest.kt`
+. `PlanningLlmService.kt` : import `codebase.koog.llm.adapter.LlmProviderChatModelAdapter`
+. `PlannerLlmHubSteps.kt` : import `codebase.koog.llm.adapter.LlmProviderChatModelAdapter`
+. Alignement langchain4j 1.14.1 → 1.16.3 dans `planner-plugin/gradle/libs.versions.toml`
+. Bump codebase 0.0.5 → 0.0.7
+. `compileKotlin` VERT, `test` VERT, `cucumberTest` VERT (27/27 PASSED)
+
+=== US-5 Cucumber BDD (baby-step BDD strict RED → GREEN → REFACTOR)
+
+. Feature `planner_adapter_extract.feature` `@adapter-extract` (4 scénarios :
+  local copy removed + import present, resolve model → codebase adapter,
+  N1 adapter forwards prompt to LlmProvider, backward compat mock URL)
+. `PlannerAdapterExtractSteps.kt` (steps préfixés "adapter extract" pattern
+  S-088, shared state `PlannerScenarioState`)
+. Bug `DuplicateStepDefinitionException` → steps uniques préfixés
+. Bug `UndefinedStepException` → steps shared délégués à `PlannerLlmHubSteps`
+  via wording unique
+. 4/4 scénarios PASSED — `cucumberTest` BUILD SUCCESSFUL (27/27 total cucumber)
+
+== Publications Maven Central
+
+| Artefact | Version | Bundle | Statut
+| planner-plugin | 0.0.2 | 47064425-d42e-485c-b3f0-44245b623a97 | ✅ AUTOMATIC
+| codebase-plugin | 0.0.7 | e08acb47-a336-46a5-bb4d-be939ef3770d | ✅ AUTOMATIC
+
+== Cross-borough
+
+4 repos modifiés en coordination :
+
+| Borough | Modifications
+| Queens (codebase) | +1 adapter +5 tests +fix PlannerIntegration +api(langchain4j) +bump 0.0.7
+| MIAMI (slider) | -1 copie -1 test +import aligné +langchain4j 1.16.3 +codebase 0.0.7
+| Détroit (capsule) | -1 copie -1 test +import aligné +codebase 0.0.7
+| Manhattan (planner) | -1 copie -1 test +import aligné +langchain4j 1.16.3 +codebase 0.0.7 +wrapper autonome
+
+== Méthode
+
+Baby-step DDD/TDD/BDD strict (RED → GREEN → REFACTOR), 3 niveaux tests/US
+(unit → functional → cucumber), English only code/Gherkin, agile software
+craftsmanship.
+
+Score : 9/10

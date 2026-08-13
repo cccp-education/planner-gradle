@@ -42,6 +42,14 @@ tasks.withType<Test> {
     }
 }
 
+tasks.named("pluginUnderTestMetadata").configure {
+    dependsOn("jar")
+}
+
+tasks.named("validatePlugins").configure {
+    dependsOn("jar")
+}
+
 // Exclude @Tag("integration") tests from the normal `test` task — they
 // require a real Ollama instance (ConnectException on localhost:1 in CI).
 // Run on demand via `./gradlew :planner-plugin:integrationTest`.
