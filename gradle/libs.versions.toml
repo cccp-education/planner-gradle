@@ -3,9 +3,9 @@ kotlin = "2.4.10"
 planner = "0.0.2"
 plugin-publish = "2.1.0"
 kotlinx-serialization = "1.7.3"
-langchain4j = "1.14.1"
+langchain4j = "1.16.3"
 jackson = "2.18.2"
-codebase = "0.0.5"
+codebase = "0.0.7"
 koog = "0.8.0"
 
 [libraries]
