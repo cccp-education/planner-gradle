@@ -1,0 +1,150 @@
+= CADRAGE EPIC PLN-LIFECYCLE — Planner Agent Lifecycle-Aware
+
+:toc: macro
+:sectnums:
+:date: 2026-08-17
+:source: Session 074 (gouvernance pure, pattern S-057/S-063)
+
+toc::[]
+
+== Contexte — Split-brain #3 reporté S-061
+
+EPIC PLN-CONTRACTS (S-061) a audit 5 split-brain entre planner, BOM
+(agent-contracts N0) et codebase (PlannerIntegration N1). Les split-brain
+#1 (Plan/Epic/UserStory/Task), #2 (Tool catalogue) et #4 (Budget contexte)
+ont été traits. Les split-brain #3 (Agent lifecycle) et #5 (VibecodingStep)
+ont t reports — ils changent le contrat d'excution, pas juste les types.
+
+Le split-brain #5 (VibecodingStep) a t clos par EPIC PLN-VERIFY (S-063-067) :
+`GradleTask` N0 tendu avec `expectedOutput`/`maxRetries`/`verifyHook`.
+
+Le split-brain #3 (Agent lifecycle) reste ouvert : `agent-contracts.AgentState`
+(8 phases sealed : BUILD_CONTEXT→CLASSIFY→PLAN→EXECUTE→EVALUATE→REPLAN→
+FINALIZE→GIVE_UP) + `ContextAssembler`/`PlanExecutor` N0 existent mais
+planner et codebase les ignorent — codebase gre son propre lifecycle koog
+local (`KoogAugmentedContextGraph` 3 nodes buildContext→classify→plan
++ `AugmentedState` data class local + `PlanState` data class local).
+
+== Audit — 6 constats
+
+[cols="1,3,3", options="header"]
+|===
+| # | Constat | Preuve
+
+| 1
+| `AgentState` N0 est un contrat orphan
+| `workspace-bom/agent-contracts/.../AgentState.kt` — 8 phases sealed (Initial/ContextReady/Classified/Planned/Executed/Evaluated/Finalized), publi 0.0.3 (bundle `cd4d2d44`). ZRO consommateur dans planner, codebase, runner.
+
+| 2
+| `ContextAssembler`/`PlanExecutor` N0 sont des interfaces orphan
+| `workspace-bom/agent-contracts/.../ContextAssembler.kt` — 2 interfaces (`ContextAssembler.assemble()`, `PlanExecutor.execute()/evaluate()/replan()`), publi 0.0.3. ZRO implmentation dans planner, codebase, runner.
+
+| 3
+| Codebase gre son propre lifecycle koog local
+| `codebase-plugin/.../KoogAugmentedContextGraph.kt` — graphe koog 3 nodes (buildContext→classify→plan) + `AugmentedState` data class local (package `codebase.koog`). Ne consomme pas `AgentState` N0.
+
+| 4
+| `PlanState` est un tat local codebase, pas N0
+| `codebase-plugin/.../KoogPlan.kt:13` — `data class PlanState(intention, compositeContext, classification, planJson, plan, error)` — tat de planification local codebase, redondant avec `AgentState.Planned` N0 (qui a `intention`, `compositeContext`, `classification`, `planJson`, `epics`).
+
+| 5
+| Planner est stateless — aucun lifecycle
+| `planner-plugin/.../DecomposeIntentionTask.kt:64` — `decompose()` reoit intention + contexte, appelle `IntentionPlanner.plan()`, retourne `Plan`, affiche stdout. Aucune phase, aucun tat, aucune transition. C'est codebase qui orchestre le lifecycle via `KoogAugmentedContextGraph`.
+
+| 6
+| Le split-brain est local-vs-N0, pas dumb-vs-smart
+| `AgentState` N0 modlise 8 phases avec transitions + error + replanCount + maxReplans. `PlanState` codebase modlise 1 tat (planifi ou non). `AugmentedState` codebase modlise le tat du graphe koog. Les 3 sont redondants — `AgentState` N0 est strictement plus gnral.
+|===
+
+== Dcisions architecturales (cadrage S-074)
+
+. *Porte EPIC* : faire consommer `AgentState` N0 par codebase (N1) comme
+  tat du graphe koog, en remplaant `AugmentedState` + `PlanState` locaux
+  par `AgentState.ContextReady`/`Classified`/`Planned`. Planner (N2) reste
+  stateless — il recoit un tat et retourne un plan, le lifecycle est
+  gr par codebase. *Codebase HORS SCOPE initial* — borough DORMANT, 
+  r-valider si ractiv.
+. *Porte planner (N2)* : planner expose une API lifecycle-aware optionnelle.
+  `IntentionPlanner.plan()` accepte un `AgentState.ContextReady` (ou
+  `Classified`) et retourne un `AgentState.Planned`. Backward compat :
+  si l'appelant passe une `PlanningContext` simple (path actuel), planner
+  construit un `AgentState.ContextReady` interne (adaptateur local).
+. *Backward compat critique* : `PlannerIntegration.kt` (codebase) appelle
+  `IntentionPlanner.plan(4 String + Logger)`. Le contrat d'appel est
+  prserv — planner reoit toujours 4 String. L'API lifecycle-aware est
+  une *surcharge optionnelle*, pas un remplacement.
+. *Dpendance cross-borough BOM* : aucune nouvelle publication —
+  `agent-contracts` 0.0.3 est dj dans le classpath de planner
+  (`build.gradle.kts:29`). `AgentState`/`ContextAssembler`/`PlanExecutor`
+  sont dj disponibles. Zro bump BOM.
+. *Dpendance cross-borough codebase* : HORS SCOPE initial. `KoogAugmentedContextGraph`
+  et `PlanState` bénéficieront de `AgentState` N0 dans un EPIC futur
+  codebase (rgles de migration `AugmentedState`/`PlanState` → `AgentState`
+  + suppression redondance). Borough Queens DORMANT.
+. *Adapter pattern* : `LifecycleAdapter` (object pur, domaine
+  `planning.lifecycle`) qui mappe `PlanningContext` + 4 canaux →
+  `AgentState.ContextReady` (N0) et `Plan` → `AgentState.Planned` (N0).
+  Fallback : si `AgentState` indisponible (exception) → path actuel
+  (`PlanningContext` simple, `Plan` simple).
+. *Testabilit* : `AgentState` N0 est pure (sealed class immutable).
+  `LifecycleAdapter` est pur aussi. Tests unit + functional + Cucumber BDD.
+. *Non-rgression critique* : `PlannerIntegration.kt` (codebase) appelle
+  `IntentionPlanner.plan(eagerContext, ragContext, graphifyContext, docsContext)`.
+  Le contrat d'appel est inchang — planner reoit toujours 4 String.
+  L'API lifecycle-aware est additive, pas destructive.
+. *Mthode* : baby-step DDD/TDD/BDD, 3 niveaux tests/US
+  (unit → functional → cucumber), English only code/Gherkin.
+. *Ordre* : US-1 (adapter, indpendant) → US-2 (wiring surcharge optionnelle)
+  → US-3 (Cucumber).
+
+== US dcoupage
+
+[cols="1,3,1,1", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| PLN-LIFECYCLE-0
+| *Cadrage EPIC* — audit planner + BOM + codebase, 6 constats, dcisions, dcoupage US. Maj INDEX/BACKLOG/PROMPT_REPRISE/AGENTS racine. Cration `CADRAGE_EPIC_PLN_LIFECYCLE.adoc` | 1
+| ✅ TERMINÉ (S-074)
+
+| PLN-LIFECYCLE-1
+| *`LifecycleAdapter`* (domaine `planning.lifecycle`, nouveau) — object pur qui mappe `PlanningContext` + 4 canaux (`eagerContext`/`ragContext`/`graphifyContext`/`docsContext`) → `AgentState.ContextReady` (N0) et `Plan` → `AgentState.Planned` (N0). Fallback : si `AgentState` indisponible (exception) → `null` (path actuel prserv). ~8 unit | 2
+| 🟡 À FAIRE
+
+| PLN-LIFECYCLE-2
+| *Wiring surcharge optionnelle `IntentionPlanner.plan()`* — ajouter une surcharge `plan(state: AgentState.ContextReady, ...): AgentState.Planned`  `IntentionPlanner`. Backward compat : la surcharge existante `plan(intention, context, specContents, 4 String, model, logger)` est prserve. `DecomposeIntentionTask` peut consommer l'API lifecycle-aware si `-Pagent.lifecycle=true` (flag optionnel, dfaut `false`). ~5 unit + 2 functional | 3
+| 🟡 À FAIRE
+
+| PLN-LIFECYCLE-3
+| *Cucumber BDD* — `planner_lifecycle.feature` : scénarios (intention → ContextReady → Planned via lifecycle adapter, fallback path actuel si `AgentState` indisponible, non-rgression 4 String prserv, flag `-Pagent.lifecycle` optionnel). ~4 scénarios. Inspir slider Cucumber pipeline + pattern `PlannerVerifySteps` shared state | 3
+| 🟡 À FAIRE
+|===
+
+_Total_ : 4 US, ~9 pts. _Mthode_ : baby-step DDD/TDD/BDD, 3 niveaux
+tests/US (unit → functional → cucumber), English only code/Gherkin.
+_Dpendances_ : MEMPHIS (agent-contracts 0.0.3 dj publi, zro bump).
+_Statut_ : 1/4 US TERMINÉ (S-074 cadrage). reste US-1/2/3.
+
+== Non-rgression critique
+
+`PlannerIntegration.kt` (codebase) appelle
+`IntentionPlanner.plan(eagerContext, ragContext, graphifyContext, docsContext)`.
+Le contrat d'appel (4 String + Logger → Plan) est prserv. L'API
+lifecycle-aware est *additive* — une surcharge optionnelle, pas un
+remplacement. Si `AgentState` N0 est absent du classpath (impossible —
+dj dans `build.gradle.kts:29`), fallback sur le path actuel.
+
+== Porte codebase (HORS SCOPE initial)
+
+Codebase gre son propre lifecycle koog (`KoogAugmentedContextGraph` +
+`AugmentedState` + `PlanState`). La migration vers `AgentState` N0 est
+un EPIC futur codebase (borough Queens DORMANT) :
+
+. `AugmentedState` → `AgentState.ContextReady`/`Classified` (selon phase)
+. `PlanState` → `AgentState.Planned`
+. `KoogAugmentedContextGraph` nodes consomment `AgentState` au lieu de `AugmentedState`
+. Suppression redondance `AugmentedState`/`PlanState` locaux
+
+Cet EPIC est *planner-only* — codebase reste DORMANT. La porte planner
+est d'exposer l'API lifecycle-aware pour que codebase puisse la consommer
+le jour venu (sans changement planner).

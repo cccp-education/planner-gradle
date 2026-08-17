@@ -1,32 +1,38 @@
-= PROMPT_REPRISE — planner-gradle (Session 073 terminée — EPIC LLM-ADAPTER-EXTRACT CLOS)
-:date: 2026-08-13
+= PROMPT_REPRISE — planner-gradle (Session 074 terminée — Cadrage EPIC PLN-LIFECYCLE + maintenance)
+:date: 2026-08-17
 
-== Session 073 terminée — Triple livraison
+== Session 074 terminée — Triple livraison
 
-. PUB-2.2 CADUQUE (commentaire RELOCATION supprimé en CNV-6)
-. PUB-3.10 publication planner-plugin 0.0.2 Maven Central (bundle 47064425)
-. EPIC LLM-ADAPTER-EXTRACT 6/6 US CLOS — extraction `LlmProviderChatModelAdapter`
-  vers `codebase.koog.llm.adapter` (N1). 3 copies identiques (49 lignes)
-  → 1 source unique N1. 4 boroughs modifiés. codebase-plugin 0.0.7 Central.
-  Bug préexistant `PlannerIntegration.kt` (build cassé depuis S-072) réparé.
+. *Cadrage EPIC PLN-LIFECYCLE* (split-brain #3 AgentState reporté S-061) —
+  6 constats, 10 décisions, 4 US ~9 pts, doc `CADRAGE_EPIC_PLN_LIFECYCLE.adoc`.
+  `AgentState` (8 phases sealed) + `ContextAssembler`/`PlanExecutor` N0
+  (agent-contracts 0.0.3 déjà classpath, zéro bump BOM) sont des contrats
+  orphan — zéro consommateur. EPIC planner-only : `LifecycleAdapter`
+  (domaine `planning.lifecycle`) + surcharge optionnelle additive. Codebase
+  HORS SCOPE (DORMANT).
+. *Maintenance cross-borough* — publication slider 0.0.18 (bundle
+  `3720936a`) + BOM 0.0.19 (bundle `2160075f`) + capsule vérifié
+  (0.0.1-SNAPSHOT compile OK, codebase 0.0.7 aligné S-073 US-3).
+. *Découverte EPIC L* — déjà TERMINÉ dans codebase-gradle (S-034-049,
+  `KoogPlanningGraph` opérationnel, koog 1.0.0, zéro langgraph4j).
+  PLAN_GLOBAL.adoc racine périmé mis à jour.
 
-## État EPIC LLM-ADAPTER-EXTRACT — TERMINÉ (6/6 US)
+## État EPIC PLN-LIFECYCLE — 1/4 US (cadrage TERMINÉ)
 
 |===
 | US | Statut
 
-| US-0 cadrage | ✅ TERMINÉ (S-073)
-| US-1 codebase N1 + tests + publish 0.0.7 | ✅ TERMINÉ (S-073)
-| US-2 slider consomme N1 | ✅ TERMINÉ (S-073)
-| US-3 capsule consomme N1 | ✅ TERMINÉ (S-073)
-| US-4 planner consomme N1 | ✅ TERMINÉ (S-073)
-| US-5 Cucumber BDD 4 scénarios | ✅ TERMINÉ (S-073)
+| US-0 cadrage | ✅ TERMINÉ (S-074)
+| US-1 `LifecycleAdapter` (~8 unit) | 🟡 À FAIRE
+| US-2 Wiring surcharge optionnelle (~5 unit + 2 functional) | 🟡 À FAIRE
+| US-3 Cucumber BDD (~4 scénarios) | 🟡 À FAIRE
 |===
 
-## État global — TOUS EPICs TERMINÉS
+## État global — EPICs
 
 |===
 | EPIC | Statut
+| PLN-LIFECYCLE | 🟡 À FAIRE (S-074 — 1/4 US, cadrage TERMINÉ)
 | LLM-ADAPTER-EXTRACT | ✅ TERMINÉ (S-073 — 6/6 US)
 | PLN-LLM-HUB | ✅ TERMINÉ (S-072 — 4/4 US)
 | PLN-BUDGET | ✅ TERMINÉ (S-071 — 4/4 US)
@@ -35,23 +41,24 @@
 | PLN-VIBE | ✅ TERMINÉ (S-059 — 6/6 US)
 |===
 
-Le borough Manhattan n'a plus d'EPIC en cours. Backlog = maintenance
-uniquement (PUB-2.2 CADUQUE, PUB-3.10 ✅ publié 0.0.2).
-
-## Publications Maven Central session
+## Publications Maven Central session 074 (maintenance cross-borough)
 
 | Artefact | Version | Bundle
-| planner-plugin | 0.0.2 | 47064425-d42e-485c-b3f0-44245b623a97
-| codebase-plugin | 0.0.7 | e08acb47-a336-46a5-bb4d-be939ef3770d
+| slider-plugin | 0.0.18 | 3720936a-502c-4375-be10-f9b047797217
+| workspace-bom | 0.0.19 | 2160075f-5b5a-427a-8749-9ac06cc5d1a9
 
-## Prochaine session — 074 : Cadrage prochain EPIC ou maintenance
+## Prochaine session — 075 : PLN-LIFECYCLE US-1 `LifecycleAdapter`
 
-Options :
-. *PLN-LIFECYCLE* — split-brain #3 AgentState (planner ignore 8 phases
-  sealed + ContextAssembler/PlanExecutor N0, reporté S-061)
-. *EPIC L* — migration langgraph4j → koog+langchain4j (PLAN_GLOBAL.adoc)
-. *Maintenance* — slider/capsule n'ont pas republié après consommation N1
-  (bump slider 0.0.14→0.0.15, capsule bump version)
+* Mission : créer `LifecycleAdapter` (object pur, domaine `planning.lifecycle`)
+  qui mappe `PlanningContext` + 4 canaux → `AgentState.ContextReady` (N0)
+  et `Plan` → `AgentState.Planned` (N0). Fallback : si `AgentState`
+  indisponible → `null` (path actuel). ~8 unit tests.
+* Méthode : baby-step TDD strict RED → GREEN → REFACTOR.
+* Build : `./gradlew compileKotlin` VERT avant de coder (depuis
+  `planner-plugin/`, wrapper autonome — build racine cassé, à réparer
+  option 1 ou coder depuis le sous-projet).
+* Dépendance : `agent-contracts:0.0.3` déjà dans `build.gradle.kts:29`.
+* Zéro bump BOM.
 
-Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`, `BACKLOG.adoc`.
-Vérifier `./gradlew :planner-plugin:compileKotlin` VERT avant de coder.
+Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`, `BACKLOG.adoc`,
+`CADRAGE_EPIC_PLN_LIFECYCLE.adoc`.
