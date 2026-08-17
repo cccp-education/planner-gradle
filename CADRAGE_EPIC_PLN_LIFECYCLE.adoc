@@ -109,11 +109,11 @@ local (`KoogAugmentedContextGraph` 3 nodes buildContext→classify→plan
 
 | PLN-LIFECYCLE-1
 | *`LifecycleAdapter`* (domaine `planning.lifecycle`, nouveau) — object pur qui mappe `PlanningContext` + 4 canaux (`eagerContext`/`ragContext`/`graphifyContext`/`docsContext`) → `AgentState.ContextReady` (N0) et `Plan` → `AgentState.Planned` (N0). Fallback : si `AgentState` indisponible (exception) → `null` (path actuel prserv). ~8 unit | 2
-| 🟡 À FAIRE
+| ✅ TERMINÉ (S-075)
 
 | PLN-LIFECYCLE-2
 | *Wiring surcharge optionnelle `IntentionPlanner.plan()`* — ajouter une surcharge `plan(state: AgentState.ContextReady, ...): AgentState.Planned`  `IntentionPlanner`. Backward compat : la surcharge existante `plan(intention, context, specContents, 4 String, model, logger)` est prserve. `DecomposeIntentionTask` peut consommer l'API lifecycle-aware si `-Pagent.lifecycle=true` (flag optionnel, dfaut `false`). ~5 unit + 2 functional | 3
-| 🟡 À FAIRE
+| ✅ TERMINÉ (S-076)
 
 | PLN-LIFECYCLE-3
 | *Cucumber BDD* — `planner_lifecycle.feature` : scénarios (intention → ContextReady → Planned via lifecycle adapter, fallback path actuel si `AgentState` indisponible, non-rgression 4 String prserv, flag `-Pagent.lifecycle` optionnel). ~4 scénarios. Inspir slider Cucumber pipeline + pattern `PlannerVerifySteps` shared state | 3
@@ -123,7 +123,7 @@ local (`KoogAugmentedContextGraph` 3 nodes buildContext→classify→plan
 _Total_ : 4 US, ~9 pts. _Mthode_ : baby-step DDD/TDD/BDD, 3 niveaux
 tests/US (unit → functional → cucumber), English only code/Gherkin.
 _Dpendances_ : MEMPHIS (agent-contracts 0.0.3 dj publi, zro bump).
-_Statut_ : 1/4 US TERMINÉ (S-074 cadrage). reste US-1/2/3.
+_Statut_ : 3/4 US TERMINÉ (S-074 cadrage + S-075 US-1 + S-076 US-2). reste US-3.
 
 == Non-rgression critique
 

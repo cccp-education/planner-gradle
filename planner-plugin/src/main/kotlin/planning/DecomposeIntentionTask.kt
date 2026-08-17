@@ -1,6 +1,7 @@
 package planning
 
 import codebase.koog.llm.service.LlmBuildService
+import contracts.agent.AgentState
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
@@ -14,6 +15,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.services.ServiceReference
 import org.gradle.work.DisableCachingByDefault
 import planning.budget.BudgetWiring
+import planning.lifecycle.LifecycleAdapter
 import planning.llm.PlanningLlmService.aiProvider
 import planning.llm.PlanningLlmService.resolveModel
 
@@ -111,6 +113,33 @@ abstract class DecomposeIntentionTask : DefaultTask() {
                 model = model,
                 logger = logger
             )
+        }
+
+        // EPIC PLN-LIFECYCLE US-2 — opt-in lifecycle-aware path.
+        // When -Pagent.lifecycle=true, wrap the Plan into an AgentState.Planned (N0)
+        // via LifecycleAdapter and emit the agent lifecycle header. Backward compat:
+        // default false preserves the legacy stdout contract.
+        val lifecycleEnabled = project.providers.gradleProperty("agent.lifecycle")
+            .orElse("false").get() == "true"
+        if (lifecycleEnabled) {
+            val contextReady = LifecycleAdapter.toContextReady(
+                context = context,
+                eagerContext = budgeted.eager,
+                ragContext = budgeted.rag,
+                graphifyContext = budgeted.graphify,
+                docsContext = budgeted.docs
+            )
+            if (contextReady != null) {
+                val planned = LifecycleAdapter.toPlanned(
+                    plan = plan,
+                    intention = intent,
+                    compositeContext = contextReady.compositeContext,
+                    afnorCorpus = contextReady.afnorCorpus
+                )
+                if (planned != null) {
+                    println("[LIFECYCLE] phase=${planned.phase} intention=${planned.intention}")
+                }
+            }
         }
 
         val output = StdoutFormatter.format(plan)

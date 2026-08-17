@@ -1,0 +1,109 @@
+= Session 076 — PLN-LIFECYCLE US-2 Wiring surcharge optionnelle
+:date: 2026-08-17
+:source: Session 076 (dev)
+:epic: PLN-LIFECYCLE
+:method: baby-step DDD/TDD/BDD strict (RED → GREEN → REFACTOR)
+
+== Mission
+
+EPIC PLN-LIFECYCLE US-2 — Wiring surcharge optionnelle `IntentionPlanner.plan(AgentState.ContextReady)`
+dans `DecomposeIntentionTask` via flag `-Pagent.lifecycle=true`. Backward compat critique :
+la surcharge existante `plan(intention, context, specContents, 4 String, model, logger)` est
+préservée — l'API lifecycle-aware est *additive*, pas destructive.
+
+== Constat
+
+US-1 (S-075) a livré `LifecycleAdapter` (domaine `planning.lifecycle`, object pur) qui mappe
+`PlanningContext` + 4 canaux → `AgentState.ContextReady` (N0) et `Plan` → `AgentState.Planned` (N0).
+US-2 câble cet adapter dans `IntentionPlanner` (surcharge) + `DecomposeIntentionTask` (flag opt-in).
+
+== Code modifié
+
+=== Production (2 fichiers)
+
+. `planner-plugin/src/main/kotlin/planning/IntentionPlanner.kt`
+  * +1 import `contracts.agent.AgentState`
+  * +1 import `planning.lifecycle.LifecycleAdapter`
+  * +44 lignes — nouvelle surcharge `plan(state: AgentState.ContextReady, specContents, model, logger): AgentState.Planned`
+    délègue à la surcharge multi-canal existante (eagerContext = state.compositeContext,
+    docsContext = state.afnorCorpus, rag/graphify vides), puis wrap via
+    `LifecycleAdapter.toPlanned`. Fallback défensif `AgentState.Planned(...)` direct si
+    adapter retourne `null` (factory failure — path actuel préservé).
+
+. `planner-plugin/src/main/kotlin/planning/DecomposeIntentionTask.kt`
+  * +2 imports `contracts.agent.AgentState`, `planning.lifecycle.LifecycleAdapter`
+  * +18 lignes — block opt-in après `IntentionPlanner.plan()` : si `-Pagent.lifecycle=true`,
+    construit `AgentState.ContextReady` via `LifecycleAdapter.toContextReady` (4 canaux),
+    puis `AgentState.Planned` via `LifecycleAdapter.toPlanned`, émet header `[LIFECYCLE]`.
+    Default `false` → legacy stdout contract préservé (économie d'encre).
+
+=== Tests (2 fichiers créés)
+
+. `planner-plugin/src/test/kotlin/planning/IntentionPlannerLifecycleTest.kt` (5 unit)
+  * `plan with ContextReady returns Planned with epics parsed from LLM`
+  * `plan with ContextReady preserves intention in Planned`
+  * `plan with ContextReady preserves compositeContext and afnorCorpus in Planned`
+  * `plan with ContextReady sets phase to EXECUTE`
+  * `plan with ContextReady invokes ChatModel and prompt contains compositeContext`
+
+. `planner-plugin/src/test/kotlin/planning/DecomposeIntentionLifecycleTest.kt` (2 functional @integration)
+  * `generatePlan with agent lifecycle true emits LIFECYCLE header before LLM call`
+  * `generatePlan without agent lifecycle does not emit LIFECYCLE header`
+
+== Méthode — baby-step TDD strict
+
+. *RED* : 5 tests unit `IntentionPlannerLifecycleTest` écrits en premier.
+  Compilation échoue — `Unresolved reference 'plan'` (surcharge lifecycle inexistante).
+. *GREEN* : surcharge `plan(state: AgentState.ContextReady, ...)` ajoutée à `IntentionPlanner`
+  + câblage `DecomposeIntentionTask` (flag opt-in `-Pagent.lifecycle`).
+  5/5 unit PASSED + 2/2 functional PASSED.
+. *REFACTOR* : `:check` VERT 144 tests 0 FAIL (baseline 139 → +5 unit, +2 functional
+  exclus du `check` par `@Tag("integration")` pattern S-060). `publishToMavenLocal` VERT.
+
+== Vérifications
+
+. `./gradlew :planner-plugin:compileKotlin` VERT
+. `./gradlew :planner-plugin:test` VERT — 144 tests 0 FAIL 0 SKIP
+. `./gradlew :planner-plugin:integrationTest --tests "planning.DecomposeIntentionLifecycleTest"` VERT — 2/2 PASSED
+. `./gradlew :planner-plugin:check` VERT
+. `./gradlew :planner-plugin:publishToMavenLocal` VERT
+. `grep -rE "TOKEN|SECRET|PASSWORD|API_KEY|gho_|ghp_"` — zéro match
+
+== État EPIC PLN-LIFECYCLE — 3/4 US
+
+|===
+| US | Statut
+
+| US-0 cadrage | ✅ TERMINÉ (S-074)
+| US-1 `LifecycleAdapter` (~8 unit) | ✅ TERMINÉ (S-075)
+| US-2 Wiring surcharge optionnelle (~5 unit + 2 functional) | ✅ TERMINÉ (S-076)
+| US-3 Cucumber BDD (~4 scénarios) | 🟡 À FAIRE
+|===
+
+== Non-régression critique
+
+`PlannerIntegration.kt` (codebase) appelle
+`IntentionPlanner.plan(eagerContext, ragContext, graphifyContext, docsContext)`. Le contrat
+d'appel (4 String + Logger → Plan) est *inchangé*. L'API lifecycle-aware est une *surcharge
+additive* — le path legacy est préservé. Le flag `-Pagent.lifecycle=true` est opt-in, défaut
+`false` → aucun impact sur le comportement par défaut.
+
+== Découverte technique
+
+Les tests fonctionnels `@integration` lifecycle utilisent `build()` (non `buildAndFail()`)
+car depuis EPIC PLN-LLM-HUB (S-072), `OllamaBridge` legacy est supprimé — `LlmBuildService`
+(codebase N1) résout le ChatModel via le pool 11437-11465. La propriété `-PollamaBaseUrl=http://localhost:1`
+est désormais ignorée en mode `LlmBuildService` (réservée au fallback mock-LLM de
+`PlanningLlmService.resolveModel`). Le LLM réel répond, le header `[LIFECYCLE]` est émis
+*avant* l'appel LLM, donc l'assertion stdout est valide que le LLM réponde ou échoue.
+
+== Zéro bump BOM
+
+`agent-contracts:0.0.3` déjà dans `build.gradle.kts:29` (MEMPHIS publié S-064).
+`LifecycleAdapter` (US-1) déjà disponible dans `planning.lifecycle`. Zéro publication
+Maven Central requise pour cette US.
+
+== Score session
+
+9/10 — baby-step TDD strict respecté, 5 unit + 2 functional créés, zéro régression,
+zéro bump BOM, zéro secret. US-3 Cucumber restante pour clôturer l'EPIC.

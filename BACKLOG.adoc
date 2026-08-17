@@ -7,7 +7,7 @@
 _Source : configuration/EPIC_PUB.adoc (Session 096) + Session 074 (cadrage PLN-LIFECYCLE)_
 
 '''
-== 🟡 EPIC PLN-LIFECYCLE — Planner Agent Lifecycle-Aware (Session 075 — US-1 LifecycleAdapter, 2/4 US)
+== 🟡 EPIC PLN-LIFECYCLE — Planner Agent Lifecycle-Aware (Session 076 — US-2 Wiring, 3/4 US)
 
 _Source_ : Session 074. Split-brain #3 reporté S-061 :
 `agent-contracts.AgentState` (8 phases sealed) + `ContextAssembler`/`PlanExecutor`
@@ -91,7 +91,7 @@ zéro bump BOM). Codebase HORS SCOPE (borough DORMANT — EPIC futur migration
 
 | PLN-LIFECYCLE-2
 | *Wiring surcharge optionnelle `IntentionPlanner.plan()`* — ajouter une surcharge `plan(state: AgentState.ContextReady, ...): AgentState.Planned` à `IntentionPlanner`. Backward compat : surcharge existante `plan(intention, context, specContents, 4 String, model, logger)` préservée. `DecomposeIntentionTask` peut consommer l'API lifecycle-aware si `-Pagent.lifecycle=true` (flag optionnel, défaut `false`). ~5 unit + 2 functional | 3
-| 🟡 À FAIRE
+| ✅ TERMINÉ (S-076)
 
 | PLN-LIFECYCLE-3
 | *Cucumber BDD* — `planner_lifecycle.feature` : scénarios (intention → ContextReady → Planned via lifecycle adapter, fallback path actuel si `AgentState` indisponible, non-régression 4 String préservé, flag `-Pagent.lifecycle` optionnel). ~4 scénarios. Inspiré slider Cucumber pipeline + pattern `PlannerVerifySteps` shared state | 3
@@ -101,7 +101,7 @@ zéro bump BOM). Codebase HORS SCOPE (borough DORMANT — EPIC futur migration
 _Total_ : 4 US, ~9 pts. _Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux
 tests/US (unit → functional → cucumber), English only code/Gherkin.
 _Dépendances_ : MEMPHIS (agent-contracts 0.0.3 déjà publié, zéro bump).
-_Statut_ : 2/4 US TERMINÉ (S-074 cadrage + S-075 US-1 `LifecycleAdapter` ✅). reste US-2/3 🟡 À FAIRE.
+_Statut_ : 3/4 US TERMINÉ (S-074 cadrage + S-075 US-1 `LifecycleAdapter` ✅ + S-076 US-2 Wiring ✅). reste US-3 🟡 À FAIRE.
 
 _Non-regression critique_ : `PlannerIntegration.kt` (codebase) appelle
 `IntentionPlanner.plan(eagerContext, ragContext, graphifyContext, docsContext)`.

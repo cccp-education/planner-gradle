@@ -3,11 +3,13 @@ package planning
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import contracts.agent.AgentState
 import contracts.agent.Plan
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.model.chat.ChatModel
 import org.gradle.api.logging.Logger
 import org.slf4j.LoggerFactory as Slf4jLoggerFactory
+import planning.lifecycle.LifecycleAdapter
 
 object IntentionPlanner {
 
@@ -55,6 +57,50 @@ object IntentionPlanner {
         val log = Slf4jLoggerFactory.getLogger(IntentionPlanner::class.java)
         val prompt = buildPrompt(intention, context, specContents, eagerContext, ragContext, graphifyContext, docsContext)
         return callLlm(model, prompt) { msg -> log.info(msg) }
+    }
+
+    /**
+     * EPIC PLN-LIFECYCLE US-2 — lifecycle-aware surcharge (additive).
+     *
+     * Consumes an `AgentState.ContextReady` (N0) and returns an `AgentState.Planned` (N0).
+     * The compositeContext from the state is forwarded as the `eagerContext` channel so the
+     * existing multi-canal prompt path is reused. The resulting `Plan` is wrapped via
+     * `LifecycleAdapter.toPlanned`, preserving `intention`, `compositeContext`, `afnorCorpus`,
+     * and `epics`. If the adapter returns `null` (factory failure), a fallback `AgentState.Planned`
+     * is built directly so the planner never throws on the lifecycle path.
+     *
+     * Backward compat: the 4-String surcharges above are unchanged. This API is opt-in.
+     */
+    fun plan(
+        state: AgentState.ContextReady,
+        specContents: List<SpecReader.SpecContent>,
+        model: ChatModel,
+        logger: Logger
+    ): AgentState.Planned {
+        val context = PlanningContext(intention = state.intention)
+        val plan = plan(
+            intention = state.intention,
+            context = context,
+            specContents = specContents,
+            eagerContext = state.compositeContext,
+            ragContext = "",
+            graphifyContext = "",
+            docsContext = state.afnorCorpus,
+            model = model,
+            logger = logger
+        )
+        val planned = LifecycleAdapter.toPlanned(
+            plan = plan,
+            intention = state.intention,
+            compositeContext = state.compositeContext,
+            afnorCorpus = state.afnorCorpus
+        )
+        return planned ?: AgentState.Planned(
+            intention = state.intention,
+            compositeContext = state.compositeContext,
+            afnorCorpus = state.afnorCorpus,
+            epics = plan.epics
+        )
     }
 
     private fun callLlm(model: ChatModel, prompt: String, log: (String) -> Unit): Plan {
