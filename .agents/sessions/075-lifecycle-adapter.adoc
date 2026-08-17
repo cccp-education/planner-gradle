@@ -1,0 +1,116 @@
+= Session 075 — PLN-LIFECYCLE US-1 LifecycleAdapter (domaine planning.lifecycle)
+:date: 2026-08-17
+:session_type: dev
+:epic: PLN-LIFECYCLE
+:us: US-1
+:method: baby-step TDD strict RED → GREEN → REFACTOR
+
+== Mission
+
+PLN-LIFECYCLE US-1 — créer `LifecycleAdapter` (object pur, domaine
+`planning.lifecycle`, nouveau) qui mappe `PlanningContext` + 4 canaux
+→ `AgentState.ContextReady` (N0) et `Plan` → `AgentState.Planned` (N0).
+Fallback défensif : si la factory d'`AgentState` lance → `null`
+(path actuel préservé). ~8 unit tests.
+
+Source : cadrage S-074 (`CADRAGE_EPIC_PLN_LIFECYCLE.adoc`), split-brain #3
+reporté S-061. `AgentState` (8 phases sealed) + `ContextAssembler`/`PlanExecutor`
+N0 (agent-contracts 0.0.3 déjà classpath, zéro bump BOM) sont des contrats
+orphan — zéro consommateur. EPIC planner-only.
+
+== Méthode — Baby-step TDD strict
+
+=== RED — `LifecycleAdapterTest.kt` (8 unit tests)
+
+Créé `planner-plugin/src/test/kotlin/planning/lifecycle/LifecycleAdapterTest.kt`
+avec 8 tests couvrant :
+
+. `toContextReady maps PlanningContext intention to AgentState ContextReady intention`
+. `toContextReady concatenates the four channels into compositeContext`
+. `toContextReady maps docsContext to afnorCorpus`
+. `toContextReady sets phase to CLASSIFY`
+. `toContextReady returns null when factory throws` (fallback défensif)
+. `toPlanned maps Plan epics to AgentState Planned epics`
+. `toPlanned preserves intention compositeContext and sets phase to EXECUTE`
+. `toPlanned returns null when factory throws` (fallback défensif)
+
+`compileTestKotlin` FAIL — 24 erreurs `Unresolved reference 'LifecycleAdapter'`
+attendues.
+
+=== GREEN — `LifecycleAdapter.kt` (object pur)
+
+Créé `planner-plugin/src/main/kotlin/planning/lifecycle/LifecycleAdapter.kt`
+(object pur, domaine `planning.lifecycle`).
+
+API publique :
+
+. `toContextReady(context, eagerContext, ragContext, graphifyContext, docsContext, factory)` → `AgentState.ContextReady?`
+  - Concatène les 4 canaux dans `compositeContext`
+  - Mappe `docsContext` → `afnorCorpus`
+  - Phase default `AgentPhase.CLASSIFY` (valeur N0 défaut)
+  - Factory injectable pour testabilité des fallbacks
+  - `try/catch` → `null` si factory lance (fallback défensif)
+. `toPlanned(plan, intention, compositeContext, afnorCorpus, classification, modelChoice, factory)` → `AgentState.Planned?`
+  - Mappe `plan.epics` → `state.epics`
+  - Phase default `AgentPhase.EXECUTE` (valeur N0 défaut)
+  - Factory injectable pour testabilité des fallbacks
+  - `try/catch` → `null` si factory lance (fallback défensif)
+
+Pattern :
+- Object pur Kotlin (zéro dépendance Gradle/coroutine, unit-testable
+  plain fake) — mirror `BudgetAdapter` (domaine `planning.budget`).
+- Factory injectable par paramètre défaut — pattern `BudgetAdapter.compute`
+  (S-069 US-1) pour testabilité des fallbacks sans reflection.
+- Fallback `null` si factory lance — pattern `BudgetAdapter.applyRelevanceBudget`
+  catch `Exception` → contenu original. Ici l'absence d'état est `null`
+  (l'appelant retombe sur le path actuel `PlanningContext` + `Plan` simples).
+- Domaine `planning.lifecycle` nouveau (7ème domaine planner) :
+  1. `planning` (core)
+  2. `planning.budget`
+  3. `planning.llm`
+  4. `planning.lifecycle` (nouveau)
+
+`compileTestKotlin` SUCCESS. `test --tests LifecycleAdapterTest` 8/8 PASSED.
+
+=== REFACTOR — `:check` VERT
+
+`./gradlew :planner-plugin:check` BUILD SUCCESSFUL in 22s.
+- 139 tests total (baseline 131 → +8), 0 FAIL, 0 SKIP.
+- `validatePlugins` VERT.
+- Zéro régression : tous les tests existants (IntentionPlanner, BudgetAdapter,
+  PlanningLlmService, Cucumber PLN-VIBE/CONTRACTS/BUDGET/VERIFY/LLM-HUB/
+  ADAPTER-EXTRACT) préservés.
+- `publishToMavenLocal` VERT (Regle 2 obligatoire).
+
+== Fichiers créés
+
+. `planner-plugin/src/main/kotlin/planning/lifecycle/LifecycleAdapter.kt` (67 lignes)
+. `planner-plugin/src/test/kotlin/planning/lifecycle/LifecycleAdapterTest.kt` (132 lignes)
+
+Zéro fichier existant modifié. Zéro bump BOM (agent-contracts 0.0.3 déjà
+classpath). Zéro secret.
+
+== Statut EPIC PLN-LIFECYCLE — 2/4 US
+
+|===
+| US | Statut
+
+| US-0 cadrage | ✅ TERMINÉ (S-074)
+| US-1 `LifecycleAdapter` | ✅ TERMINÉ (S-075)
+| US-2 Wiring surcharge optionnelle | 🟡 À FAIRE
+| US-3 Cucumber BDD | 🟡 À FAIRE
+|===
+
+== Prochaine session — 076 : PLN-LIFECYCLE US-2 Wiring
+
+Ajouter une surcharge `plan(state: AgentState.ContextReady, ...): AgentState.Planned`
+à `IntentionPlanner`. Backward compat : surcharge existante
+`plan(intention, context, specContents, 4 String, model, logger)` préservée.
+`DecomposeIntentionTask` peut consommer l'API lifecycle-aware si
+`-Pagent.lifecycle=true` (flag optionnel, défaut `false`). ~5 unit + 2 functional.
+
+== Score session
+
+9/10 — baby-step TDD strict respecté, zéro régression, zéro secret, zéro bump BOM.
+1 pt de moins : US unique (1 US/session, vélocité conservatrice cohérente avec
+le pattern S-069/S-070/S-071).
