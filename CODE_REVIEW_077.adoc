@@ -1,0 +1,220 @@
+= Code Review 077 — planner-gradle vs Vision Globale (Axes d'Amélioration)
+:description: Audit code complet du borough Manhattan — 9 findings, 3 P1, 3 P2, 3 P3 — axes d'amélioration découpés en EPIC PLN-REVIEW
+:date: 2026-08-17
+:toc: left
+:sectnums:
+
+_Source_ : Session 077 (gouvernance pure, zéro code modifié — pattern S-057/S-063).
+Base revue : `main` @ `cdd9af8` (S-076), 144 tests VERT. 15 fichiers source
+planner lus + contrats N0 (workspace-bom) + `PlannerIntegration.kt` (codebase)
++ vérification publication Maven Central.
+
+_Usage_ : document de référence de l'EPIC `PLN-REVIEW` (BACKLOG.adoc). À prendre
+comme axe d'amélioration du borough — à traiter en priorité après clôture de
+PLN-LIFECYCLE US-3.
+
+'''
+== 1. Vue d'ensemble
+
+Le borough est sain : 144 tests 0 FAIL, EPICs clos dans les règles
+(PLN-VIBE, PLN-CONTRACTS, PLN-VERIFY, PLN-BUDGET, PLN-LLM-HUB,
+LLM-ADAPTER-EXTRACT), backward compat `PlannerIntegration` respectée à chaque
+EPIC, zéro bump BOM superflu, dépendance unique au hub LLM N1
+(`LlmBuildService` + pool 11437-11465, ports protégés 11434-11436 intouchés).
+
+La revue révèle néanmoins un constat central : **planner est un cerveau sans
+mains ni mémoire**. Il ne persiste aucun artefact (plan JSON, metadata.json),
+sa "source unique de vérité" d'outils est une copie manuelle déjà divergente
+du N0 publié, et le chemin lifecycle livré en S-076 n'est pas celui exercé en
+production.
+
+== 2. Findings
+
+=== 2.1 P1-1 — `Metadata.kt` orphelin : le planner ne matérialise RIEN sur disque
+
+*Constat* : `planning/Metadata.kt` (35 lignes, contrat format pivot
+`metadata.json` conforme TAXONOMIE_WORKSPACE §Format Pivot) est défini mais
+*aucun usage* dans `main/`. La tâche `generatePlan` n'a aucun `@OutputFile` :
+le plan part en stdout pur (`StdoutFormatter` `[PLAN]/[EPIC]/[US]/[TASK]`),
+jamais persisté.
+
+*Preuve* :
+- `grep -rn "Metadata" planner-plugin/src/main/kotlin/` → uniquement `Metadata.kt` lui-même.
+- `DecomposeIntentionTask.kt` : `@DisableCachingByDefault`, aucun `@OutputFile`.
+
+*Impact vs vision* : c'est le gap majeur. La vision (TAXONOMIE_WORKSPACE,
+runtime agentique, dashboard ALGER, cockpit Long Island) exige des artefacts
+matériels + métadonnées pivot consommables par les N3/N4 (runner, pilot,
+workspace). Aujourd'hui rien n'est exploitable hors stdout texte non parsable
+(les titres `title="..."` avec guillemets internes cassent le parsing).
+
+=== 2.2 P1-2 — Split-brain #2 non réellement clos : ToolCatalog copie manuelle alors que vibecoding-contracts EST publié
+
+*Constat* : `ToolCatalog.kt:9-11` affirme *"Le planner ne dépend pas
+directement de vibecoding-contracts (non publié proprement)"* — faux :
+`repo1.maven.org/education/cccp/vibecoding-contracts` répond HTTP 200. La
+décision PLN-CONTRACTS-3 (S-061) était "dépend seulement de vibecoding-contracts
+(déjà publié) + adapter".
+
+*Preuve de drift déjà effective* :
+- planner : `exec_shell` → `"Execute a shell command via bash -c (DANGEROUS commands blocked)"`
+- N0 `ToolRegistry.kt:48` : `"Execute a shell command via bash -c. Returns EXIT code + stdout (max 8000 chars). DANGEROUS commands blocked."`
+
+*Impact* : l'"alignement manuel anti-drift" produit exactement la drift qu'il
+prétend éviter. Si codebase ajoute un outil (ex. `list_tasks`), le prompt
+planner restera muet — le LLM ne saura pas le planifier.
+
+=== 2.3 P1-3 — La surcharge lifecycle US-2 est orpheline côté production
+
+*Constat* : `DecomposeIntentionTask.kt:122-143` : quand
+`-Pagent.lifecycle=true`, la tâche génère le plan via la surcharge
+**multi-canal**, puis fait un **post-wrap** `LifecycleAdapter.toPlanned` — elle
+n'appelle *jamais* la surcharge `IntentionPlanner.plan(state: AgentState.ContextReady, ...)`
+livrée en US-2 (testée uniquement par `IntentionPlannerLifecycleTest`).
+
+*Impact* : logique de wrapping dupliquée (dans la surcharge ET dans la tâche),
+deux chemins lifecycle possibles dont un seul est validé par les 5 unit tests.
+Le chemin réellement exercé en production n'est pas celui qui a été testé.
+
+=== 2.4 P2-1 — Version koog en retard + dépendance directe inutilisée
+
+*Constat* : `libs.versions.toml` : `koog = "0.8.0"` alors que slider/capsule
+sont sur `koog-agents:1.0.0` (S-062/063). Et `implementation(libs.koog.agents)`
+n'est importé *nulle part* dans `main/` — les seuls imports `codebase.koog.*`
+viennent de codebase-plugin (N1).
+
+*Impact* : risque de résolution transitive incohérente (koog 0.8.0 vs 1.0.0
+selon le graphe) + dépendance morte. Bump à 1.0.0 (alignement BOM) ou
+suppression de la dépendance directe.
+
+=== 2.5 P2-2 — Flag `agent.lifecycle` implicite, hors extension, hors inputs
+
+*Constat* : ni `PlannerExtension` (3 Property : intention, specsDir,
+aiProvider) ni le plugin n'exposent le flag — lu en dur dans la tâche via
+`gradleProperty("agent.lifecycle")`. Conséquences :
+- non documenté dans `task.description` (qui mentionne seulement `-PspecsDir`) ;
+- non participant aux inputs → la tâche peut être UP-TO-DATE à tort si le flag
+  change (`@DisableCachingByDefault` ne désactive pas l'up-to-date checking).
+
+=== 2.6 P2-3 — English-only violé dans le code de production
+
+*Constat* : 4 fichiers `main/` contiennent des commentaires français :
+`DecomposeIntentionTask.kt` ("EPIC 3 — Multi-Canal Convergent : task câblée…"),
+`PlanningPlugin.kt` ("vibecode task supprimee…", "La tache vibecode…"),
+`ToolCatalog.kt` ("alignés manuellement pour éviter la drift…"),
+`IntentionPlanner.kt` (6 occurrences). Violation de la règle transverbe
+English only (code/comments/Gherkin) applicable aux boroughs OSS.
+
+=== 2.7 P3-1 — `PlannerIntegration` (codebase) contourne le hub planner
+
+*Constat* : `codebase.rag.PlannerIntegration.kt` résout son propre provider
+(`LlmServiceResolver` + env `OLLAMA_MODEL`) au lieu de consommer
+`PlanningLlmService` — cohérent avec le scope DORMANT codebase, mais le pont
+N1→N2 n'utilise pas le hub qu'il a lui-même motivé (S-072).
+
+*Action* : à noter dans le backlog codebase (EPIC futur, borough DORMANT).
+
+=== 2.8 P3-2 — Noms de tâches cross-borough hardcodés dans le prompt
+
+*Constat* : `ToolCatalog.toPromptSection()` : `:slider:generateSlides`,
+`:capsule:extractSpeakerNotes`, `:bakery:publishSite`, `:plantuml:generateDiagram`.
+
+*Impact* : dérive silencieuse si renommés (cas réel : SLD-11 a renommé
+`generateCapsule` → `extractSpeakerNotes`). Un futur `BoroughDef` (pilot-gradle,
+Jersey City) devrait alimenter cette connaissance.
+
+=== 2.9 P3-3 — 4 surcharges `plan` = plumbing fragile
+
+*Constat* : 5-param / 8-param / 9-param / 5-param lifecycle. Le bug masqué par
+cache Gradle découvert en S-076 (variables undefined dans la surcharge sans
+logger) est symptomatique.
+
+*Action* : un `PlanRequest` data class param (avec builder) serait plus sûr et
+plus testable — à considérer au prochain ajout de paramètre.
+
+== 3. Écarts vs vision globale
+
+[cols="3,4,2", options="header"]
+|===
+| Vision | Réalité planner | Finding
+
+| Format pivot `metadata.json` à côté de la sortie (TAXONOMIE_WORKSPACE §Format Pivot)
+| Zéro fichier émis — stdout uniquement
+| P1-1
+
+| Plans consommables par N3/N4 (runner, pilot, workspace, dashboard, cockpit)
+| stdout texte non parsable
+| P1-1
+
+| Split-brain #2 clos (contrats N0 consommés)
+| copie manuelle + drift déjà visible
+| P1-2
+
+| Lifecycle agentique (8 phases `AgentState`) exercé
+| 2 phases seulement ; câblage US-2 redondant et non testé en prod
+| P1-3
+
+| BOM koog 1.0.0 (slider/capsule)
+| 0.8.0 inutilisée
+| P2-1
+
+| "Planner pilote les créateurs de contenu via le hub codebase" (S-057)
+| noms de tâches N2 hardcodés dans le prompt
+| P3-2
+|===
+
+== 4. Découpage EPIC PLN-REVIEW — Axes d'amélioration
+
+_Statut global_ : 🟡 À FAIRE (S-077 — cadrage/review ✅, US-1→6 à traiter).
+_Méthode_ : baby-step DDD/TDD/BDD, 3 niveaux tests/US (unit → functional →
+cucumber), English only code/Gherkin. Zéro bump BOM sauf mention.
+_Ordre_ : P1 d'abord (US-1→3), puis P2 (US-4→6), P3 en note backlog.
+
+[cols="1,3,1,1", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| PLN-REVIEW-0
+| *Cadrage EPIC* — code review complète (9 findings, 3 P1/3 P2/3 P3), écarts vs vision, découpage US. Création `CODE_REVIEW_077.adoc`. Maj BACKLOG/PROMPT_REPRISE. Zéro code modifié | 1
+| ✅ TERMINÉ (S-077)
+
+| PLN-REVIEW-1
+| *Persistance plan + metadata.json* (P1-1) — `@OutputFile plan.json` (sérialisation `contracts.agent.Plan` via Jackson) + `Metadata.writeTo` (Metadata.kt devient opérationnel) sur `generatePlan`. Sortie AsciiDoc optionnelle (prompt → `-PplanOutputDir`). Non-régression stdout préservé. ~8 unit + 2 functional | 3
+| 🟡 À FAIRE
+
+| PLN-REVIEW-2
+| *ToolCatalog consomme vibecoding-contracts N0* (P1-2) — supprimer la copie manuelle, dépendre de `education.cccp:vibecoding-contracts` (déjà Central, vérifier dernière version) + adapter lisant `ToolRegistry.toolNames()/ToolInfo`. Non-régression prompt 7 outils identiques. ~5 unit | 2
+| 🟡 À FAIRE
+
+| PLN-REVIEW-3
+| *Câbler la surcharge lifecycle dans la tâche* (P1-3) — `DecomposeIntentionTask` appelle `plan(state: ContextReady, ...)` quand `-Pagent.lifecycle=true`, suppression du post-wrap `LifecycleAdapter.toPlanned` redondant. Un seul chemin lifecycle = celui testé. ~5 unit + 2 functional | 2
+| 🟡 À FAIRE
+
+| PLN-REVIEW-4
+| *koog 1.0.0 + dépendance morte* (P2-1) — bump `koog = "0.8.0" → "1.0.0"` ou suppression `implementation(libs.koog.agents)` si non utilisée. Vérifier BOM racine (MEMPHIS) pour alignement. ~2 unit | 1
+| 🟡 À FAIRE
+
+| PLN-REVIEW-5
+| *Flag `agent.lifecycle` dans l'extension + inputs* (P2-2) — `PlannerExtension.lifecycleEnabled` (Property<Boolean>, convention false) + `task.lifecycleEnabled` `@Input`. Mise à jour `task.description` (documenter `-Pintention`, `-Pai.provider`, `-Pagent.lifecycle`). ~3 unit | 1
+| 🟡 À FAIRE
+
+| PLN-REVIEW-6
+| *Purge commentaires français* (P2-3) — anglais uniquement dans 4 fichiers (`DecomposeIntentionTask.kt`, `PlanningPlugin.kt`, `ToolCatalog.kt`, `IntentionPlanner.kt`). Zéro test (refactor cosmétique, vérif `:check` VERT). | 1
+| 🟡 À FAIRE
+|===
+
+_Total_ : 7 US, ~11 pts.
+
+== 5. Notes backlog (P3, hors portée immédiate)
+
+- *P3-1* — `PlannerIntegration` (codebase) : consommer `PlanningLlmService` au
+  lieu de son propre résolveur → EPIC futur codebase (borough Queens DORMANT).
+- *P3-2* — connaissance des tâches cross-borough alimentée par `BoroughDef`
+  (pilot-gradle, Jersey City) quand il existera.
+- *P3-3* — refactor `PlanRequest` data class si un 5e paramètre apparaît.
+
+== 6. Vérification post-session
+
+- Zéro code modifié (gouvernance pure) — `git status` doit être propre.
+- `grep -n "🟡\|⏳" BACKLOG.adoc` — seuls marqueurs légitimes (EPICs en cours).
+- Aucun commit sans permission explicite.
