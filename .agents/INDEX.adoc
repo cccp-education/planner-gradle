@@ -4,10 +4,10 @@
 _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
-_Derniere mise a jour_ : 2026-08-17
-_Session terminee_ : 076 — PLN-LIFECYCLE US-2 Wiring surcharge optionnelle `IntentionPlanner.plan(AgentState.ContextReady)`. Nouvelle surcharge additive délègue à la surcharge multi-canal existante, wrap via `LifecycleAdapter.toPlanned`. Fallback défensif `AgentState.Planned(...)` direct si adapter retourne `null`. `DecomposeIntentionTask` câblé avec flag opt-in `-Pagent.lifecycle=true` (défaut `false`) qui émet header `[LIFECYCLE]` avant le stdout legacy. Baby-step TDD strict RED (5 tests → `Unresolved reference 'plan'`) → GREEN (5/5 unit PASSED + 2/2 functional PASSED) → REFACTOR (`:check` VERT 144 tests 0 FAIL, baseline 139 → +5 unit, +2 functional exclus du `check` par `@Tag("integration")`). `publishToMavenLocal` VERT. Zéro bump BOM (agent-contracts 0.0.3 déjà classpath). 2 fichiers prod modifiés + 2 fichiers test créés (5 unit + 2 functional). EPIC PLN-LIFECYCLE 3/4 US.
-_Sessions precedent_ : 075/074/073/072/071/070/069/068/067/066/065/064/063/062/061/060/059/058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
-_Prochaine session_ : 077 — PLN-LIFECYCLE US-3 Cucumber BDD `planner_lifecycle.feature` ~4 scénarios `@lifecycle` (intention → ContextReady → Planned, fallback path actuel, non-régression 4 String + Logger préservé, flag `-Pagent.lifecycle` opt-in émet header). Pattern shared state `PlannerScenarioState` + `PlannerScenarioStateReset` (S-067). Steps préfixés "lifecycle" (bug S-088 glue). Baby-step BDD strict RED → GREEN → REFACTOR.
+_Derniere mise a jour_ : 2026-09-07
+_Session terminee_ : 078 — Synchronisation gouvernance post-S-077 (gouvernance pure, zéro code). Rapports S-074 (cadrage PLN-LIFECYCLE) et S-077 (code review PLN-REVIEW) créés en rattrapage — chaîne `.agents/sessions/` complète. INDEX aligné. Baseline S-076 préservée (`:check` VERT 144 tests 0 FAIL).
+_Sessions precedent_ : 077/076/075/074/073/072/071/070/069/068/067/066/065/064/063/062/061/060/059/058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
+_Prochaine session_ : 079 — PLN-LIFECYCLE US-3 Cucumber BDD `planner_lifecycle.feature` ~4 scénarios `@lifecycle` (intention → ContextReady → Planned, fallback path actuel, non-régression 4 String + Logger préservé, flag `-Pagent.lifecycle` opt-in émet header). Pattern shared state `PlannerScenarioState` + `PlannerScenarioStateReset` (S-067). Steps préfixés "lifecycle" (bug S-088 glue). Baby-step BDD strict RED → GREEN → REFACTOR. Puis EPIC PLN-REVIEW (US-1→3 P1 d'abord).
 
 '''
 == REGLES ABSOLUES

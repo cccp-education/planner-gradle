@@ -1,0 +1,64 @@
+= Session 078 — Synchronisation gouvernance post-S-077 (zéro code)
+:date: 2026-09-07
+:source: Session 078 (gouvernance pure)
+:type: governance
+:borough: Manhattan — planner-gradle (N2, LLM prompting SPG/SPD)
+:status: TERMINÉE
+
+== Contexte hérité
+
+Session 077 (2026-08-17) — Code review complète du borough (9 findings
+3 P1/3 P2/3 P3 dans `CODE_REVIEW_077.adoc`) + cadrage EPIC PLN-REVIEW
+(7 US ~11 pts). Baseline S-076 : `:check` VERT 144 tests 0 FAIL.
+
+== Mission Session 078
+
+Synchroniser la gouvernance documentaire avec l'état réel (demande pilote,
+suite à code review écosystème foundry/public). Constats :
+
+1. INDEX en retard : "Session terminée : 076" + "Prochaine : 077" alors que
+   S-077 est terminée (documentée PROMPT_REPRISE + BACKLOG).
+2. Rapports de session manquants : `.agents/sessions/` s'arrêtait à 076 —
+   pas de rapport pour S-074 (cadrage PLN-LIFECYCLE) ni S-077 (code review),
+   étape 1 du hook de fermeture non appliquée.
+3. BACKLOG : le diff S-077 (EPIC PLN-REVIEW, 67 lignes) n'était pas committé.
+
+== Déroulement
+
+1. Lecture PROMPT_REPRISE/INDEX/BACKLOG + git log.
+2. Rapport S-074 créé en rattrapage
+   (`.agents/sessions/074-pln-lifecycle-cadrage.adoc`) — cadrage EPIC
+   PLN-LIFECYCLE, 6 décisions, découpage 4 US.
+3. Rapport S-077 créé en rattrapage
+   (`.agents/sessions/077-code-review-pln-review-cadrage.adoc`) — 9
+   findings, EPIC PLN-REVIEW 7 US.
+4. INDEX mis à jour : Session terminée 077, Prochaine session 078
+   (PLN-LIFECYCLE US-3 Cucumber puis PLN-REVIEW).
+5. PROMPT_REPRISE confirmé à jour (mission 078 déjà consignée en S-077).
+
+== Résultats
+
+- ✅ Rapports 074/077 créés — chaîne `.agents/sessions/` complète.
+- ✅ INDEX aligné (S-077 terminée, mission 078 annoncée).
+- ✅ Zéro code production modifié — gouvernance pure.
+- ✅ Baseline S-076 préservée (`:check` VERT 144 tests 0 FAIL).
+
+== Prochaine session — 079 (renumérotée : l'ancienne mission "078" devient 079)
+
+* PLN-LIFECYCLE US-3 Cucumber BDD `planner_lifecycle.feature` ~4 scénarios
+  `@lifecycle` (intention → ContextReady → Planned, fallback path actuel,
+  non-régression 4 String + Logger, flag `-Pagent.lifecycle` émet header).
+* Puis EPIC PLN-REVIEW (US-1→3 P1 d'abord).
+* Pattern shared state `PlannerScenarioState` + `PlannerScenarioStateReset`
+  (S-067). Steps préfixés "lifecycle" (bug S-088 glue).
+
+== Méthodologie
+
+Gouvernance pure — zéro code, zéro test modifié.
+
+== Références
+
+- `.agents/sessions/076-lifecycle-wiring.adoc`
+- `.agents/sessions/077-code-review-pln-review-cadrage.adoc` (créé)
+- `CODE_REVIEW_077.adoc`
+- `CADRAGE_EPIC_PLN_LIFECYCLE.adoc`

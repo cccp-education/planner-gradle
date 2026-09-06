@@ -1,0 +1,50 @@
+= Session 074 — Cadrage EPIC PLN-LIFECYCLE (gouvernance pure)
+:date: 2026-08-12
+:source: Session 074 (cadrage)
+:epic: PLN-LIFECYCLE
+:method: gouvernance pure pattern S-057/S-063 — zéro code modifié
+
+== Mission
+
+Cadrage EPIC PLN-LIFECYCLE — planner consomme les types lifecycle N0
+(`contracts.agent.AgentState` : ContextReady/Planned) pour s'articuler avec
+le runtime agentique. Split-brain #3 reporté S-061.
+
+== Constats
+
+Audit planner + BOM : `agent-contracts:0.0.3` (N0) expose `AgentState`
+mais planner ne le consomme pas — `IntentionPlanner` travaille avec
+`PlanningContext` local et 4 String de canaux, sans état typé lifecycle.
+
+== Décisions architecturales
+
+. *EPIC planner-only* — codebase HORS SCOPE (Queens DORMANT).
+. *Domaine `planning.lifecycle`* — 7ème domaine planner.
+. *Adapter `LifecycleAdapter`* — object pur, mapping `PlanningContext` +
+  4 canaux → `AgentState.ContextReady`, `Plan` → `AgentState.Planned`.
+. *Surcharge optionnelle additive* — l'API lifecycle-aware n'est pas
+  destructive, le stdout legacy `[PLAN]/[EPIC]/[US]/[TASK]` est préservé.
+. *Flag opt-in* `-Pagent.lifecycle=true` (défaut `false`).
+. *Zéro bump BOM* — agent-contracts 0.0.3 déjà classpath.
+
+== Découpage (4 US ~9 pts)
+
+|===
+| US | Description | Statut
+| US-0 | Cadrage EPIC | ✅ TERMINÉ (S-074)
+| US-1 | `LifecycleAdapter` (~8 unit) | ✅ TERMINÉ (S-075)
+| US-2 | Wiring surcharge optionnelle | ✅ TERMINÉ (S-076)
+| US-3 | Cucumber BDD (~4 scénarios) | 🟡 À FAIRE
+|===
+
+== Résultats
+
+- ✅ Document `CADRAGE_EPIC_PLN_LIFECYCLE.adoc` créé.
+- ✅ BACKLOG/INDEX/PROMPT_REPRISE mis à jour.
+- ✅ Zéro code modifié — gouvernance pure.
+
+== Références
+
+- `CADRAGE_EPIC_PLN_LIFECYCLE.adoc`
+- `.agents/BACKLOG.adoc` § EPIC PLN-LIFECYCLE
+- Rapport S-076 : `.agents/sessions/076-lifecycle-wiring.adoc`

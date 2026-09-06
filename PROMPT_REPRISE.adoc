@@ -1,7 +1,17 @@
-= PROMPT_REPRISE — planner-gradle (Session 076 terminée — PLN-LIFECYCLE US-2 Wiring)
+= PROMPT_REPRISE — planner-gradle (Session 076 terminée — PLN-LIFECYCLE US-2 Wiring + S-077 Code Review)
 :date: 2026-08-17
 
-== Session 076 terminée — PLN-LIFECYCLE US-2
+== Session 077 — Code Review : axe d'amélioration créé (CODE_REVIEW_077.adoc)
+
+*Code review complète* du borough vs vision globale — 9 findings (3 P1/3 P2/3 P3)
+documentés dans `CODE_REVIEW_077.adoc` (racine du borough). EPIC **PLN-REVIEW**
+créé dans BACKLOG.adoc (7 US ~11 pts) : P1-1 persistance plan + metadata.json,
+P1-2 ToolCatalog consomme vibecoding-contracts N0, P1-3 câbler la surcharge
+lifecycle dans la tâche, P2-4 koog 1.0.0, P2-5 flag agent.lifecycle dans
+l'extension, P2-6 purge commentaires français. Zéro code modifié (gouvernance pure).
+*Axe d'amélioration* : à traiter en priorité après PLN-LIFECYCLE US-3.
+
+## Session 076 terminée — PLN-LIFECYCLE US-2
 
 *US-2 Wiring surcharge optionnelle* — nouvelle surcharge additive
 `IntentionPlanner.plan(state: AgentState.ContextReady, specContents, model, logger): AgentState.Planned`
@@ -37,13 +47,15 @@ Zéro bump BOM.
 | PLN-VIBE | ✅ TERMINÉ (S-059 — 6/6 US)
 |===
 
-## Prochaine session — 077 : PLN-LIFECYCLE US-3 Cucumber BDD
+## Prochaine session — 079 : PLN-LIFECYCLE US-3 Cucumber BDD (puis PLN-REVIEW)
 
 * Mission : créer `planner_lifecycle.feature` avec ~4 scénarios `@lifecycle` :
   (1) intention → ContextReady → Planned via lifecycle adapter,
   (2) fallback path actuel si `AgentState` indisponible (factory throws),
   (3) non-régression 4 String + Logger préservé (flag absent → pas de header),
   (4) flag `-Pagent.lifecycle=true` émet header `[LIFECYCLE]`.
+* Axe d'amélioration (session 077) : `CODE_REVIEW_077.adoc` + EPIC PLN-REVIEW
+  dans BACKLOG.adoc (7 US ~11 pts) — à traiter après US-3.
 * Pattern shared state : `PlannerScenarioState` + `PlannerScenarioStateReset`
   (pattern S-067 `PlannerVerifySteps`). Steps préfixés "lifecycle" (bug S-088 glue).
 * Runner dédié `CucumberTestRunner` existant — feature dans `src/test/features/`.
@@ -54,4 +66,4 @@ Zéro bump BOM.
 * Zéro bump BOM.
 
 Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`, `BACKLOG.adoc`,
-`CADRAGE_EPIC_PLN_LIFECYCLE.adoc`.
+`CADRAGE_EPIC_PLN_LIFECYCLE.adoc`, `CODE_REVIEW_077.adoc`.

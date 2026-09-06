@@ -1,0 +1,44 @@
+= Session 077 — Code Review borough + cadrage EPIC PLN-REVIEW (gouvernance pure)
+:date: 2026-08-17
+:source: Session 077 (code review)
+:epic: PLN-REVIEW
+:method: gouvernance pure — zéro code modifié
+
+== Mission
+
+Code review complète du borough planner-gradle vs vision globale
+(TAXONOMIE_WORKSPACE, runtime agentique, dashboard, cockpit) — identifiée
+comme axe d'amélioration suite à S-076.
+
+== Résultats
+
+- ✅ 9 findings documentés dans `CODE_REVIEW_077.adoc` (racine du borough)
+  : 3 P1 / 3 P2 / 3 P3.
+- ✅ EPIC **PLN-REVIEW** créé dans `BACKLOG.adoc` (7 US ~11 pts) :
+  * P1-1 Metadata.kt orphelin / zéro persistance disque (US-1)
+  * P1-2 ToolCatalog copie manuelle vs vibecoding-contracts N0 publié (US-2)
+  * P1-3 surcharge lifecycle US-2 orpheline en production (US-3)
+  * P2-4 koog 0.8.0 vs 1.0.0 + dépendance morte (US-4)
+  * P2-5 flag `agent.lifecycle` implicite hors extension/inputs (US-5)
+  * P2-6 commentaires français en code prod (US-6)
+- ✅ Zéro code modifié — gouvernance pure.
+
+== Décisions
+
+. *Priorité* : P1 d'abord (US-1→3), puis P2 (US-4→6).
+. *Non-régression critique* : stdout `[PLAN]/[EPIC]/[US]/[TASK]` préservé
+  (US-1 additive — `@OutputFile` ne remplace pas le stdout).
+  `PlannerIntegration.kt` (codebase) contrat d'appel inchangé.
+. *Dépendance cross-borough* : US-2 consomme `education.cccp:vibecoding-contracts`
+  (déjà publié Central — vérifier dernière version). Zéro bump BOM sinon.
+. *Méthode* : baby-step DDD/TDD/BDD, 3 niveaux tests/US.
+
+== Baseline
+
+`./gradlew :planner-plugin:check` VERT 144 tests 0 FAIL (S-076 préservée).
+
+== Références
+
+- `CODE_REVIEW_077.adoc`
+- `.agents/BACKLOG.adoc` § EPIC PLN-REVIEW
+- Rapport S-076 : `.agents/sessions/076-lifecycle-wiring.adoc`

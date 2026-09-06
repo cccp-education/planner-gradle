@@ -4,7 +4,73 @@
 :toc: left
 :sectnums:
 
-_Source : configuration/EPIC_PUB.adoc (Session 096) + Session 074 (cadrage PLN-LIFECYCLE)_
+_Source : configuration/EPIC_PUB.adoc (Session 096) + Session 074 (cadrage PLN-LIFECYCLE) + Session 077 (code review — CODE_REVIEW_077.adoc)_
+
+'''
+== 🟡 EPIC PLN-REVIEW — Axes d'Amélioration issus de la Code Review 077 (Session 077 — Cadrage, 0/7 US)
+
+_Source_ : `CODE_REVIEW_077.adoc` (racine du borough) — audit code complet
+vs vision globale (TAXONOMIE_WORKSPACE, runtime agentique, dashboard, cockpit).
+9 findings : 3 P1 (P1-1 Metadata.kt orphelin / zéro persistance disque,
+P1-2 ToolCatalog copie manuelle vs vibecoding-contracts publié, P1-3 surcharge
+lifecycle US-2 orpheline en production), 3 P2 (P2-1 koog 0.8.0 vs 1.0.0 +
+dépendance morte, P2-2 flag `agent.lifecycle` implicite hors extension/inputs,
+P2-3 commentaires français en code prod), 3 P3 (backlog).
+
+_Axe d'amélioration_ : ce document est l'axe d'amélioration du borough — à
+traiter en priorité après clôture de PLN-LIFECYCLE US-3 (S-077/078).
+
+=== Décisions architecturales (cadrage S-077)
+
+. *Priorité* : P1 d'abord (US-1 persistance, US-2 ToolCatalog N0,
+  US-3 câblage lifecycle), puis P2 (US-4 koog, US-5 flag extension, US-6 purge FR).
+. *Non-régression critique* : stdout `[PLAN]/[EPIC]/[US]/[TASK]` préservé
+  (US-1 est additive — `@OutputFile` ne remplace pas le stdout).
+  `PlannerIntegration.kt` (codebase) contrat d'appel inchangé.
+. *Dépendance cross-borough* : US-2 consomme `education.cccp:vibecoding-contracts`
+  (déjà publié Central — vérifier dernière version). Zéro bump BOM sinon.
+. *Méthode* : baby-step DDD/TDD/BDD, 3 niveaux tests/US
+  (unit → functional → cucumber), English only code/Gherkin.
+. *Ordre* : US-1 → US-2 → US-3 (P1), US-4 → US-5 → US-6 (P2).
+
+=== US découpage
+
+[cols="1,3,1,1", options="header"]
+|===
+| US | Description | Pts | Statut
+
+| PLN-REVIEW-0
+| *Cadrage EPIC* — code review complète (9 findings), écarts vs vision, découpage US. Création `CODE_REVIEW_077.adoc`. Maj BACKLOG/PROMPT_REPRISE. Zéro code modifié | 1
+| ✅ TERMINÉ (S-077)
+
+| PLN-REVIEW-1
+| *Persistance plan + metadata.json* (P1-1) — `@OutputFile plan.json` (sérialisation `contracts.agent.Plan` via Jackson) + `Metadata.writeTo` opérationnel sur `generatePlan`. Sortie AsciiDoc optionnelle (`-PplanOutputDir`). Non-régression stdout préservé. ~8 unit + 2 functional | 3
+| 🟡 À FAIRE
+
+| PLN-REVIEW-2
+| *ToolCatalog consomme vibecoding-contracts N0* (P1-2) — supprimer copie manuelle, dépendre de `vibecoding-contracts` (Central) + adapter `ToolRegistry.toolNames()/ToolInfo`. Non-régression prompt 7 outils identiques. ~5 unit | 2
+| 🟡 À FAIRE
+
+| PLN-REVIEW-3
+| *Câbler la surcharge lifecycle dans la tâche* (P1-3) — `DecomposeIntentionTask` appelle `plan(state: ContextReady, ...)` quand `-Pagent.lifecycle=true`, suppression post-wrap `LifecycleAdapter.toPlanned` redondant. Un seul chemin lifecycle = celui testé. ~5 unit + 2 functional | 2
+| 🟡 À FAIRE
+
+| PLN-REVIEW-4
+| *koog 1.0.0 + dépendance morte* (P2-1) — bump `koog = "0.8.0" → "1.0.0"` ou suppression `implementation(libs.koog.agents)` si non utilisée. Alignement BOM MEMPHIS. ~2 unit | 1
+| 🟡 À FAIRE
+
+| PLN-REVIEW-5
+| *Flag `agent.lifecycle` dans l'extension + inputs* (P2-2) — `PlannerExtension.lifecycleEnabled` (Property<Boolean>, convention false) + `task.lifecycleEnabled` `@Input`. MàJ `task.description` (`-Pintention`, `-Pai.provider`, `-Pagent.lifecycle`). ~3 unit | 1
+| 🟡 À FAIRE
+
+| PLN-REVIEW-6
+| *Purge commentaires français* (P2-3) — anglais uniquement dans 4 fichiers (`DecomposeIntentionTask.kt`, `PlanningPlugin.kt`, `ToolCatalog.kt`, `IntentionPlanner.kt`). Vérif `:check` VERT. | 1
+| 🟡 À FAIRE
+|===
+
+_Total_ : 7 US, ~11 pts. _Statut_ : 0/7 US TERMINÉ (S-077 cadrage + review).
+_Axes P3_ (backlog) : P3-1 PlannerIntegration hub (codebase DORMANT),
+P3-2 BoroughDef pilot-gradle, P3-3 refactor PlanRequest.
 
 '''
 == 🟡 EPIC PLN-LIFECYCLE — Planner Agent Lifecycle-Aware (Session 076 — US-2 Wiring, 3/4 US)
