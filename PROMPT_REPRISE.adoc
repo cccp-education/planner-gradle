@@ -47,8 +47,17 @@ Zéro bump BOM.
 | PLN-VIBE | ✅ TERMINÉ (S-059 — 6/6 US)
 |===
 
-## Prochaine session — 079 : PLN-LIFECYCLE US-3 Cucumber BDD (puis PLN-REVIEW)
+## Prochaine session — 080 : RENAME-7 d'abord (2 pts), puis PLN-LIFECYCLE US-3
 
+*Priorité 1 — RENAME-7 (`.agents/CADRAGE_EPIC_RENAME_V3.adoc`)* :
+neutralisation vocabulaire métier privé dans planner. FPA/CDA/REAC/AFNOR/
+SPG/SPD = fond de commerce du pilote — jamais dans le nommage public OSS.
+- `IntentionPlanner.kt:149` : prompt "AFNOR, REAC" → "referential documents"
+- `IntentionPlanner.kt:208` : exemples "generate SPG"/"SPG generated" → "generate content plan"/"content plan generated"
+- 5 fixtures tests/features : StdoutFormatterVerifyTest, LLMTaskVerifyTest, IntentionPlannerMultiCanalTest, DecomposeIntentionMultiCanalTest, planner_verify.feature
+- Gate : check baseline exacte + grep word-boundary = 0
+
+*Priorité 2 — PLN-LIFECYCLE US-3 Cucumber BDD* :
 * Mission : créer `planner_lifecycle.feature` avec ~4 scénarios `@lifecycle` :
   (1) intention → ContextReady → Planned via lifecycle adapter,
   (2) fallback path actuel si `AgentState` indisponible (factory throws),
