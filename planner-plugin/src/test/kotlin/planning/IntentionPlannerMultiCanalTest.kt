@@ -68,11 +68,11 @@ class IntentionPlannerMultiCanalTest {
             eagerContext = "",
             ragContext = "",
             graphifyContext = "",
-            docsContext = "AFNOR Referentiel Chapitre 2"
+            docsContext = "Referentiel Normatif Chapitre 2"
         )
         assertTrue(prompt.contains("DOCUMENT CONTEXT"))
-        assertTrue(prompt.contains("AFNOR Referentiel Chapitre 2"))
-        assertTrue(prompt.contains("codex corpus"))
+        assertTrue(prompt.contains("Referentiel Normatif Chapitre 2"))
+        assertTrue(prompt.contains("corpus documents"))
     }
 
     @Test

@@ -60,15 +60,15 @@ class PlannerVerifySteps : En {
                   "epics": [
                     {
                       "name": "V-0",
-                      "description": "Generate SPG",
+                      "description": "Generate content plan",
                       "points": 2,
                       "userStories": [
                         {
-                          "description": "Generate SPG",
+                          "description": "Generate content plan",
                           "tasks": [
-                            {"description": "Generate SPG", "gradleTask": "./gradlew generateSPG",
-                             "expectedOutput": "SPG generated", "maxRetries": 5,
-                             "verifyHook": "scripts/check-spg.sh"}
+                            {"description": "Generate content plan", "gradleTask": "./gradlew generateContentPlan",
+                             "expectedOutput": "Content plan generated", "maxRetries": 5,
+                             "verifyHook": "scripts/check-content-plan.sh"}
                           ]
                         }
                       ]

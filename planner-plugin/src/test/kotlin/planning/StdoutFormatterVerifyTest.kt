@@ -42,13 +42,13 @@ class StdoutFormatterVerifyTest {
     fun `format emits expectedOutput when custom`() {
         val plan = planWith(
             GradleTask(
-                description = "Generate SPG",
-                gradleTask = "./gradlew generateSPG",
-                expectedOutput = "SPG generated"
+                description = "Generate content plan",
+                gradleTask = "./gradlew generateContentPlan",
+                expectedOutput = "Content plan generated"
             )
         )
         val line = StdoutFormatter.format(plan).trim().lines().last()
-        assertTrue(line.contains("expectedOutput=SPG generated"), "custom expectedOutput should be printed: $line")
+        assertTrue(line.contains("expectedOutput=Content plan generated"), "custom expectedOutput should be printed: $line")
     }
 
     @Test

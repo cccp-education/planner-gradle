@@ -20,9 +20,9 @@ Feature: Planner emits vibecoding verification metadata (PLN-VERIFY-4)
     Given a raw LLM JSON response with one task carrying all three verify metadata
     When the response is parsed into a Plan
     Then the plan should contain 1 task
-    And the task should have expectedOutput "SPG generated"
+    And the task should have expectedOutput "Content plan generated"
     And the task should have maxRetries 5
-    And the task should have verifyHook "scripts/check-spg.sh"
+    And the task should have verifyHook "scripts/check-content-plan.sh"
 
   Scenario: Defaults are preserved when the LLM omits verify metadata
     Given a raw LLM JSON response with one legacy task without verify metadata
@@ -33,14 +33,14 @@ Feature: Planner emits vibecoding verification metadata (PLN-VERIFY-4)
     And the task should have a null verifyHook
 
   Scenario: The planner prompt exposes the three verify metadata fields in the task JSON schema
-    Given an intention "generate a SPG"
+    Given an intention "generate a content plan"
     When the planner builds its prompt
     Then the prompt should contain the field "expectedOutput"
     And the prompt should contain the field "maxRetries"
     And the prompt should contain the field "verifyHook"
 
   Scenario: The planner prompt states that expectedOutput is required and maxRetries defaults to 3 in range 1..10
-    Given an intention "generate a SPG"
+    Given an intention "generate a content plan"
     When the planner builds its prompt
     Then the prompt should state that expectedOutput is required
     And the prompt should state that maxRetries defaults to 3

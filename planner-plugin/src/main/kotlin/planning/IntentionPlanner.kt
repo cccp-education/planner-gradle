@@ -146,7 +146,7 @@ object IntentionPlanner {
         val eagerBlock = if (eagerContext.isNotBlank()) "\n\nEAGER CONTEXT (governance, EPIC status):\n$eagerContext" else ""
         val ragBlock = if (ragContext.isNotBlank()) "\n\nSEMANTIC CONTEXT (RAG pgvector — codebase chunks):\n$ragContext" else ""
         val graphifyBlock = if (graphifyContext.isNotBlank()) "\n\nGRAPH CONTEXT (structural relations):\n$graphifyContext" else ""
-        val docsBlock = if (docsContext.isNotBlank()) "\n\nDOCUMENT CONTEXT (codex corpus — AFNOR, REAC, manuals):\n$docsContext" else ""
+        val docsBlock = if (docsContext.isNotBlank()) "\n\nDOCUMENT CONTEXT (corpus documents — manuals, referentials):\n$docsContext" else ""
         return buildPromptInternal(intention, specsSection, eagerBlock + ragBlock + graphifyBlock + docsBlock)
     }
 
@@ -205,7 +205,7 @@ object IntentionPlanner {
             |- Decompose logically: 1-4 EPICs, each with 1-4 user stories, each with 1-3 tasks
             |- gradleTask values must be realistic Gradle invocations like "./gradlew test", "./gradlew build"
             |- When `toolType` is omitted, the consumer applies the default GRADLE
-            |- `expectedOutput` is REQUIRED: the concrete success signal the task must produce (e.g. "BUILD SUCCESSFUL", "SPG generated", "Tests passed"). Defaults to "BUILD SUCCESSFUL" when omitted
+            |- `expectedOutput` is REQUIRED: the concrete success signal the task must produce (e.g. "BUILD SUCCESSFUL", "Content plan generated", "Tests passed"). Defaults to "BUILD SUCCESSFUL" when omitted
             |- `maxRetries` is optional, defaults to 3 (range 1..10). Set higher for flaky/network tasks
             |- `verifyHook` is optional and rare: a shell script path run after success to validate artifacts (e.g. "scripts/check-artifacts.sh"). Omit when no post-verify is needed
             |- Use governance/RAG/document context to avoid redundant EPICs

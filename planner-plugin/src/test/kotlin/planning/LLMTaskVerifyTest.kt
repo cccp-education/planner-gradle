@@ -16,10 +16,10 @@ class LLMTaskVerifyTest {
 
     @Test
     fun `LLMTask parses expectedOutput when provided`() {
-        val json = """{"description":"Generate SPG","gradleTask":"./gradlew generateSPG","expectedOutput":"SPG generated"}"""
+        val json = """{"description":"Generate content plan","gradleTask":"./gradlew generateContentPlan","expectedOutput":"Content plan generated"}"""
         val llmTask = mapper.readValue<LLMTask>(json)
         val task = llmTask.toTask()
-        assertEquals("SPG generated", task.expectedOutput)
+        assertEquals("Content plan generated", task.expectedOutput)
     }
 
     @Test

@@ -95,7 +95,7 @@ class DecomposeIntentionMultiCanalTest {
             .withArguments(
                 "generatePlan",
                 "-Pintention=test docs only",
-                "-PdocsContext=AFNOR Chapitre 2: Competences professionnelles",
+                "-PdocsContext=Referentiel Normatif Chapitre 2: Competences professionnelles",
                 "-PollamaBaseUrl=http://localhost:1"
             )
             .withPluginClasspath()
