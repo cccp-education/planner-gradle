@@ -1,78 +1,57 @@
-= PROMPT_REPRISE — planner-gradle (Session 076 terminée — PLN-LIFECYCLE US-2 Wiring + S-077 Code Review)
-:date: 2026-08-17
+= PROMPT_REPRISE — planner-gradle (Session 079 terminée — SVO-3 adapter PlannerPort cross-borough)
+:date: 2026-09-10
 
-== Session 077 — Code Review : axe d'amélioration créé (CODE_REVIEW_077.adoc)
+== Session 080 — Mission proposée
 
-*Code review complète* du borough vs vision globale — 9 findings (3 P1/3 P2/3 P3)
-documentés dans `CODE_REVIEW_077.adoc` (racine du borough). EPIC **PLN-REVIEW**
-créé dans BACKLOG.adoc (7 US ~11 pts) : P1-1 persistance plan + metadata.json,
-P1-2 ToolCatalog consomme vibecoding-contracts N0, P1-3 câbler la surcharge
-lifecycle dans la tâche, P2-4 koog 1.0.0, P2-5 flag agent.lifecycle dans
-l'extension, P2-6 purge commentaires français. Zéro code modifié (gouvernance pure).
-*Axe d'amélioration* : à traiter en priorité après PLN-LIFECYCLE US-3.
+Borough en position de fournisseur d'adapter pour l'EPIC SVO (pilotage
+Queens). Options dans l'ordre :
 
-## Session 076 terminée — PLN-LIFECYCLE US-2
+. **SVO suite côté Queens** : SVO-4 tâche `autonomousSession` se fait côté
+   codebase (Queens) — résolution du port par nom canonique
+   `plannerPortService` + fallback NoOp. Manhattan en attente de demande.
+. **RENAME-7** (2 pts, Vague 3 actée S-215) : prompts LLM `IntentionPlanner`
+   ("AFNOR, REAC" → "referential documents", "SPG generated" → "content plan
+   generated") + 5 fixtures. 1er baby-step Vague 3 planner.
+. **PLN-REVIEW** (7 US ~11 pts, cadré S-077) : P1-1 persistance plan +
+   metadata.json, P1-2 ToolCatalog consomme vibecoding-contracts N0,
+   P1-3 câbler surcharge lifecycle dans la tâche, P2-4 koog 1.0.0,
+   P2-5 flag agent.lifecycle extension, P2-6 purge commentaires français.
+. **Cross-borough** : assister un autre borough sur demande pilote.
 
-*US-2 Wiring surcharge optionnelle* — nouvelle surcharge additive
-`IntentionPlanner.plan(state: AgentState.ContextReady, specContents, model, logger): AgentState.Planned`
-sur `IntentionPlanner`. Délègue à la surcharge multi-canal existante, wrap via
-`LifecycleAdapter.toPlanned`. Fallback défensif `AgentState.Planned(...)` direct si
-adapter retourne `null`. `DecomposeIntentionTask` câblé avec flag opt-in
-`-Pagent.lifecycle=true` (défaut `false`) qui émet header `[LIFECYCLE]` avant le stdout legacy.
-Baby-step TDD strict RED → GREEN → REFACTOR. `:check` VERT 144 tests 0 FAIL
-(baseline 139 → +5 unit). 2 functional `@integration` PASSED. `publishToMavenLocal` VERT.
-Zéro bump BOM.
+== Session 079 terminée — SVO-3 (EPIC SVO cross-borough, pilot Queens S-258)
 
-## État EPIC PLN-LIFECYCLE — 3/4 US
+*Côté Manhattan livré* (domaine `planning.adapter` nouveau) :
 
-|===
-| US | Statut
+* `KoogIntentionPlannerAdapter` — implémente le port N1
+  `codebase.koog.plannerport.PlannerPort` (créé S-256). Transposition 1:1
+  de l'ex-`PlannerIntegration.plan` : `IntentionPlanner.plan` 5-canaux
+  (4 sections `CompositeContext` forwardées), classification
+  simple/complexe (seuil 80 chars), catch → `PlanState(error=...)`
+  (contrat port : graphe owner du fallback).
+* `PlannerPortBuildService` + `PlannerPortRegistry` — BuildService Gradle
+  exposant le port au build (params sérialisables ne peuvent pas porter un
+  objet arbitraire → registry JVM-wide `@Volatile` + service forwarding).
+  Nom canonique `plannerPortService` (`SERVICE_NAME`) — la résolution
+  codebase SVO-4 cherche ce nom exact.
+* `PlanningLlmService.registerPlannerPort()` + wiring `PlanningPlugin`
+  (mirror `registerLlmBuildService` PLN-LLM-HUB) — l'adapter est construit
+  sur le LLM du hub, inscrit dans le registry.
+* Baby-step TDD strict RED → GREEN → REFACTOR. `planning.adapter.*` 9/9.
+  `test` global 153 tests 0 FAIL (baseline 144 → +9). `publishToMavenLocal`
+  VERT (planner-plugin 0.0.2 republicié). Zéro bump BOM.
+* Cycle N1↔N2 reste mort : flèche unique planner → codebase (import
+  `codebase.koog.plannerport.*` côté N2, zéro `planning.*` côté N1).
 
-| US-0 cadrage | ✅ TERMINÉ (S-074)
-| US-1 `LifecycleAdapter` (~8 unit) | ✅ TERMINÉ (S-075)
-| US-2 Wiring surcharge optionnelle (~5 unit + 2 functional) | ✅ TERMINÉ (S-076)
-| US-3 Cucumber BDD (~4 scénarios) | 🟡 À FAIRE
-|===
+*Reste EPIC SVO* : SVO-4 (Queens) + SVO-5 (Queens). Rapport :
+`.agents/sessions/079-svo3-adapter-planner-port.adoc`.
 
-## État global — EPICs
+== Historique récent
 
-|===
-| EPIC | Statut
-| PLN-LIFECYCLE | 🟡 À FAIRE (S-076 — 3/4 US, US-2 Wiring TERMINÉ)
-| LLM-ADAPTER-EXTRACT | ✅ TERMINÉ (S-073 — 6/6 US)
-| PLN-LLM-HUB | ✅ TERMINÉ (S-072 — 4/4 US)
-| PLN-BUDGET | ✅ TERMINÉ (S-071 — 4/4 US)
-| PLN-VERIFY | ✅ TERMINÉ (S-067 — 5/5 US)
-| PLN-CONTRACTS | ✅ TERMINÉ (S-061 — 6/6 US)
-| PLN-VIBE | ✅ TERMINÉ (S-059 — 6/6 US)
-|===
-
-## Prochaine session — 080 : RENAME-7 d'abord (2 pts), puis PLN-LIFECYCLE US-3
-
-*Priorité 1 — RENAME-7 (`.agents/CADRAGE_EPIC_RENAME_V3.adoc`)* :
-neutralisation vocabulaire métier privé dans planner. FPA/CDA/REAC/AFNOR/
-SPG/SPD = fond de commerce du pilote — jamais dans le nommage public OSS.
-- `IntentionPlanner.kt:149` : prompt "AFNOR, REAC" → "referential documents"
-- `IntentionPlanner.kt:208` : exemples "generate SPG"/"SPG generated" → "generate content plan"/"content plan generated"
-- 5 fixtures tests/features : StdoutFormatterVerifyTest, LLMTaskVerifyTest, IntentionPlannerMultiCanalTest, DecomposeIntentionMultiCanalTest, planner_verify.feature
-- Gate : check baseline exacte + grep word-boundary = 0
-
-*Priorité 2 — PLN-LIFECYCLE US-3 Cucumber BDD* :
-* Mission : créer `planner_lifecycle.feature` avec ~4 scénarios `@lifecycle` :
-  (1) intention → ContextReady → Planned via lifecycle adapter,
-  (2) fallback path actuel si `AgentState` indisponible (factory throws),
-  (3) non-régression 4 String + Logger préservé (flag absent → pas de header),
-  (4) flag `-Pagent.lifecycle=true` émet header `[LIFECYCLE]`.
-* Axe d'amélioration (session 077) : `CODE_REVIEW_077.adoc` + EPIC PLN-REVIEW
-  dans BACKLOG.adoc (7 US ~11 pts) — à traiter après US-3.
-* Pattern shared state : `PlannerScenarioState` + `PlannerScenarioStateReset`
-  (pattern S-067 `PlannerVerifySteps`). Steps préfixés "lifecycle" (bug S-088 glue).
-* Runner dédié `CucumberTestRunner` existant — feature dans `src/test/features/`.
-* Méthode : baby-step BDD strict RED → GREEN → REFACTOR.
-* Build : `./gradlew :planner-plugin:check` VERT avant de coder.
-* Dépendance : `agent-contracts:0.0.3` déjà dans `build.gradle.kts:29`.
-  `LifecycleAdapter` (US-1) + surcharge `plan(ContextReady)` (US-2) disponibles.
-* Zéro bump BOM.
-
-Reprendre en lisant `AGENT.adoc`, `.agents/INDEX.adoc`, `BACKLOG.adoc`,
-`CADRAGE_EPIC_PLN_LIFECYCLE.adoc`, `CODE_REVIEW_077.adoc`.
+* S-077 : code review borough (CODE_REVIEW_077.adoc, 9 findings) — EPIC
+  PLN-REVIEW créé (7 US ~11 pts).
+* S-076 : PLN-LIFECYCLE US-2 wiring lifecycle-aware (surcharge
+  `plan(state: AgentState.ContextReady...)`, flag opt-in `-Pagent.lifecycle`).
+* S-074 : PLN-LIFECYCLE cadrage (split-brain #3 reporté, doc CADRAGE).
+* S-073 : LLM-ADAPTER-EXTRACT TERMINÉ 6/6 (extraction
+  `LlmProviderChatModelAdapter` vers codebase N1 — source unique).
+* S-072 : PLN-LLM-HUB TERMINÉ 4/4 (planner consomme codebase N1 socle LLM).

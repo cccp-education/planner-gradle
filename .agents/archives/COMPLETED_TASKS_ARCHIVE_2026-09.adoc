@@ -1,0 +1,15 @@
+= Archive — Tâches Terminées — Septembre 2026
+
+== Session 079 — 2026-09-10 — SVO-3 TERMINÉ (EPIC SVO cross-borough, pilot Queens)
+
+* Domaine `planning.adapter` (8ème domaine planner) :
+** `KoogIntentionPlannerAdapter` — implémente le port N1
+   `codebase.koog.plannerport.PlannerPort` (transposition de l'ex-
+   `PlannerIntegration.plan`).
+** `PlannerPortBuildService` + `PlannerPortRegistry` — BuildService
+   Gradle + registry JVM-wide, nom canonique `plannerPortService`.
+** `PlanningLlmService.registerPlannerPort()` + wiring `PlanningPlugin`.
+* 9 unit TDD strict RED → GREEN → REFACTOR. `test` global 153 0 FAIL
+  (baseline 144 → +9). `publishToMavenLocal` VERT.
+* Cycle N1↔N2 mort préservé — flèche unique planner → codebase.
+* Reste EPIC SVO côté Queens : SVO-4 + SVO-5.

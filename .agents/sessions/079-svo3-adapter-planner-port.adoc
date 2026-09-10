@@ -1,0 +1,82 @@
+= Session 079 — SVO-3 : KoogIntentionPlannerAdapter + PlannerPortBuildService (cross-borough EPIC SVO)
+
+:borough: Manhattan — planner-gradle (N2, LLM prompting SPG/SPD)
+:epic: SVO (Session Vibecoding Orchestrée — US-3/5, cross-borough Queens pilot)
+:session_queens_pilote: 257 (SVO-2) / 258 en cours (Queens)
+:date: 2026-09-10
+
+== Mission
+
+SVO-3 (2 pts, cadrage cross-borough
+`codebase-gradle/codebase-plugin/.agents/CADRAGE_EPIC_SVO_SESSION_ORCHESTREE.adoc`
+D3/D5) : côté planner, fournir l'adapter qui implémente le port N1
+`PlannerPort` (créé S-256 côté codebase) + le wiring Gradle qui expose le
+port au build (`registerPlannerPort`, mirror `registerLlmBuildService`
+PLN-LLM-HUB).
+
+== Baby-steps exécutés
+
+. *RED `KoogIntentionPlannerAdapterTest`* (6 unit, domaine `planning.adapter`
+   créé) → compile fail `Unresolved reference 'KoogIntentionPlannerAdapter'`
+   confirmé.
+. *GREEN `KoogIntentionPlannerAdapter`* : implémente
+   `codebase.koog.plannerport.PlannerPort` — transposition 1:1 de l'ex-
+   `codebase.rag.PlannerIntegration.plan` (supprimé S-256, pattern
+   historique récupéré via `git show d4c1825^`) : `IntentionPlanner.plan`
+   5-canaux (les 4 sections `CompositeContext` forwardées), classification
+   `simple`/`complexe` (seuil 80 chars), catch failures →
+   `PlanState(error="IntentionPlanner failed: ...")` (contrat port : le
+   graphe appelant reste owner du fallback `PlannerPortFailed`).
+   6/6 PASSED (FakeChatModel + RecordingChatModel locaux, prompt capture
+   vérifie les 4 canaux).
+. *RED `PlannerPortBuildServiceTest`* (3 unit) → GREEN après 3 itérations
+   TDD sur le design Gradle DI :
+   . `Property<PlannerPort>` dans les params BuildService rejeté
+     (objets arbitraires non sérialisables) ;
+   . `BuildServiceParameters.None` final/privé — params dédiés
+     `EmptyParams` ;
+   . `BuildService` abstract exige `getParameters()` injecté bytecode →
+     solution : `PlannerPortRegistry` (object pur JVM-wide, `@Volatile`)
+     + service abstract forwarding + concrete subclass test-only
+     (`ConcretePlannerPortBuildService` override `getParameters`).
+. *Wiring* : `PlanningLlmService.registerPlannerPort()` — enregistre le
+   shared-service sous le **nom canonique** `plannerPortService`
+   (`PlannerPortBuildService.SERVICE_NAME`) et inscrit l'adapter
+   (construit sur le LLM de `registerLlmBuildService`/`resolveModel`)
+   dans `PlannerPortRegistry`. `PlanningPlugin` appelle `registerPlannerPort()`
+   après `registerLlmBuildService()`.
+. *REFACTOR* : typealias + factory superflus retirés (économie d'encre).
+
+== Design cross-borough
+
+* Le service Gradle ne peut pas transporter un objet Kotlin arbitraire
+  via ses params sérialisables → le port vit dans `PlannerPortRegistry`
+  (JVM-wide), le service forwards.
+* Côté codebase (SVO-4, prochaine session Queens) : résolution par le nom
+  canonique `plannerPortService` + fallback `PlannerPort.NoOp` (le
+  service `port()` fait déjà ce fallback lui-même).
+* Cycle N1↔N2 reste mort : planner importe `codebase.koog.plannerport.*`
+  (flèche unique N2→N1, pattern S-096/S-199/S-256).
+
+== Gates
+
+* `planning.adapter.*` : 9/9 PASSED (6 adapter + 3 service/registry).
+* `test` global Manhattan : 153 tests, 0 FAIL (baseline 144 → +9).
+* `publishToMavenLocal` VERT — `planner-plugin:0.0.2` republié (jar
+  contient l'adapter + le service).
+* Codebase compileKotlin VERT (le port N1 inchangé, zéro régression).
+
+== Fichiers
+
+* Prod : `planning/adapter/KoogIntentionPlannerAdapter.kt` (78 lignes),
+  `planning/adapter/PlannerPortBuildService.kt` (62 lignes, registry +
+  service), `planning/llm/PlanningLlmService.kt` (+27 lignes
+  registerPlannerPort), `planning/PlanningPlugin.kt` (+5 lignes wiring).
+* Test : `planning/adapter/KoogIntentionPlannerAdapterTest.kt` (6),
+  `planning/adapter/PlannerPortBuildServiceTest.kt` (3).
+
+== Reste EPIC SVO (côté Queens, prochaine session)
+
+* SVO-4 : tâche `autonomousSession` — résolution du port par nom canonique
+  + fallback NoOp (`PlannerPortResolver` object pur).
+* SVO-5 : chaînage brainstorming + Cucumber BDD `autonomous_session.feature`.

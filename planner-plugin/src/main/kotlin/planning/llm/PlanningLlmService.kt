@@ -8,6 +8,9 @@ import dev.langchain4j.model.chat.ChatModel
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildServiceSpec
+import planning.adapter.KoogIntentionPlannerAdapter
+import planning.adapter.PlannerPortBuildService
+import planning.adapter.PlannerPortRegistry
 import java.time.Duration
 
 /**
@@ -59,6 +62,31 @@ object PlanningLlmService {
         ) { spec: BuildServiceSpec<LlmBuildService.Params> ->
             spec.parameters.model.convention(project.aiProvider)
             spec.maxParallelUsages.set(1)
+        }
+
+    /**
+     * Registers the N1 [codebase.koog.plannerport.PlannerPort] for this build
+     * (EPIC SVO-3, D5): the [KoogIntentionPlannerAdapter] is constructed
+     * over the LLM resolved by [registerLlmBuildService] and registered in
+     * [planning.adapter.PlannerPortRegistry]; the shared-service
+     * [planning.adapter.PlannerPortBuildService] (name
+     * [planning.adapter.PlannerPortBuildService.SERVICE_NAME]) exposes it to
+     * any consumer borough (codebase resolves by that canonical name —
+     * zero `planning.*` import on the N1 side).
+     *
+     * Call once per build, after [registerLlmBuildService].
+     */
+    fun Project.registerPlannerPort(): Provider<PlannerPortBuildService> =
+        gradle.sharedServices.registerIfAbsent(
+            PlannerPortBuildService.SERVICE_NAME, PlannerPortBuildService::class.java
+        ) { spec: BuildServiceSpec<PlannerPortBuildService.EmptyParams> ->
+            spec.parameters // marker only — the port lives in PlannerPortRegistry
+        }.also { _ ->
+            val model = resolveModel(
+                provider = aiProvider,
+                serviceProvider = registerLlmBuildService(),
+            )
+            PlannerPortRegistry.register(KoogIntentionPlannerAdapter(model))
         }
 
     /**

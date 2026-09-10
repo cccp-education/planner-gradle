@@ -4,6 +4,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import planning.llm.PlanningLlmService.aiProvider
 import planning.llm.PlanningLlmService.registerLlmBuildService
+import planning.llm.PlanningLlmService.registerPlannerPort
 
 class PlanningPlugin : Plugin<Project> {
 
@@ -12,6 +13,11 @@ class PlanningPlugin : Plugin<Project> {
         ext.aiProvider.convention("ollama")
 
         val llmServiceProvider = project.registerLlmBuildService()
+
+        // EPIC SVO-3 (D5): expose the PlannerPort to the build so codebase
+        // tasks (autonomousSession, SVO-4) can resolve the N2 planner by the
+        // canonical shared-services name — zero planning.* import on N1.
+        project.registerPlannerPort()
 
         project.tasks.register(
             "generatePlan",

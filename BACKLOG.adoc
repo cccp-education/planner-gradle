@@ -4,9 +4,21 @@
 :toc: left
 :sectnums:
 
-_Dernière mise à jour : 2026-09-07 (S-215 globale — cadrage EPIC RENAME Vague 3 : RENAME-7 planner 2 pts. FPA/CDA/REAC/AFNOR/SPG/SPD = termes métier privés, jamais dans le nommage public. Doc `.agents/CADRAGE_EPIC_RENAME_V3.adoc`.)_
+_Dernière mise à jour : 2026-09-10 (S-079 — **SVO-3 TERMINÉ** cross-borough : domaine `planning.adapter` — `KoogIntentionPlannerAdapter` implémente le port N1 `PlannerPort` + `PlannerPortBuildService`/`PlannerPortRegistry` (nom canonique `plannerPortService`) + `registerPlannerPort` wiring PlanningPlugin. 9 unit TDD, test global 153 0 FAIL, publishToMavenLocal VERT. Antérieur : S-215 globale — cadrage EPIC RENAME Vague 3 : RENAME-7 planner 2 pts.)_
 
 _Source : configuration/EPIC_PUB.adoc (Session 096) + Session 074 (cadrage PLN-LIFECYCLE) + Session 077 (code review — CODE_REVIEW_077.adoc)_
+
+'''
+== ✅ EPIC SVO — Session Vibecoding Orchestrée (côté planner — 1/1 US, pilot Queens)
+
+_Origine : cadrage cross-borough `codebase-gradle/codebase-plugin/.agents/CADRAGE_EPIC_SVO_SESSION_ORCHESTREE.adoc` (D3/D5). Le pilotage vit côté codebase (N1) ; planner fournit la décomposition via adapter._
+
+|===
+| US | Description | Pts | Statut
+| SVO-3 | Adapter planner : `KoogIntentionPlannerAdapter` implémente `PlannerPort` + `PlannerPortBuildService`/`PlannerPortRegistry` + wiring `registerPlannerPort` (mirror registerLlmBuildService) | 2 | ✅ TERMINÉ (S-079 — 9 unit, 153 tests 0 FAIL, publishToMavenLocal VERT)
+|===
+
+_Reste EPIC SVO (côté Queens) : SVO-4 tâche `autonomousSession` (résolution par nom canonique), SVO-5 chaînage + Cucumber BDD._
 
 '''
 == 🟡 EPIC RENAME — Vague 3 : confiner REAC/AFNOR/SPG/SPD (S-215 — CADRÉ, 0/1 US)
