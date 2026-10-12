@@ -1,0 +1,48 @@
+= Session 080 — Fix catalogue codebase (0.0.11/0.0.14 → 0.0.17) : `Unresolved reference plannerport`
+:session: 080
+:date: 2026-10-12
+:type: fix (cross-borough)
+
+== Contexte / symptôme
+
+Le job **cross-borough** `runAllTests` de MEMPHIS (`workspace-bom`) exécute
+`./gradlew check` dans la racine planner et échoue :
+
+----
+e: .../planning/adapter/KoogIntentionPlannerAdapter.kt:3:22 Unresolved reference 'plannerport'.
+e: .../planning/adapter/PlannerPortBuildService.kt:3:22 Unresolved reference 'plannerport'.
+> Task :planner-plugin:compileKotlin FAILED
+----
+
+== Cause racine
+
+La source (S-079, EPIC SVO-3) importe `codebase.koog.plannerport.PlannerPort`
+(ajout récent de codebase N1), mais les **catalogues** déclaraient une version
+**stale** de `codebase` :
+
+* catalogue **racine** `gradle/libs.versions.toml` : `codebase = "0.0.11"`
+* catalogue du **plugin** `planner-plugin/gradle/libs.versions.toml` : `codebase = "0.0.14"`
+
+`codebase-plugin 0.0.11`/`0.0.14` ne contiennent pas `codebase.koog.plannerport`
+→ référence non résolue. Le build multi-projet (racine) lit le catalogue **racine**
+(0.0.11), d'où l'échec.
+
+== Correctif
+
+Bump `codebase` **0.0.11 / 0.0.14 → 0.0.17** dans les **deux** catalogues
+(`0.0.17` Central contient `codebase.koog.plannerport.PlannerPort` —
+vérifié `unzip -l`).
+
+== Vérification
+
+* `./gradlew :planner-plugin:compileKotlin` VERT (JDK 25).
+* `./gradlew :planner-plugin:compileTestKotlin` VERT.
+* `plannerPort`/`PlannerPort`/`PlanState` résolus depuis codebase 0.0.17.
+
+== Note
+
+`koog = "0.8.0"` laissé tel quel (compilation VERTE ; bump koog = chantier séparé
+P2-4 PLN-REVIEW). Aucune modification de source ; seul l'alignement de version est
+corrigé.
+
+_Score : 8/10._

@@ -1,7 +1,16 @@
-= PROMPT_REPRISE — planner-gradle (Session 079 terminée — SVO-3 adapter PlannerPort cross-borough)
-:date: 2026-09-10
+= PROMPT_REPRISE — planner-gradle (Session 080 terminée — fix catalogue codebase `plannerport`)
+:date: 2026-10-12
 
-== Session 080 — Mission proposée
+== Session 080 accomplie (fix cross-borough)
+
+* **Fix catalogue codebase** : la source (SVO-3 S-079) importe
+  `codebase.koog.plannerport.PlannerPort` ; les catalogues étaient stale
+  (`codebase 0.0.11` racine / `0.0.14` plugin) → `Unresolved reference plannerport`
+  dans le job `runAllTests` MEMPHIS. Bump `codebase → 0.0.17` (racine + plugin).
+  `:planner-plugin:compileKotlin` + `compileTestKotlin` VERTS. `koog 0.8.0` inchangé.
+  Rapport `.agents/sessions/080-fix-codebase-catalog-plannerport.adoc`.
+
+== Session 081 — Mission proposée
 
 Borough en position de fournisseur d'adapter pour l'EPIC SVO (pilotage
 Queens). Options dans l'ordre :
