@@ -9,6 +9,24 @@ _Dernière mise à jour : 2026-09-10 (S-079 — **SVO-3 TERMINÉ** cross-borough
 _Source : configuration/EPIC_PUB.adoc (Session 096) + Session 074 (cadrage PLN-LIFECYCLE) + Session 077 (code review — CODE_REVIEW_077.adoc)_
 
 '''
+== 🟡 EPIC PLN-DEP-ALIGN — Alignement dépendances & publication planner
+
+_Constat (S-080)_ : la source (SVO-3, S-079) importe `codebase.koog.plannerport.PlannerPort`
+mais les catalogues déclaraient une version **stale** de `codebase` (`0.0.11` racine /
+`0.0.14` plugin) → `Unresolved reference plannerport` (job cross-borough `runAllTests`).
+
+[cols="1,4,2", options="header"]
+|===
+| US | Description | Statut
+
+| US-1 | Catalogues `codebase` **0.0.11 / 0.0.14 → 0.0.17** (racine + plugin) — API `plannerport` | ✅ S-080
+
+| US-2 | **koog `0.8.0` → 1.3.0** (stale ; BOM MEMPHIS 1.3.0). Recoupe PLN-REVIEW P2-4 (koog 1.0.0) ; compilation encore VERTE à 0.8.0 | 🟡 À FAIRE
+
+| US-3 | **Publication planner-plugin** — Central `0.0.2` ; aligner dev/catalog + republier si la dev a avancé (SVO-3) | 🟡 À FAIRE (accord pilote)
+|===
+
+'''
 == ✅ EPIC SVO — Session Vibecoding Orchestrée (côté planner — 1/1 US, pilot Queens)
 
 _Origine : cadrage cross-borough `codebase-gradle/codebase-plugin/.agents/CADRAGE_EPIC_SVO_SESSION_ORCHESTREE.adoc` (D3/D5). Le pilotage vit côté codebase (N1) ; planner fournit la décomposition via adapter._
