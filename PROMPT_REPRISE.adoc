@@ -1,66 +1,58 @@
-= PROMPT_REPRISE — planner-gradle (Session 080 terminée — fix catalogue codebase `plannerport`)
-:date: 2026-10-12
+= PROMPT_REPRISE — planner-gradle (Session 081 terminée — PLN-REVIEW-1)
+:session: 082
+:date: 2026-10-25
 
-== Session 080 accomplie (fix cross-borough)
+== Session 081 accomplie (PLN-REVIEW-1)
 
-* **Fix catalogue codebase** : la source (SVO-3 S-079) importe
-  `codebase.koog.plannerport.PlannerPort` ; les catalogues étaient stale
-  (`codebase 0.0.11` racine / `0.0.14` plugin) → `Unresolved reference plannerport`
-  dans le job `runAllTests` MEMPHIS. Bump `codebase → 0.0.17` (racine + plugin).
-  `:planner-plugin:compileKotlin` + `compileTestKotlin` VERTS. `koog 0.8.0` inchangé.
-  Rapport `.agents/sessions/080-fix-codebase-catalog-plannerport.adoc`.
+* **Persistance du plan** : `planning.PlanPersistence` écrit `plan.json`
+  (Jackson Kotlin, round-trip `contracts.agent.Plan`), `metadata.json` (pivot
+  TAXONOMIE) et `plan.adoc` optionnel (même texte que stdout).
+* **Tâche** : `DecomposeIntentionTask.@OutputDirectory planOutputDir` (défaut
+  `build/planner`, override `-PplanOutputDir`) ; écriture **après** le stdout,
+  zéro rappel LLM.
+* **Tests** : 8 UT `PlanPersistenceTest` + 2 FT GradleRunner
+  `PlanOutputWiringTest` (aucun LLM). CI **`40242776506` VERTE** (JDK 25).
+* **Hygiène CI** : credentials nmcp optionnels (`?: ""`) + JDK 24 → 25.
+* **Backlog réaligné** : RENAME-7 était déjà livré S-254.
+* **Publication** : `publishToMavenLocal` non exécuté (0.0.2 déjà Central,
+  split-brain) ; prochaine release **0.0.3** sur accord pilote.
 
-== Session 081 — Mission proposée
+== Session 082 — Mission proposée
 
-Borough en position de fournisseur d'adapter pour l'EPIC SVO (pilotage
-Queens). Options dans l'ordre :
+Ordre recommandé (P1 d'abord, puis P2) :
 
-. **SVO suite côté Queens** : SVO-4 tâche `autonomousSession` se fait côté
-   codebase (Queens) — résolution du port par nom canonique
-   `plannerPortService` + fallback NoOp. Manhattan en attente de demande.
-. **RENAME-7** (2 pts, Vague 3 actée S-215) : prompts LLM `IntentionPlanner`
-   ("AFNOR, REAC" → "referential documents", "SPG generated" → "content plan
-   generated") + 5 fixtures. 1er baby-step Vague 3 planner.
-. **PLN-REVIEW** (7 US ~11 pts, cadré S-077) : P1-1 persistance plan +
-   metadata.json, P1-2 ToolCatalog consomme vibecoding-contracts N0,
-   P1-3 câbler surcharge lifecycle dans la tâche, P2-4 koog 1.0.0,
-   P2-5 flag agent.lifecycle extension, P2-6 purge commentaires français.
-. **Cross-borough** : assister un autre borough sur demande pilote.
+. **PLN-REVIEW-2** (2 pts) — `ToolCatalog` consomme `vibecoding-contracts`
+   N0 (supprimer la copie manuelle des 7 outils, adapter
+   `ToolRegistry.toolNames()/ToolInfo`, non-régression prompt identique).
+. **PLN-REVIEW-3** (2 pts) — câbler la surcharge lifecycle dans
+   `DecomposeIntentionTask` (un seul chemin testé, suppression du post-wrap
+   redondant).
+. **PLN-REVIEW-5** (1 pt) — flag `agent.lifecycle` dans `PlannerExtension` +
+   inputs de tâche.
+. **PLN-REVIEW-6** (1 pt) — purge des commentaires français (4 fichiers prod).
+. **PLN-REVIEW-4** (1 pt) — koog `0.8.0 → 1.3.0` ou suppression de la
+   dépendance morte, alignement BOM MEMPHIS.
+. **PLN-DEP-ALIGN US-2/US-3** — koog 1.3.0 + publication 0.0.3 (accord).
+. **SVO-4/5** côté Queens — planner en attente de demande.
 
-== Session 079 terminée — SVO-3 (EPIC SVO cross-borough, pilot Queens S-258)
+== État du code
 
-*Côté Manhattan livré* (domaine `planning.adapter` nouveau) :
+* Version `0.0.2` (Central) ; `codebase` catalog `0.0.17`, `agent-contracts`
+  `0.0.3` ; `koog` local `0.8.0` (stale vs BOM 1.3.0).
+* `PlannerExtension` : `aiProvider`, `intention`, `specsDir`, `planOutputDir`.
+* `generatePlan` : stdout + `plan.json`/`metadata.json`/`plan.adoc`.
+* CI planner **verte** depuis S-081 (JDK 25 + nmcp optionnel).
 
-* `KoogIntentionPlannerAdapter` — implémente le port N1
-  `codebase.koog.plannerport.PlannerPort` (créé S-256). Transposition 1:1
-  de l'ex-`PlannerIntegration.plan` : `IntentionPlanner.plan` 5-canaux
-  (4 sections `CompositeContext` forwardées), classification
-  simple/complexe (seuil 80 chars), catch → `PlanState(error=...)`
-  (contrat port : graphe owner du fallback).
-* `PlannerPortBuildService` + `PlannerPortRegistry` — BuildService Gradle
-  exposant le port au build (params sérialisables ne peuvent pas porter un
-  objet arbitraire → registry JVM-wide `@Volatile` + service forwarding).
-  Nom canonique `plannerPortService` (`SERVICE_NAME`) — la résolution
-  codebase SVO-4 cherche ce nom exact.
-* `PlanningLlmService.registerPlannerPort()` + wiring `PlanningPlugin`
-  (mirror `registerLlmBuildService` PLN-LLM-HUB) — l'adapter est construit
-  sur le LLM du hub, inscrit dans le registry.
-* Baby-step TDD strict RED → GREEN → REFACTOR. `planning.adapter.*` 9/9.
-  `test` global 153 tests 0 FAIL (baseline 144 → +9). `publishToMavenLocal`
-  VERT (planner-plugin 0.0.2 republicié). Zéro bump BOM.
-* Cycle N1↔N2 reste mort : flèche unique planner → codebase (import
-  `codebase.koog.plannerport.*` côté N2, zéro `planning.*` côté N1).
+== Rappels
 
-*Reste EPIC SVO* : SVO-4 (Queens) + SVO-5 (Queens). Rapport :
-`.agents/sessions/079-svo3-adapter-planner-port.adoc`.
-
-== Historique récent
-
-* S-077 : code review borough (CODE_REVIEW_077.adoc, 9 findings) — EPIC
-  PLN-REVIEW créé (7 US ~11 pts).
-* S-076 : PLN-LIFECYCLE US-2 wiring lifecycle-aware (surcharge
-  `plan(state: AgentState.ContextReady...)`, flag opt-in `-Pagent.lifecycle`).
-* S-074 : PLN-LIFECYCLE cadrage (split-brain #3 reporté, doc CADRAGE).
-* S-073 : LLM-ADAPTER-EXTRACT TERMINÉ 6/6 (extraction
-  `LlmProviderChatModelAdapter` vers codebase N1 — source unique).
-* S-072 : PLN-LLM-HUB TERMINÉ 4/4 (planner consomme codebase N1 socle LLM).
+* **Local = Build, Tests = CI** : compiler/builder uniquement ; jamais
+  `test`/`check` local.
+* **Ne pas publier localement 0.0.2** : version déjà Central (split-brain) ;
+  la prochaine release doit bumper 0.0.3, sur accord pilote (DAG MEMPHIS-first
+  si un contrat N0 change).
+* **Zéro Python** ; English only code/tests/features (gouvernance `.adoc` FR).
+* Commit/push autorisés (décision 2026-09-17) ; indexer explicitement les
+  fichiers de sa session (jamais `git add -A` en cas de session parallèle).
+* `git status` + `./gradlew :planner-plugin:compileKotlin` en ouverture.
+* Piège #16/#59 : `publishToMavenLocal` sur une version déjà Central écrase
+  l'artefact local.

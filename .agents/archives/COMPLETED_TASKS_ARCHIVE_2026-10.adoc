@@ -1,0 +1,18 @@
+= Archive des Tâches Terminées — Octobre 2026 (planner-gradle)
+
+== Session 081 — 2026-10-25 — PLN-REVIEW-1 : persistance plan + metadata.json
+
+=== Fait
+- [x] `planning.PlanPersistence` — `plan.json` (Jackson Kotlin, round-trip `contracts.agent.Plan`), `metadata.json` (pivot TAXONOMIE), `plan.adoc` optionnel
+- [x] `DecomposeIntentionTask` — `@OutputDirectory planOutputDir` (défaut `build/planner`, override `-PplanOutputDir`), écriture après stdout, zéro rappel LLM
+- [x] `PlannerExtension`/`PlanningPlugin` wiring
+- [x] 8 UT `PlanPersistenceTest` + 2 FT GradleRunner `PlanOutputWiringTest`
+- [x] Hygiène CI : `settings.gradle.kts` credentials nmcp optionnels (`?: ""`), workflow JDK 24 → 25
+- [x] CI `40242776506` (commit `948892e`) **VERTE**
+- [x] RENAME-7 réaligné ✅ S-254 (déjà livré)
+- [x] `publishToMavenLocal` non exécuté (0.0.2 déjà Central, split-brain) ; prochaine release 0.0.3
+- [x] Local = Build, Tests = CI ; zéro secret
+
+=== Reste
+- PLN-REVIEW-2 (ToolCatalog N0), 3 (lifecycle wiring), 4 (koog 1.3.0), 5 (flag extension), 6 (purge FR)
+- PLN-DEP-ALIGN US-2/3 ; PLN-LIFECYCLE US-3 ; SVO-4/5 (Queens)

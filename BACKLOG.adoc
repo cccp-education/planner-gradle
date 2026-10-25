@@ -4,7 +4,8 @@
 :toc: left
 :sectnums:
 
-_Dernière mise à jour : 2026-09-10 (S-079 — **SVO-3 TERMINÉ** cross-borough : domaine `planning.adapter` — `KoogIntentionPlannerAdapter` implémente le port N1 `PlannerPort` + `PlannerPortBuildService`/`PlannerPortRegistry` (nom canonique `plannerPortService`) + `registerPlannerPort` wiring PlanningPlugin. 9 unit TDD, test global 153 0 FAIL, publishToMavenLocal VERT. Antérieur : S-215 globale — cadrage EPIC RENAME Vague 3 : RENAME-7 planner 2 pts.)_
+_Dernière mise à jour : 2026-10-25 (S-081 — **PLN-REVIEW-1 TERMINÉ** : `PlanPersistence` (`plan.json` + `metadata.json` + `plan.adoc` optionnel), `generatePlan` écrit `build/planner` ou `-PplanOutputDir`, stdout préservé ; 8 UT + 2 FT GradleRunner, CI `40242776506` verte. Hygiène CI JDK 25 + nmcp optionnel. **RENAME-7 déjà livré S-254** (backlog réaligné). `publishToMavenLocal` non exécuté : 0.0.2 déjà Central, split-brain — prochaine release 0.0.3 sur accord.)_
+_Dernière mise à jour (antérieure) : 2026-09-10 (S-079 — **SVO-3 TERMINÉ** cross-borough : domaine `planning.adapter` — `KoogIntentionPlannerAdapter` implémente le port N1 `PlannerPort` + `PlannerPortBuildService`/`PlannerPortRegistry` (nom canonique `plannerPortService`) + `registerPlannerPort` wiring PlanningPlugin. 9 unit TDD, test global 153 0 FAIL, publishToMavenLocal VERT. Antérieur : S-215 globale — cadrage EPIC RENAME Vague 3 : RENAME-7 planner 2 pts.)_
 
 _Source : configuration/EPIC_PUB.adoc (Session 096) + Session 074 (cadrage PLN-LIFECYCLE) + Session 077 (code review — CODE_REVIEW_077.adoc)_
 
@@ -45,7 +46,7 @@ _Origine : demande pilote — termes métier privés bannis du nommage public OS
 
 |===
 | US | Description | Pts | Statut
-| RENAME-7 | Prompts LLM `IntentionPlanner` (:149 "AFNOR, REAC" → "referential documents" ; :208 exemple "SPG generated" → "content plan generated") + 5 fixtures tests/features ("SPG generated"→"content plan generated", "AFNOR Referentiel"→"Referentiel") + check baseline exacte | 2 | 🟡 À FAIRE (1er baby-step Vague 3)
+| RENAME-7 | Prompts LLM `IntentionPlanner` (:149 "AFNOR, REAC" → "referential documents" ; :208 exemple "SPG generated" → "content plan generated") + 5 fixtures tests/features ("SPG generated"→"content plan generated", "AFNOR Referentiel"→"Referentiel") + check baseline exacte | 2 | ✅ TERMINÉ (S-254 — prompts génériques + fixtures migrées ; backlog réaligné S-081)
 |===
 
 '''
@@ -87,7 +88,7 @@ traiter en priorité après clôture de PLN-LIFECYCLE US-3 (S-077/078).
 
 | PLN-REVIEW-1
 | *Persistance plan + metadata.json* (P1-1) — `@OutputFile plan.json` (sérialisation `contracts.agent.Plan` via Jackson) + `Metadata.writeTo` opérationnel sur `generatePlan`. Sortie AsciiDoc optionnelle (`-PplanOutputDir`). Non-régression stdout préservé. ~8 unit + 2 functional | 3
-| 🟡 À FAIRE
+| ✅ TERMINÉ (S-081) — `PlanPersistence` + `plan.json`/`metadata.json`/`plan.adoc`, `-PplanOutputDir`, 8 UT + 2 FT, CI `40242776506` verte
 
 | PLN-REVIEW-2
 | *ToolCatalog consomme vibecoding-contracts N0* (P1-2) — supprimer copie manuelle, dépendre de `vibecoding-contracts` (Central) + adapter `ToolRegistry.toolNames()/ToolInfo`. Non-régression prompt 7 outils identiques. ~5 unit | 2

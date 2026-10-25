@@ -1,5 +1,23 @@
 = TEST_COVERAGE_ANALYSIS — planner-gradle
 
+== Session 081 — PLN-REVIEW-1 : persistance plan + metadata (10 tests)
+
+*Périmètre* : `planning.PlanPersistence` + `DecomposeIntentionTask.planOutputDir`.
+*Note méthodo* : Local = Build, Tests = CI.
+
+*Nouveaux tests* :
+
+- `PlanPersistenceTest` — **8 UT** : `plan.json` + `metadata.json` + `plan.adoc`
+  créés ; round-trip `Plan` ; hiérarchie complète ; champs pivot (`source`,
+  `type`, `sessions`, `model`, `version`, `dependencies`) ; `generatedAt` ISO ;
+  AsciiDoc = `StdoutFormatter` ; dossier imbriqué ; absence d'`plan.adoc` sans
+  contenu.
+- `PlanOutputWiringTest` — **2 FT GradleRunner** (zéro LLM) : défaut
+  `build/planner` ; override `-PplanOutputDir=custom-plan`.
+
+*Preuve* : CI `40242776506` (commit `948892e`) — `Build & Test` **success**,
+JDK 25, `:planner-plugin:build` VERT. Aucun test local exécuté.
+
 == Session 011 — GenerateSPGTask Augmenté (2026-05-19)
 
 [cols="2,3,2", options="header"]

@@ -1,0 +1,84 @@
+= Session 081 — PLN-REVIEW-1 : persistance du plan + metadata.json
+:session: 081
+:date: 2026-10-25
+:borough: Manhattan — planner-gradle (N2)
+:epic: PLN-REVIEW (P1-1)
+:statut: ✅ TERMINÉE
+
+'''
+== Contexte
+
+La CI planner était **rouge depuis le 2026-10-12** (dernier run `38243450965`) :
+`conventions-plugin:0.0.7` introuvable au moment du run, puis credentials nmcp
+exigés au configuration time (`?: error("ossrhUsername not found")`) et workflow
+JDK 24. L'audit d'ouverture a aussi confirmé que **RENAME-7 était déjà livré**
+(S-254 : prompts génériques + fixtures migrées), contrairement au BACKLOG.
+
+Mission retenue : **PLN-REVIEW-1** (P1-1 de la code review S-077) — persister le
+plan et son `metadata.json` sans ré-invoquer le LLM, en préservant le contrat
+stdout `[PLAN]/[EPIC]/[US]/[TASK]`.
+
+'''
+== Livré
+
+* `planning.PlanPersistence` (DDD/TDD) — writer pur (Jackson Kotlin) :
+  `plan.json` (round-trip `contracts.agent.Plan`), `metadata.json` (pivot
+  TAXONOMIE : `source=planner`, `type=Plan`, `sessions=1`, `generatedAt` ISO,
+  `model`, `version`, `dependencies=[agent-contracts, codebase]`) et
+  `plan.adoc` optionnel (même texte que stdout).
+* `DecomposeIntentionTask` — `@OutputDirectory planOutputDir` ; écrit les
+  artefacts **après** le stdout, sans rappel LLM ; log `[plan] <path>`.
+* `PlannerExtension.planOutputDir` (défaut `build/planner`) + wiring
+  `PlanningPlugin` ; `-PplanOutputDir=<path>` surcharge (relatif au projet).
+* Hygiène CI (prérequis de la preuve) :
+  ** `settings.gradle.kts` — credentials nmcp optionnels (`?: ""`) ;
+  ** `.github/workflows/test.yml` — JDK 24 → **25** (conventions 0.0.7).
+
+'''
+== Tests
+
+* `PlanPersistenceTest` — **8 UT** : fichiers créés, round-trip JSON, hiérarchie
+  complète, champs pivot, `generatedAt` ISO, AsciiDoc = stdout, dossier imbriqué,
+  absence d'`plan.adoc` sans contenu.
+* `PlanOutputWiringTest` — **2 FT GradleRunner** (zéro LLM) : défaut
+  `build/planner`, override `-PplanOutputDir=custom-plan`.
+* Non-régression : stdout, lifecycle opt-in, budget, adapter, Cucumber.
+
+**CI verte** : run **`40242776506`** (commit `948892e`) — `Build & Test` success,
+JDK 25, `:planner-plugin:build` VERT. Gates locales : `compileKotlin` +
+`compileTestKotlin`, `assemble`, `validatePlugins` VERT ; aucun test local
+(Local = Build, Tests = CI).
+
+**`publishToMavenLocal` volontairement non exécuté** : `planner-plugin:0.0.2`
+est déjà publié Central ; publier localement le HEAD sous le même numéro créerait
+un split-brain mavenLocal ↔ Central (piège #16/#59). La CI construit depuis les
+sources. Prochaine release = **0.0.3** (PLN-DEP-ALIGN US-3, accord pilote).
+
+'''
+== Reste PLN-REVIEW
+
+|===
+| US | Sujet | Statut
+| PLN-REVIEW-1 | persistance plan + metadata | ✅ S-081
+| PLN-REVIEW-2 | ToolCatalog consomme `vibecoding-contracts` N0 | 🟡 À FAIRE
+| PLN-REVIEW-3 | câblage lifecycle dans la tâche | 🟡 À FAIRE
+| PLN-REVIEW-4 | koog `0.8.0 → 1.3.0` (ou suppression dépendance morte) | 🟡 À FAIRE
+| PLN-REVIEW-5 | flag `agent.lifecycle` extension + inputs | 🟡 À FAIRE
+| PLN-REVIEW-6 | purge commentaires français | 🟡 À FAIRE
+|===
+
+Autres EPICs : `PLN-DEP-ALIGN` US-2 (koog 1.3.0) / US-3 (publication 0.0.3),
+`PLN-LIFECYCLE` US-3 (Cucumber), SVO-4/5 côté Queens.
+
+'''
+== Pièges
+
+1. *(S-081)* `@OutputDirectory` sur une tâche LLM `@DisableCachingByDefault` :
+   les artefacts sont un **side-effect persisté**, pas une raison de sauter le
+   LLM ; le stdout reste le contrat primaire.
+2. *(S-081)* Jackson Kotlin : `Plan` est un data class N0, round-trip via
+   `jacksonObjectMapper()` ; ne pas dupliquer un DTO de persistance.
+3. *(S-081)* Les tests de wiring GradleRunner n'appellent **jamais** le LLM ;
+   ils impriment la propriété `planOutputDir` d'une tâche non exécutée.
+4. *(S-081)* Une CI rouge en configuration masque la dette de tests : corriger
+   JDK + credentials **avant** d'interpréter un run.
