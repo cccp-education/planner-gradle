@@ -11,6 +11,7 @@ class PlanningPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val ext = project.extensions.create("planner", PlannerExtension::class.java)
         ext.aiProvider.convention("ollama")
+        ext.planOutputDir.convention(project.layout.buildDirectory.dir("planner"))
 
         val llmServiceProvider = project.registerLlmBuildService()
 
@@ -35,6 +36,10 @@ class PlanningPlugin : Plugin<Project> {
             task.aiProvider.set(project.providers.gradleProperty("ai.provider").orElse(ext.aiProvider))
             task.llmService.set(llmServiceProvider)
             task.usesService(llmServiceProvider)
+            // PLN-REVIEW-1 — `-PplanOutputDir` overrides the extension default
+            // `build/planner`; relative paths resolve from the project dir.
+            val planOutputOverride = project.providers.gradleProperty("planOutputDir").map { project.file(it) }
+            task.planOutputDir.set(project.layout.dir(planOutputOverride).orElse(ext.planOutputDir))
         }
 
         // NOTE: vibecode task supprimee de planner (split-brain resolution).

@@ -9,6 +9,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
@@ -37,6 +38,13 @@ abstract class DecomposeIntentionTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputDirectory
     abstract val specsDir: DirectoryProperty
+
+    /**
+     * PLN-REVIEW-1 — persisted plan directory (`plan.json` + `metadata.json` +
+     * `plan.adoc`). The stdout contract remains the primary output.
+     */
+    @get:OutputDirectory
+    abstract val planOutputDir: DirectoryProperty
 
     @get:Input
     abstract val aiProvider: Property<String>
@@ -144,5 +152,19 @@ abstract class DecomposeIntentionTask : DefaultTask() {
 
         val output = StdoutFormatter.format(plan)
         println(output)
+
+        // PLN-REVIEW-1 — persist the plan + pivot metadata (additive; stdout
+        // remains the primary contract). The plan never re-invokes the LLM.
+        val planDir = planOutputDir.get().asFile
+        val metadataModel = project.findProperty("ollama.modelName")?.toString() ?: provider
+        val planFile =
+            PlanPersistence.write(
+                plan = plan,
+                outputDir = planDir,
+                model = metadataModel,
+                version = project.version.toString(),
+                asciiDoc = output,
+            )
+        logger.lifecycle("[plan] {}", planFile.absolutePath)
     }
 }

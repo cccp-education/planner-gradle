@@ -20,8 +20,12 @@ val globalProps = java.util.Properties().also {
 
 nmcpSettings {
     centralPortal {
-        username = globalProps.getProperty("ossrhUsername") ?: error("ossrhUsername not found")
-        password = globalProps.getProperty("ossrhPassword") ?: error("ossrhPassword not found")
+        // CI / fresh checkout — credentials are optional at configuration time.
+        // A GitHub runner has no ~/.gradle/gradle.properties; hard-failing here
+        // kills every invocation (`./gradlew build` included) before a single
+        // test runs. Only a real publish needs the values.
+        username = globalProps.getProperty("ossrhUsername") ?: ""
+        password = globalProps.getProperty("ossrhPassword") ?: ""
         publishingType = "AUTOMATIC"
     }
 }
