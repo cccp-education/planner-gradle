@@ -1,5 +1,15 @@
 = TEST_COVERAGE_ANALYSIS — planner-gradle
 
+== Session 082 — PLN-REVIEW-2 : audit de blocage (aucun test ajouté)
+
+*Périmètre* : tentative de consommation du registre N0 `ToolRegistry`, bloquée
+par le shading de `codebase-plugin:0.0.17` (API 4 paramètres) vs
+`vibecoding-contracts:0.0.1` Central (API 2 paramètres).
+
+*Tests* : aucun test conservé — la tentative a été **revertée** (`f4231f5`).
+La baseline `ToolCatalogTest` (7 outils, descriptions non blanches) est
+restaurée. **CI verte `40267950103`** (commit `f4231f5`).
+
 == Session 081 — PLN-REVIEW-1 : persistance plan + metadata (10 tests)
 
 *Périmètre* : `planning.PlanPersistence` + `DecomposeIntentionTask.planOutputDir`.

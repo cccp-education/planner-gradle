@@ -1,0 +1,81 @@
+= Session 082 — PLN-REVIEW-2 : audit de blocage (codebase-plugin shade le contrat N0)
+:session: 082
+:date: 2026-10-26
+:borough: Manhattan — planner-gradle (N2)
+:epic: PLN-REVIEW (P1-2) — bloqué
+:statut: 🔴 BLOQUÉ — tentative revertée, baseline verte restaurée
+
+'''
+== Objectif
+
+`PLN-REVIEW-2` : supprimer la copie manuelle des 7 outils dans `ToolCatalog`
+et consommer le registre N0 `contracts.vibecoding.registry.ToolRegistry`
+(`education.cccp:vibecoding-contracts:0.0.1`, Central).
+
+'''
+== Tentative
+
+* Dépendance `implementation("education.cccp:vibecoding-contracts:0.0.1")`.
+* `ToolCatalog` projeté sur `ToolRegistry.toolNames()` / `ToolInfo.description`.
+* Test de garde `ToolCatalog is a projection of the N0 registry`.
+
+**CI rouge** (run `40267147202`, puis `40267654121`) :
+`NoSuchMethodError: contracts.vibecoding.registry.ToolRegistry.<init>(Map, List, int, DefaultConstructorMarker)`
+à `ToolCatalog.<clinit>`.
+
+=== Cause racine (cross-borough)
+
+`codebase-plugin:0.0.17` (Central) **embarque** dans son JAR les classes
+`contracts.vibecoding.registry.*` d'une version **plus récente** du contrat
+(constructeur à 4 paramètres, `registerHandler`, `MAX_WRITE_CHARS`) :
+
+[source]
+----
+$ unzip -l codebase-plugin-0.0.17.jar | grep contracts/vibecoding
+contracts/vibecoding/registry/ToolRegistry.class   (API 4 paramètres)
+...
+----
+
+Or `vibecoding-contracts:0.0.1` (Central) est l'API **2 paramètres**. Selon
+l'ordre du classpath, le planner compile contre l'une et s'exécute contre
+l'autre → `NoSuchMethodError`. Les tentatives `excludeGroup` + `PREFER_SETTINGS`
+ne corrigent pas le shade embarqué dans le JAR N1.
+
+**Verdict** : le correctif propre est **côté codebase** (ne pas empaqueter
+`contracts.vibecoding` dans `codebase-plugin`, ou publier
+`vibecoding-contracts:0.0.2` avec l'US courante) puis re-pin planner. Un
+workaround par réflexion serait un faux vert qui masquerait le shading.
+
+'''
+== Décision
+
+* **Revert** de la tentative (`885060c`/`e1e75c3` → `f4231f5`) : `ToolCatalog`
+  revient à la copie manuelle alignée sur les 7 noms N0 ; `settings` et
+  dépendance restaurés.
+* **PLN-REVIEW-2 marqué 🔴 BLOQUÉ** — dépendance cross-borough :
+  codebase unshading/release + `vibecoding-contracts 0.0.2` + re-pin planner.
+* Aucun workaround de réflexion, aucune garde affaiblie.
+
+**CI de clôture** : run `40267950103` (commit `f4231f5`) **VERTE** — baseline
+planner restaurée (JDK 25, nmcp optionnel).
+
+'''
+== Reste
+
+* **PLN-REVIEW-5** (1 pt) — flag `agent.lifecycle` extension + inputs (actionnable).
+* **PLN-REVIEW-6** (1 pt) — purge commentaires français (actionnable).
+* **PLN-REVIEW-3** (2 pts) — câblage lifecycle dans la tâche.
+* **PLN-REVIEW-4** (1 pt) — koog 1.3.0 / dépendance morte.
+* **PLN-REVIEW-2** 🔴 bloqué (cross-borough codebase).
+* **PLN-DEP-ALIGN US-2/3**, **PLN-LIFECYCLE US-3**, **SVO-4/5**.
+
+'''
+== Pièges
+
+1. *(S-082)* Un JAR de plugin peut **shader** un contrat N0 ; comparer `javap`
+   du JAR publié au POM ne suffit pas — inspecter le contenu du JAR du
+   consommateur N1.
+2. *(S-082)* `mavenLocal` + mêmes coordonnées = split-brain d'API (piège #16) ;
+   ne pas « corriger » par réflexion, corriger la source du shade.
+3. *(S-082)* Le vert CI doit être restauré par un **revert explicite** ; les
+   commits rouges restent dans l'historique, la clôture pointe le commit vert.

@@ -1,58 +1,54 @@
-= PROMPT_REPRISE — planner-gradle (Session 081 terminée — PLN-REVIEW-1)
-:session: 082
-:date: 2026-10-25
+= PROMPT_REPRISE — planner-gradle (Session 082 terminée — PLN-REVIEW-2 bloqué)
+:session: 083
+:date: 2026-10-26
 
-== Session 081 accomplie (PLN-REVIEW-1)
+== Session 082 accomplie (audit + revert)
 
-* **Persistance du plan** : `planning.PlanPersistence` écrit `plan.json`
-  (Jackson Kotlin, round-trip `contracts.agent.Plan`), `metadata.json` (pivot
-  TAXONOMIE) et `plan.adoc` optionnel (même texte que stdout).
-* **Tâche** : `DecomposeIntentionTask.@OutputDirectory planOutputDir` (défaut
-  `build/planner`, override `-PplanOutputDir`) ; écriture **après** le stdout,
-  zéro rappel LLM.
-* **Tests** : 8 UT `PlanPersistenceTest` + 2 FT GradleRunner
-  `PlanOutputWiringTest` (aucun LLM). CI **`40242776506` VERTE** (JDK 25).
-* **Hygiène CI** : credentials nmcp optionnels (`?: ""`) + JDK 24 → 25.
-* **Backlog réaligné** : RENAME-7 était déjà livré S-254.
-* **Publication** : `publishToMavenLocal` non exécuté (0.0.2 déjà Central,
-  split-brain) ; prochaine release **0.0.3** sur accord pilote.
+* **PLN-REVIEW-2 tenté puis bloqué** : `ToolCatalog` devait consommer
+  `vibecoding-contracts:0.0.1` (Central). Le JAR `codebase-plugin:0.0.17`
+  **embarque** une version plus récente de
+  `contracts.vibecoding.registry.ToolRegistry` (API 4 paramètres), alors que le
+  contrat Central 0.0.1 est l'API 2 paramètres → `NoSuchMethodError` au runtime.
+* **Revert** `f4231f5` : catalogue manuel des 7 outils restauré, dépendance et
+  settings restaurés. **CI verte `40267950103`**.
+* **Aucun workaround réflexion** ; le correctif propre est cross-borough :
+  codebase ne doit pas shader `contracts.vibecoding`, puis publier
+  `vibecoding-contracts 0.0.2` (API courante) et re-pin planner.
 
-== Session 082 — Mission proposée
+== Session 083 — Mission proposée
 
-Ordre recommandé (P1 d'abord, puis P2) :
+Ordre recommandé (P2 actionnables, sans blocage) :
 
-. **PLN-REVIEW-2** (2 pts) — `ToolCatalog` consomme `vibecoding-contracts`
-   N0 (supprimer la copie manuelle des 7 outils, adapter
-   `ToolRegistry.toolNames()/ToolInfo`, non-régression prompt identique).
-. **PLN-REVIEW-3** (2 pts) — câbler la surcharge lifecycle dans
-   `DecomposeIntentionTask` (un seul chemin testé, suppression du post-wrap
-   redondant).
-. **PLN-REVIEW-5** (1 pt) — flag `agent.lifecycle` dans `PlannerExtension` +
-   inputs de tâche.
-. **PLN-REVIEW-6** (1 pt) — purge des commentaires français (4 fichiers prod).
-. **PLN-REVIEW-4** (1 pt) — koog `0.8.0 → 1.3.0` ou suppression de la
-   dépendance morte, alignement BOM MEMPHIS.
-. **PLN-DEP-ALIGN US-2/US-3** — koog 1.3.0 + publication 0.0.3 (accord).
-. **SVO-4/5** côté Queens — planner en attente de demande.
+. **PLN-REVIEW-5** (1 pt) — `PlannerExtension.lifecycleEnabled` +
+   `DecomposeIntentionTask.lifecycleEnabled` `@Input` (défaut false),
+   `-Pagent.lifecycle` mappé ; suppression de la lecture directe de propriété
+   dans l'action.
+. **PLN-REVIEW-6** (1 pt) — purge des commentaires français (4 fichiers prod),
+   anglais only.
+3. **PLN-REVIEW-3** (2 pts) — câbler la surcharge lifecycle dans la tâche
+   (un seul chemin testé).
+4. **PLN-REVIEW-4** (1 pt) — koog `0.8.0 → 1.3.0` ou suppression dépendance morte.
+5. **PLN-DEP-ALIGN US-2/US-3** — koog 1.3.0 + publication 0.0.3 (accord).
+6. **PLN-REVIEW-2** 🔴 bloqué cross-borough (codebase unshading + contracts 0.0.2).
+7. **SVO-4/5** côté Queens — planner en attente de demande.
 
 == État du code
 
 * Version `0.0.2` (Central) ; `codebase` catalog `0.0.17`, `agent-contracts`
-  `0.0.3` ; `koog` local `0.8.0` (stale vs BOM 1.3.0).
+  `0.0.3`, `vibecoding-contracts` **non dépendu** (catalogue manuel), `koog`
+  local `0.8.0` (stale vs BOM 1.3.0).
 * `PlannerExtension` : `aiProvider`, `intention`, `specsDir`, `planOutputDir`.
 * `generatePlan` : stdout + `plan.json`/`metadata.json`/`plan.adoc`.
-* CI planner **verte** depuis S-081 (JDK 25 + nmcp optionnel).
+* CI planner **verte** (run `40267950103`, JDK 25 + nmcp optionnel).
 
 == Rappels
 
 * **Local = Build, Tests = CI** : compiler/builder uniquement ; jamais
   `test`/`check` local.
 * **Ne pas publier localement 0.0.2** : version déjà Central (split-brain) ;
-  la prochaine release doit bumper 0.0.3, sur accord pilote (DAG MEMPHIS-first
-  si un contrat N0 change).
+  prochaine release 0.0.3, sur accord pilote.
 * **Zéro Python** ; English only code/tests/features (gouvernance `.adoc` FR).
-* Commit/push autorisés (décision 2026-09-17) ; indexer explicitement les
-  fichiers de sa session (jamais `git add -A` en cas de session parallèle).
-* `git status` + `./gradlew :planner-plugin:compileKotlin` en ouverture.
-* Piège #16/#59 : `publishToMavenLocal` sur une version déjà Central écrase
-  l'artefact local.
+* Commit/push autorisés (2026-09-17) ; indexer explicitement les fichiers de sa
+  session (jamais `git add -A` en cas de session parallèle).
+* Pièges : un JAR N1 peut **shader** un contrat N0 (PLN-REVIEW-2) ; ne pas
+  « corriger » par réflexion, corriger la source du shade.

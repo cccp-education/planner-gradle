@@ -4,7 +4,8 @@
 :toc: left
 :sectnums:
 
-_Dernière mise à jour : 2026-10-25 (S-081 — **PLN-REVIEW-1 TERMINÉ** : `PlanPersistence` (`plan.json` + `metadata.json` + `plan.adoc` optionnel), `generatePlan` écrit `build/planner` ou `-PplanOutputDir`, stdout préservé ; 8 UT + 2 FT GradleRunner, CI `40242776506` verte. Hygiène CI JDK 25 + nmcp optionnel. **RENAME-7 déjà livré S-254** (backlog réaligné). `publishToMavenLocal` non exécuté : 0.0.2 déjà Central, split-brain — prochaine release 0.0.3 sur accord.)_
+_Dernière mise à jour : 2026-10-26 (S-082 — **PLN-REVIEW-2 BLOQUÉ** : tentative de consommation du registre N0 `vibecoding-contracts:0.0.1` → `NoSuchMethodError`, car `codebase-plugin:0.0.17` **embarque** une version plus récente de `contracts.vibecoding.registry.ToolRegistry` (API 4 paramètres) dans son JAR, tandis que le contrat Central 0.0.1 est l'API 2 paramètres. Revert `f4231f5`, baseline verte run `40267950103`. Correctif propre = codebase unshading + publication `vibecoding-contracts 0.0.2` + re-pin planner ; aucun workaround réflexion. `PLN-REVIEW-2` 🔴 BLOQUÉ. S-081 : PLN-REVIEW-1 ✅, CI `40242776506` verte.)_
+_Dernière mise à jour (antérieure) : 2026-10-25 (S-081 — **PLN-REVIEW-1 TERMINÉ** : `PlanPersistence` (`plan.json` + `metadata.json` + `plan.adoc` optionnel), `generatePlan` écrit `build/planner` ou `-PplanOutputDir`, stdout préservé ; 8 UT + 2 FT GradleRunner, CI `40242776506` verte. Hygiène CI JDK 25 + nmcp optionnel. **RENAME-7 déjà livré S-254** (backlog réaligné). `publishToMavenLocal` non exécuté : 0.0.2 déjà Central, split-brain — prochaine release 0.0.3 sur accord.)_
 _Dernière mise à jour (antérieure) : 2026-09-10 (S-079 — **SVO-3 TERMINÉ** cross-borough : domaine `planning.adapter` — `KoogIntentionPlannerAdapter` implémente le port N1 `PlannerPort` + `PlannerPortBuildService`/`PlannerPortRegistry` (nom canonique `plannerPortService`) + `registerPlannerPort` wiring PlanningPlugin. 9 unit TDD, test global 153 0 FAIL, publishToMavenLocal VERT. Antérieur : S-215 globale — cadrage EPIC RENAME Vague 3 : RENAME-7 planner 2 pts.)_
 
 _Source : configuration/EPIC_PUB.adoc (Session 096) + Session 074 (cadrage PLN-LIFECYCLE) + Session 077 (code review — CODE_REVIEW_077.adoc)_
@@ -92,7 +93,7 @@ traiter en priorité après clôture de PLN-LIFECYCLE US-3 (S-077/078).
 
 | PLN-REVIEW-2
 | *ToolCatalog consomme vibecoding-contracts N0* (P1-2) — supprimer copie manuelle, dépendre de `vibecoding-contracts` (Central) + adapter `ToolRegistry.toolNames()/ToolInfo`. Non-régression prompt 7 outils identiques. ~5 unit | 2
-| 🟡 À FAIRE
+| 🔴 BLOQUÉ (S-082) — `codebase-plugin:0.0.17` shade `contracts.vibecoding.registry.ToolRegistry` (API 4 paramètres) ; le contrat Central 0.0.1 est l'API 2 paramètres → `NoSuchMethodError`. Revert `f4231f5`, CI verte `40267950103`. Correctif cross-borough : codebase unshading + `vibecoding-contracts 0.0.2` + re-pin planner. Aucun workaround réflexion.
 
 | PLN-REVIEW-3
 | *Câbler la surcharge lifecycle dans la tâche* (P1-3) — `DecomposeIntentionTask` appelle `plan(state: ContextReady, ...)` quand `-Pagent.lifecycle=true`, suppression post-wrap `LifecycleAdapter.toPlanned` redondant. Un seul chemin lifecycle = celui testé. ~5 unit + 2 functional | 2

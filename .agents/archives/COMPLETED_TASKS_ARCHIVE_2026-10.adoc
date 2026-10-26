@@ -1,5 +1,15 @@
 = Archive des Tâches Terminées — Octobre 2026 (planner-gradle)
 
+== Session 082 — 2026-10-26 — PLN-REVIEW-2 : blocage codebase-plugin shading (revert)
+
+=== Fait
+- [x] Audit cross-borough : `codebase-plugin:0.0.17` embarque `contracts.vibecoding.registry.ToolRegistry` (API 4 paramètres) ; `vibecoding-contracts:0.0.1` Central = API 2 paramètres
+- [x] Tentative de projection `ToolCatalog` → `ToolRegistry` : CI rouge `NoSuchMethodError` (runs `40267147202`, `40267654121`)
+- [x] Revert `f4231f5` : `ToolCatalog` manuel + dépendance/settings restaurés ; **CI verte `40267950103`**
+- [x] Aucun workaround réflexion, aucune garde affaiblie
+- [x] PLN-REVIEW-2 marqué 🔴 BLOQUÉ : correctif propre = codebase unshading + `vibecoding-contracts 0.0.2` + re-pin planner
+- [x] Rapport `.agents/sessions/082-pln-review-2-blocked-codebase-shading.adoc`
+
 == Session 081 — 2026-10-25 — PLN-REVIEW-1 : persistance plan + metadata.json
 
 === Fait
