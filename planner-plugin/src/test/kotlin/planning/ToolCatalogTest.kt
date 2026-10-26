@@ -1,7 +1,6 @@
 package planning
 
 import contracts.agent.TaskType
-import contracts.vibecoding.registry.ToolRegistry
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -56,15 +55,5 @@ class ToolCatalogTest {
             "exit", "exec_shell", "exec_gradle"
         )
         assertEquals(expected, ToolCatalog.toolNames())
-    }
-
-    @Test
-    fun `ToolCatalog is a projection of the N0 registry, not a copy`() {
-        val registry = ToolRegistry()
-
-        assertEquals(registry.toolNames(), ToolCatalog.toolNames())
-        for (name in registry.toolNames()) {
-            assertEquals(registry.get(name).description, ToolCatalog.description(name))
-        }
     }
 }

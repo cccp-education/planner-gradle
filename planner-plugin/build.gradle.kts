@@ -28,10 +28,6 @@ dependencies {
     // N0 agent contracts — source unique de vérité (Plan, Epic, UserStory, GradleTask, TaskType, AgentState)
     implementation("education.cccp:agent-contracts:0.0.3")
 
-    // N0 vibecoding contracts — source unique du registre des 7 outils
-    // (EPIC PLN-REVIEW-2 ; publication Central 0.0.1)
-    implementation("education.cccp:vibecoding-contracts:0.0.1")
-
     // N1 codebase — LLM socle (EPIC PLN-LLM-HUB): LlmBuildService + LlmProvider
     implementation(libs.codebase.plugin)
 
