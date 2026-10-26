@@ -31,8 +31,14 @@ nmcpSettings {
 }
 
 dependencyResolutionManagement {
+    // S-082 — the conventions plugin adds project repositories (mavenLocal
+    // first). Force the settings repositories to win so the local build resolves
+    // the *published* N0/N1 jars, exactly like the CI checkout.
+    repositoriesMode.set(org.gradle.api.initialization.resolve.RepositoriesMode.PREFER_SETTINGS)
     repositories {
-        mavenLocal()
+        // A stale `~/.m2` copy of `vibecoding-contracts:0.0.1` (newer binary API
+        // than the Central jar) shadowed the published one and produced a runtime
+        // NoSuchMethodError. CI has no mavenLocal; the local build must match it.
         mavenCentral()
     }
 }
