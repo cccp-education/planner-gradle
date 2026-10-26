@@ -1,35 +1,25 @@
 package planning
 
 import contracts.agent.TaskType
+import contracts.vibecoding.registry.ToolRegistry
 
 /**
- * Tool catalogue — source unique de vérité côté planner pour les 7 outils
- * vibecoding. Aligné sur `vibecoding-contracts.ToolRegistry` (workspace-bom N0).
+ * Tool catalogue — planner's projection of the N0 vibecoding registry.
  *
- * Le planner ne dépend pas directement de `vibecoding-contracts` (non publié
- * proprement) : les 7 noms + descriptions sont alignés manuellement ici pour
- * éviter la drift (single-borough, zéro dépendance externe fragile).
+ * PLN-REVIEW-2 — the seven tools (and their descriptions) are **read from**
+ * `vibecoding-contracts.ToolRegistry` (Central 0.0.1), never copied locally:
+ * one vocabulary, one owner. The planner only adds the prompt rendering and
+ * the `TaskType` mapping guidance.
  *
- * Consommé par `IntentionPlanner.buildPromptInternal` pour exposer le
- * catalogue au LLM.
+ * Consumed by `IntentionPlanner.buildPromptInternal` to expose the catalogue
+ * to the LLM.
  */
 object ToolCatalog {
+    private val registry = ToolRegistry()
 
-    private val tools: List<Pair<String, String>> = listOf(
-        "read_file" to "Read the contents of a file at the given path",
-        "write_file" to "Write content to a file at the given path",
-        "edit_file" to "Edit a file by replacing oldString with newString at the given path",
-        "list_directory" to "List the contents of a directory at the given path",
-        "exit" to "Exit the vibecoding loop",
-        "exec_shell" to "Execute a shell command via bash -c (DANGEROUS commands blocked)",
-        "exec_gradle" to "Execute a Gradle task via ./gradlew"
-    )
+    fun toolNames(): List<String> = registry.toolNames()
 
-    fun toolNames(): List<String> = tools.map { it.first }
-
-    fun description(name: String): String =
-        tools.firstOrNull { it.first == name }?.second
-            ?: throw IllegalArgumentException("Unknown tool: $name")
+    fun description(name: String): String = registry.get(name).description
 
     /**
      * Renders the tool catalogue as a prompt section for the planner LLM,
@@ -38,8 +28,8 @@ object ToolCatalog {
      */
     fun toPromptSection(): String = buildString {
         appendLine("Vibecoding tool catalogue (the plan may drive any of these):")
-        for ((name, desc) in tools) {
-            appendLine("- $name      — $desc")
+        for (name in registry.toolNames()) {
+            appendLine("- $name      — ${registry.get(name).description}")
         }
         appendLine()
         appendLine("Each task carries a `toolType` among GRADLE (default), EDIT_FILE, EXEC_SHELL:")
