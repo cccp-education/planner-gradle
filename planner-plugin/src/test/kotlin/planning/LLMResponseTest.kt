@@ -4,15 +4,15 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class LLMResponseTest {
-
     @Test
     fun `toPlan maps title correctly`() {
-        val response = LLMResponse(
-            title = "Add test framework",
-            epics = emptyList(),
-            totalPoints = 0,
-            estimatedSessions = "1-2"
-        )
+        val response =
+            LLMResponse(
+                title = "Add test framework",
+                epics = emptyList(),
+                totalPoints = 0,
+                estimatedSessions = "1-2",
+            )
         val plan = response.toPlan()
         assertEquals("Add test framework", plan.title)
         assertEquals(0, plan.totalPoints)
@@ -21,33 +21,38 @@ class LLMResponseTest {
 
     @Test
     fun `toPlan maps single epic with all levels`() {
-        val response = LLMResponse(
-            title = "Setup CI",
-            epics = listOf(
-                LLMEpic(
-                    name = "CI-0",
-                    description = "Bootstrap CI pipeline",
-                    points = 5,
-                    userStories = listOf(
-                        LLMUserStory(
-                            description = "Add GitHub Actions workflow",
-                            tasks = listOf(
-                                LLMTask("Create workflow YAML", "./gradlew verify"),
-                                LLMTask("Test workflow trigger", "./gradlew check")
-                            )
+        val response =
+            LLMResponse(
+                title = "Setup CI",
+                epics =
+                    listOf(
+                        LLMEpic(
+                            name = "CI-0",
+                            description = "Bootstrap CI pipeline",
+                            points = 5,
+                            userStories =
+                                listOf(
+                                    LLMUserStory(
+                                        description = "Add GitHub Actions workflow",
+                                        tasks =
+                                            listOf(
+                                                LLMTask("Create workflow YAML", "./gradlew verify"),
+                                                LLMTask("Test workflow trigger", "./gradlew check"),
+                                            ),
+                                    ),
+                                    LLMUserStory(
+                                        description = "Configure build scan",
+                                        tasks =
+                                            listOf(
+                                                LLMTask("Add scan plugin", "./gradlew buildScan"),
+                                            ),
+                                    ),
+                                ),
                         ),
-                        LLMUserStory(
-                            description = "Configure build scan",
-                            tasks = listOf(
-                                LLMTask("Add scan plugin", "./gradlew buildScan")
-                            )
-                        )
-                    )
-                )
-            ),
-            totalPoints = 5,
-            estimatedSessions = "2-3"
-        )
+                    ),
+                totalPoints = 5,
+                estimatedSessions = "2-3",
+            )
         val plan = response.toPlan()
 
         assertEquals(1, plan.epics.size)
@@ -74,16 +79,18 @@ class LLMResponseTest {
 
     @Test
     fun `toPlan maps multiple epics`() {
-        val response = LLMResponse(
-            title = "Full pipeline",
-            epics = listOf(
-                LLMEpic("A-0", "First", 3, emptyList()),
-                LLMEpic("B-1", "Second", 8, emptyList()),
-                LLMEpic("C-2", "Third", 5, emptyList())
-            ),
-            totalPoints = 16,
-            estimatedSessions = "5-7"
-        )
+        val response =
+            LLMResponse(
+                title = "Full pipeline",
+                epics =
+                    listOf(
+                        LLMEpic("A-0", "First", 3, emptyList()),
+                        LLMEpic("B-1", "Second", 8, emptyList()),
+                        LLMEpic("C-2", "Third", 5, emptyList()),
+                    ),
+                totalPoints = 16,
+                estimatedSessions = "5-7",
+            )
         val plan = response.toPlan()
 
         assertEquals(3, plan.epics.size)
@@ -95,12 +102,13 @@ class LLMResponseTest {
 
     @Test
     fun `toPlan handles empty user stories`() {
-        val response = LLMResponse(
-            title = "Minimal",
-            epics = listOf(LLMEpic("M-0", "Minimal epic", 1, emptyList())),
-            totalPoints = 1,
-            estimatedSessions = "1"
-        )
+        val response =
+            LLMResponse(
+                title = "Minimal",
+                epics = listOf(LLMEpic("M-0", "Minimal epic", 1, emptyList())),
+                totalPoints = 1,
+                estimatedSessions = "1",
+            )
         val plan = response.toPlan()
         assertEquals(1, plan.epics.size)
         assertEquals(0, plan.epics[0].userStories.size)
@@ -108,22 +116,35 @@ class LLMResponseTest {
 
     @Test
     fun `toPlan preserves field order`() {
-        val response = LLMResponse(
-            title = "Order test",
-            epics = listOf(
-                LLMEpic("X-0", "Alpha", 1, listOf(
-                    LLMUserStory("First US", listOf(
-                        LLMTask("First task", "./gradlew a"),
-                        LLMTask("Second task", "./gradlew b")
-                    )),
-                    LLMUserStory("Second US", listOf(
-                        LLMTask("Third task", "./gradlew c")
-                    ))
-                ))
-            ),
-            totalPoints = 1,
-            estimatedSessions = "1"
-        )
+        val response =
+            LLMResponse(
+                title = "Order test",
+                epics =
+                    listOf(
+                        LLMEpic(
+                            "X-0",
+                            "Alpha",
+                            1,
+                            listOf(
+                                LLMUserStory(
+                                    "First US",
+                                    listOf(
+                                        LLMTask("First task", "./gradlew a"),
+                                        LLMTask("Second task", "./gradlew b"),
+                                    ),
+                                ),
+                                LLMUserStory(
+                                    "Second US",
+                                    listOf(
+                                        LLMTask("Third task", "./gradlew c"),
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                totalPoints = 1,
+                estimatedSessions = "1",
+            )
         val plan = response.toPlan()
         val usList = plan.epics[0].userStories
         assertEquals("First US", usList[0].description)

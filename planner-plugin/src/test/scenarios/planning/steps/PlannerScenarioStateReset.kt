@@ -17,7 +17,6 @@ import io.cucumber.java.Before
  * object suffices as long as the class is on the glue path.
  */
 object PlannerScenarioStateReset {
-
     @Before
     @JvmStatic
     fun resetState() {

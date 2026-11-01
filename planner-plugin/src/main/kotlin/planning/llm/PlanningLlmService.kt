@@ -39,14 +39,16 @@ import java.time.Duration
  * from the pool, wrapped in a [LlmProviderChatModelAdapter].
  */
 object PlanningLlmService {
-
     const val PROP_AI_PROVIDER = "ai.provider"
     const val PROVIDER_OLLAMA = "ollama"
 
     /** Reads `-Pai.provider`, defaulting to `"ollama"` when absent or blank. */
     val Project.aiProvider: String
-        get() = (findProperty(PROP_AI_PROVIDER) as? String
-            ?: PROVIDER_OLLAMA).lowercase().trim()
+        get() =
+            (
+                findProperty(PROP_AI_PROVIDER) as? String
+                    ?: PROVIDER_OLLAMA
+            ).lowercase().trim()
 
     /**
      * Registers the [LlmBuildService] (Gradle-managed DI) and returns its
@@ -58,7 +60,8 @@ object PlanningLlmService {
      */
     fun Project.registerLlmBuildService(): Provider<LlmBuildService> =
         gradle.sharedServices.registerIfAbsent(
-            "plannerLlmService", LlmBuildService::class.java
+            "plannerLlmService",
+            LlmBuildService::class.java,
         ) { spec: BuildServiceSpec<LlmBuildService.Params> ->
             spec.parameters.model.convention(project.aiProvider)
             spec.maxParallelUsages.set(1)
@@ -77,17 +80,20 @@ object PlanningLlmService {
      * Call once per build, after [registerLlmBuildService].
      */
     fun Project.registerPlannerPort(): Provider<PlannerPortBuildService> =
-        gradle.sharedServices.registerIfAbsent(
-            PlannerPortBuildService.SERVICE_NAME, PlannerPortBuildService::class.java
-        ) { spec: BuildServiceSpec<PlannerPortBuildService.EmptyParams> ->
-            spec.parameters // marker only — the port lives in PlannerPortRegistry
-        }.also { _ ->
-            val model = resolveModel(
-                provider = aiProvider,
-                serviceProvider = registerLlmBuildService(),
-            )
-            PlannerPortRegistry.register(KoogIntentionPlannerAdapter(model))
-        }
+        gradle.sharedServices
+            .registerIfAbsent(
+                PlannerPortBuildService.SERVICE_NAME,
+                PlannerPortBuildService::class.java,
+            ) { spec: BuildServiceSpec<PlannerPortBuildService.EmptyParams> ->
+                spec.parameters // marker only — the port lives in PlannerPortRegistry
+            }.also { _ ->
+                val model =
+                    resolveModel(
+                        provider = aiProvider,
+                        serviceProvider = registerLlmBuildService(),
+                    )
+                PlannerPortRegistry.register(KoogIntentionPlannerAdapter(model))
+            }
 
     /**
      * Resolves the langchain4j [ChatModel] for the given [provider] by
@@ -122,12 +128,14 @@ object PlanningLlmService {
      * the mock-LLM fallback in [resolveModel].
      */
     fun Project.createOllamaChatModel(baseUrl: String): ChatModel =
-        dev.langchain4j.model.ollama.OllamaChatModel.builder().apply {
-            this.baseUrl(baseUrl)
-            modelName(findProperty("ollama.modelName")?.toString() ?: "gemma4:31b-cloud")
-            temperature(findProperty("ollama.temperature")?.toString()?.toDoubleOrNull() ?: 0.8)
-            timeout(Duration.ofSeconds(findProperty("ollama.timeout")?.toString()?.toLongOrNull() ?: 300L))
-            logRequests(true)
-            logResponses(true)
-        }.build()
+        dev.langchain4j.model.ollama.OllamaChatModel
+            .builder()
+            .apply {
+                this.baseUrl(baseUrl)
+                modelName(findProperty("ollama.modelName")?.toString() ?: "gemma4:31b-cloud")
+                temperature(findProperty("ollama.temperature")?.toString()?.toDoubleOrNull() ?: 0.8)
+                timeout(Duration.ofSeconds(findProperty("ollama.timeout")?.toString()?.toLongOrNull() ?: 300L))
+                logRequests(true)
+                logResponses(true)
+            }.build()
 }

@@ -5,16 +5,16 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class IntentionPlannerTest {
-
     private val context = PlanningContext(intention = "test")
 
     @Test
     fun `buildPrompt includes intention`() {
-        val prompt = IntentionPlanner.buildPrompt(
-            "create a test framework",
-            PlanningContext(intention = "create a test framework"),
-            emptyList()
-        )
+        val prompt =
+            IntentionPlanner.buildPrompt(
+                "create a test framework",
+                PlanningContext(intention = "create a test framework"),
+                emptyList(),
+            )
         assertTrue(prompt.contains("Intention: create a test framework"))
     }
 
@@ -49,10 +49,11 @@ class IntentionPlannerTest {
 
     @Test
     fun `buildPrompt with specs includes spec content`() {
-        val specs = listOf(
-            SpecReader.SpecContent("rules.adoc", "= Rules\n\nUse PREFIX-00 naming"),
-            SpecReader.SpecContent("api.adoc", "= API\n\nPOST /plan")
-        )
+        val specs =
+            listOf(
+                SpecReader.SpecContent("rules.adoc", "= Rules\n\nUse PREFIX-00 naming"),
+                SpecReader.SpecContent("api.adoc", "= API\n\nPOST /plan"),
+            )
         val prompt = IntentionPlanner.buildPrompt("add feature", context, specs)
 
         assertTrue(prompt.contains("Existing specifications"), "Should contain specs header")
@@ -64,9 +65,10 @@ class IntentionPlannerTest {
 
     @Test
     fun `buildPrompt with specs appears before JSON contract`() {
-        val specs = listOf(
-            SpecReader.SpecContent("guide.adoc", "Important guidelines here")
-        )
+        val specs =
+            listOf(
+                SpecReader.SpecContent("guide.adoc", "Important guidelines here"),
+            )
         val prompt = IntentionPlanner.buildPrompt("do X", context, specs)
 
         val specsIndex = prompt.indexOf("Existing specifications")

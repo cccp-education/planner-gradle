@@ -4,11 +4,9 @@ import contracts.context.ChannelBudget
 import contracts.context.CompositeContextConfig
 import contracts.context.ContextChannel
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Tag
 import java.io.File
 import kotlin.test.Test
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -24,17 +22,18 @@ import kotlin.test.assertTrue
  * dédiée les exécute à la demande (`./gradlew :planner-plugin:integrationTest`).
  */
 class DecomposeIntentionMultiCanalTest {
-
     @Test
     @Tag("integration")
     fun `generatePlan without multi-channel properties succeeds (backward compatible)`() {
         val projectDir = createTestProject()
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withArguments("generatePlan", "-Pintention=test backward compat", "-PollamaBaseUrl=http://localhost:1")
-            .withPluginClasspath()
-            .build()
+        val result =
+            GradleRunner
+                .create()
+                .withProjectDir(projectDir)
+                .withArguments("generatePlan", "-Pintention=test backward compat", "-PollamaBaseUrl=http://localhost:1")
+                .withPluginClasspath()
+                .build()
 
         // Must not crash — backward compatible
         assertTrue(result.output.contains("[PLAN]") || result.output.contains("[ERROR]") || result.output.contains("BUILD SUCCESSFUL"))
@@ -45,16 +44,17 @@ class DecomposeIntentionMultiCanalTest {
     fun `generatePlan with eager channel does not crash`() {
         val projectDir = createTestProject()
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withArguments(
-                "generatePlan",
-                "-Pintention=test eager channel",
-                "-PeagerContext=EPIC TEST-0: verify eager propagation",
-                "-PollamaBaseUrl=http://localhost:1"
-            )
-            .withPluginClasspath()
-            .build()
+        val result =
+            GradleRunner
+                .create()
+                .withProjectDir(projectDir)
+                .withArguments(
+                    "generatePlan",
+                    "-Pintention=test eager channel",
+                    "-PeagerContext=EPIC TEST-0: verify eager propagation",
+                    "-PollamaBaseUrl=http://localhost:1",
+                ).withPluginClasspath()
+                .build()
 
         assertTrue(result.output.contains("Multi-canal active") || result.output.contains("[PLAN]") || result.output.contains("BUILD SUCCESSFUL"))
     }
@@ -64,24 +64,25 @@ class DecomposeIntentionMultiCanalTest {
     fun `generatePlan with all 4 channels logs multi-canal tokens`() {
         val projectDir = createTestProject()
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withArguments(
-                "generatePlan",
-                "-Pintention=test multi-canal full",
-                "-PeagerContext=eager governance data here",
-                "-PragContext=rag semantic chunks here",
-                "-PgraphifyContext=graph relations here",
-                "-PdocsContext=codex corpus docs here",
-                "-PollamaBaseUrl=http://localhost:1"
-            )
-            .withPluginClasspath()
-            .build()
+        val result =
+            GradleRunner
+                .create()
+                .withProjectDir(projectDir)
+                .withArguments(
+                    "generatePlan",
+                    "-Pintention=test multi-canal full",
+                    "-PeagerContext=eager governance data here",
+                    "-PragContext=rag semantic chunks here",
+                    "-PgraphifyContext=graph relations here",
+                    "-PdocsContext=codex corpus docs here",
+                    "-PollamaBaseUrl=http://localhost:1",
+                ).withPluginClasspath()
+                .build()
 
         val output = result.output
         assertTrue(
             output.contains("Multi-canal active") || output.contains("[PLAN]") || output.contains("[ERROR]"),
-            "Should handle multi-channel gracefully: $output"
+            "Should handle multi-channel gracefully: $output",
         )
     }
 
@@ -90,16 +91,17 @@ class DecomposeIntentionMultiCanalTest {
     fun `generatePlan with only docs channel uses 8-param planner path`() {
         val projectDir = createTestProject()
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withArguments(
-                "generatePlan",
-                "-Pintention=test docs only",
-                "-PdocsContext=Referentiel Normatif Chapitre 2: Competences professionnelles",
-                "-PollamaBaseUrl=http://localhost:1"
-            )
-            .withPluginClasspath()
-            .build()
+        val result =
+            GradleRunner
+                .create()
+                .withProjectDir(projectDir)
+                .withArguments(
+                    "generatePlan",
+                    "-Pintention=test docs only",
+                    "-PdocsContext=Referentiel Normatif Chapitre 2: Competences professionnelles",
+                    "-PollamaBaseUrl=http://localhost:1",
+                ).withPluginClasspath()
+                .build()
 
         // docsContext non-blank triggers 8-param path
         assertTrue(result.output.contains("[PLAN]") || result.output.contains("[ERROR]") || result.output.contains("BUILD SUCCESSFUL"))
@@ -114,14 +116,15 @@ class DecomposeIntentionMultiCanalTest {
         assertTrue(channel.sectionHeader == "CONTEXTE_DOCS")
         assertTrue(channel.name == "Codex/Docs")
 
-        val config = CompositeContextConfig(
-            totalTokenBudget = 8000,
-            budgetEagerLazy = 0.40,
-            budgetRag = 0.30,
-            budgetGraphify = 0.20,
-            budgetDocs = 0.10,
-            budgetOverhead = 0.0
-        )
+        val config =
+            CompositeContextConfig(
+                totalTokenBudget = 8000,
+                budgetEagerLazy = 0.40,
+                budgetRag = 0.30,
+                budgetGraphify = 0.20,
+                budgetDocs = 0.10,
+                budgetOverhead = 0.0,
+            )
         val budget = ChannelBudget.fromConfig(config)
         assertTrue(budget.docsTokens == 800)
         assertTrue(budget.eagerTokens == 3200)
@@ -141,15 +144,19 @@ class DecomposeIntentionMultiCanalTest {
         val projectDir = File(System.getProperty("java.io.tmpdir"), "test-multicanal-${System.nanoTime()}")
         projectDir.mkdirs()
 
-        projectDir.resolve("settings.gradle.kts").writeText("""
+        projectDir.resolve("settings.gradle.kts").writeText(
+            """
             rootProject.name = "test-multicanal"
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
-        projectDir.resolve("build.gradle.kts").writeText("""
+        projectDir.resolve("build.gradle.kts").writeText(
+            """
             plugins {
                 id("education.cccp.planner")
             }
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
         return projectDir
     }

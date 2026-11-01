@@ -1,13 +1,12 @@
 package planning
 
+import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import java.nio.file.Files
-import java.nio.file.Path
 
 class SpecReaderTest {
-
     @Test
     fun `read empty directory returns empty`() {
         val tmp = Files.createTempDirectory("specReaderTest")
@@ -44,10 +43,11 @@ class SpecReaderTest {
 
     @Test
     fun `toPromptContext includes header per file`() {
-        val specs = listOf(
-            SpecReader.SpecContent("a.adoc", "hello"),
-            SpecReader.SpecContent("b.adoc", "world")
-        )
+        val specs =
+            listOf(
+                SpecReader.SpecContent("a.adoc", "hello"),
+                SpecReader.SpecContent("b.adoc", "world"),
+            )
         val context = SpecReader.toPromptContext(specs)
         assertTrue(context.contains("--- a.adoc ---"))
         assertTrue(context.contains("hello"))
@@ -57,9 +57,10 @@ class SpecReaderTest {
 
     @Test
     fun `toPromptContext truncates at token budget`() {
-        val specs = listOf(
-            SpecReader.SpecContent("big.adoc", "x".repeat(10_000))
-        )
+        val specs =
+            listOf(
+                SpecReader.SpecContent("big.adoc", "x".repeat(10_000)),
+            )
         val context = SpecReader.toPromptContext(specs, maxChars = 200)
         assertEquals(200, context.length)
     }

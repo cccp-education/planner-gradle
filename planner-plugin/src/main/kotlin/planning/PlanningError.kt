@@ -9,7 +9,6 @@ package planning
  * exactly once, at the public boundary.
  */
 sealed interface PlanningError {
-
     /** Which attempt produced the failure (1-based). */
     val attempt: Int
 

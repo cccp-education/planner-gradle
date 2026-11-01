@@ -15,7 +15,6 @@ import org.gradle.api.services.BuildServiceParameters
  * resolution happens in the consumer borough by shared-services name.
  */
 object PlannerPortRegistry {
-
     @Volatile
     private var port: PlannerPort? = null
 
@@ -36,12 +35,12 @@ object PlannerPortRegistry {
  * import in codebase production code (cycle N1↔N2 stays dead, S-256).
  */
 abstract class PlannerPortBuildService : BuildService<PlannerPortBuildService.EmptyParams> {
-
     /** Marker parameters — the port lives in [PlannerPortRegistry]. */
     interface EmptyParams : BuildServiceParameters
 
-    fun port(): PlannerPort = PlannerPortRegistry.resolve()
-        ?: codebase.koog.plannerport.PlannerPort.NoOp
+    fun port(): PlannerPort =
+        PlannerPortRegistry.resolve()
+            ?: codebase.koog.plannerport.PlannerPort.NoOp
 
     companion object {
         /**
@@ -55,6 +54,5 @@ abstract class PlannerPortBuildService : BuildService<PlannerPortBuildService.Em
 
 /** Concrete subclass for plain instantiation in unit tests (no Gradle). */
 class ConcretePlannerPortBuildService : PlannerPortBuildService() {
-    override fun getParameters(): EmptyParams =
-        object : EmptyParams {}
+    override fun getParameters(): EmptyParams = object : EmptyParams {}
 }

@@ -1,13 +1,11 @@
 package planning.steps
 
-import contracts.agent.ChannelScore
 import contracts.agent.RelevanceBudget
 import contracts.context.ContextChannel
 import io.cucumber.java8.En
 import org.assertj.core.api.Assertions.assertThat
 import planning.budget.BudgetAdapter
 import planning.budget.BudgetWiring
-import planning.budget.RelevanceContext
 import planning.steps.PlannerScenarioState.budgetDocs
 import planning.steps.PlannerScenarioState.budgetEager
 import planning.steps.PlannerScenarioState.budgetGraphify
@@ -38,7 +36,6 @@ import planning.steps.PlannerScenarioState.budgetedContext
  * and write through the shared [PlannerScenarioState] "World" object.
  */
 class PlannerBudgetSteps : En {
-
     init {
 
         // -------------------------------------------------------------------------
@@ -68,37 +65,40 @@ class PlannerBudgetSteps : En {
         // -------------------------------------------------------------------------
 
         When("the budget is resolved for the four channels") {
-            budgetedContext = BudgetWiring.resolveBudgetedContexts(
-                intention = budgetIntention,
-                eagerCtx = budgetEager,
-                ragCtx = budgetRag,
-                graphifyCtx = budgetGraphify,
-                docsCtx = budgetDocs,
-                log = { msg -> budgetLogs.add(msg) }
-            )
+            budgetedContext =
+                BudgetWiring.resolveBudgetedContexts(
+                    intention = budgetIntention,
+                    eagerCtx = budgetEager,
+                    ragCtx = budgetRag,
+                    graphifyCtx = budgetGraphify,
+                    docsCtx = budgetDocs,
+                    log = { msg -> budgetLogs.add(msg) },
+                )
         }
 
         When("the budget is resolved with a compute that returns no channels") {
-            budgetedContext = BudgetAdapter.applyRelevanceBudget(
-                intention = budgetIntention,
-                eagerCtx = budgetEager,
-                ragCtx = budgetRag,
-                graphifyCtx = budgetGraphify,
-                docsCtx = budgetDocs,
-                compute = { _, _, _ -> RelevanceBudget(channels = emptyList()) }
-            )
+            budgetedContext =
+                BudgetAdapter.applyRelevanceBudget(
+                    intention = budgetIntention,
+                    eagerCtx = budgetEager,
+                    ragCtx = budgetRag,
+                    graphifyCtx = budgetGraphify,
+                    docsCtx = budgetDocs,
+                    compute = { _, _, _ -> RelevanceBudget(channels = emptyList()) },
+                )
         }
 
         When("the budget is resolved for the four channels with total tokens {int}") { totalTokens: Int ->
-            budgetedContext = BudgetWiring.resolveBudgetedContexts(
-                intention = budgetIntention,
-                eagerCtx = budgetEager,
-                ragCtx = budgetRag,
-                graphifyCtx = budgetGraphify,
-                docsCtx = budgetDocs,
-                totalTokens = totalTokens,
-                log = { msg -> budgetLogs.add(msg) }
-            )
+            budgetedContext =
+                BudgetWiring.resolveBudgetedContexts(
+                    intention = budgetIntention,
+                    eagerCtx = budgetEager,
+                    ragCtx = budgetRag,
+                    graphifyCtx = budgetGraphify,
+                    docsCtx = budgetDocs,
+                    totalTokens = totalTokens,
+                    log = { msg -> budgetLogs.add(msg) },
+                )
         }
 
         // -------------------------------------------------------------------------
@@ -153,8 +153,9 @@ class PlannerBudgetSteps : En {
 
         Then("the budgeted context should contain {int} non-blank channels") { count: Int ->
             val ctx = requireNotNull(budgetedContext)
-            val nonBlank = listOf(ctx.eager, ctx.rag, ctx.graphify, ctx.docs)
-                .count { it.isNotBlank() }
+            val nonBlank =
+                listOf(ctx.eager, ctx.rag, ctx.graphify, ctx.docs)
+                    .count { it.isNotBlank() }
             assertThat(nonBlank).isEqualTo(count)
         }
 
@@ -172,10 +173,11 @@ class PlannerBudgetSteps : En {
 
         Then("the sum of estimated tokens across all channels should not exceed {int} plus a tolerance of {int}") { budget: Int, tolerance: Int ->
             val ctx = requireNotNull(budgetedContext)
-            val total = ContextChannel.estimateTokens(ctx.eager) +
-                ContextChannel.estimateTokens(ctx.rag) +
-                ContextChannel.estimateTokens(ctx.graphify) +
-                ContextChannel.estimateTokens(ctx.docs)
+            val total =
+                ContextChannel.estimateTokens(ctx.eager) +
+                    ContextChannel.estimateTokens(ctx.rag) +
+                    ContextChannel.estimateTokens(ctx.graphify) +
+                    ContextChannel.estimateTokens(ctx.docs)
             assertThat(total).isLessThanOrEqualTo(budget + tolerance)
         }
     }

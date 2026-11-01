@@ -4,19 +4,17 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import contracts.agent.GradleTask
-import contracts.agent.Plan
 import contracts.agent.TaskType
 import io.cucumber.java8.En
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import planning.IntentionPlanner
 import planning.LLMResponse
 import planning.PlanningContext
-import planning.toPlan
 import planning.steps.PlannerScenarioState.parsedPlan
-import planning.steps.PlannerScenarioState.prompt
 import planning.steps.PlannerScenarioState.parsingException
+import planning.steps.PlannerScenarioState.prompt
 import planning.steps.PlannerScenarioState.rawJson
+import planning.toPlan
 
 /**
  * Cucumber step definitions for the planner vibecoding-aware feature
@@ -35,9 +33,9 @@ import planning.steps.PlannerScenarioState.rawJson
  * the "do not re-plan an EPIC TERMINE" rule.
  */
 class PlannerVibecodingSteps : En {
-
-    private val mapper = jacksonObjectMapper()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    private val mapper =
+        jacksonObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     init {
 
@@ -46,7 +44,8 @@ class PlannerVibecodingSteps : En {
         // -------------------------------------------------------------------------
 
         Given("a raw LLM JSON response with one user story mixing three tool types") {
-            rawJson = """
+            rawJson =
+                """
                 {
                   "title": "Vibecoding plan",
                   "epics": [
@@ -69,11 +68,12 @@ class PlannerVibecodingSteps : En {
                   "totalPoints": 3,
                   "estimatedSessions": "1-2"
                 }
-            """.trimIndent()
+                """.trimIndent()
         }
 
         Given("a raw LLM JSON response with a single legacy task without toolType") {
-            rawJson = """
+            rawJson =
+                """
                 {
                   "title": "Legacy plan",
                   "epics": [
@@ -94,11 +94,12 @@ class PlannerVibecodingSteps : En {
                   "totalPoints": 1,
                   "estimatedSessions": "1"
                 }
-            """.trimIndent()
+                """.trimIndent()
         }
 
         Given("a raw LLM JSON response with an EDIT_FILE task missing its target") {
-            rawJson = """
+            rawJson =
+                """
                 {
                   "title": "Bad plan",
                   "epics": [
@@ -119,7 +120,7 @@ class PlannerVibecodingSteps : En {
                   "totalPoints": 1,
                   "estimatedSessions": "1"
                 }
-            """.trimIndent()
+                """.trimIndent()
         }
 
         Given("an intention {string}") { intention: String ->

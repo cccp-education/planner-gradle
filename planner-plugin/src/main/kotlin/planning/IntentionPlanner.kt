@@ -11,13 +11,13 @@ import contracts.agent.Plan
 import dev.langchain4j.data.message.UserMessage
 import dev.langchain4j.model.chat.ChatModel
 import org.gradle.api.logging.Logger
-import org.slf4j.LoggerFactory as Slf4jLoggerFactory
 import planning.lifecycle.LifecycleAdapter
+import org.slf4j.LoggerFactory as Slf4jLoggerFactory
 
 object IntentionPlanner {
-
-    private val mapper = jacksonObjectMapper()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    private val mapper =
+        jacksonObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     private const val MAX_ATTEMPTS = 3
 
@@ -26,7 +26,7 @@ object IntentionPlanner {
         context: PlanningContext,
         specContents: List<SpecReader.SpecContent>,
         model: ChatModel,
-        logger: Logger
+        logger: Logger,
     ): Plan {
         val prompt = buildPrompt(intention, context, specContents)
         return callLlm(model, prompt) { msg -> logger.lifecycle(msg) }
@@ -41,7 +41,7 @@ object IntentionPlanner {
         graphifyContext: String,
         docsContext: String,
         model: ChatModel,
-        logger: Logger
+        logger: Logger,
     ): Plan {
         val prompt = buildPrompt(intention, context, specContents, eagerContext, ragContext, graphifyContext, docsContext)
         return callLlm(model, prompt) { msg -> logger.lifecycle(msg) }
@@ -55,7 +55,7 @@ object IntentionPlanner {
         ragContext: String,
         graphifyContext: String,
         docsContext: String,
-        model: ChatModel
+        model: ChatModel,
     ): Plan {
         val log = Slf4jLoggerFactory.getLogger(IntentionPlanner::class.java)
         val prompt = buildPrompt(intention, context, specContents, eagerContext, ragContext, graphifyContext, docsContext)
@@ -78,31 +78,33 @@ object IntentionPlanner {
         state: AgentState.ContextReady,
         specContents: List<SpecReader.SpecContent>,
         model: ChatModel,
-        logger: Logger
+        logger: Logger,
     ): AgentState.Planned {
         val context = PlanningContext(intention = state.intention)
-        val plan = plan(
-            intention = state.intention,
-            context = context,
-            specContents = specContents,
-            eagerContext = state.compositeContext,
-            ragContext = "",
-            graphifyContext = "",
-            docsContext = state.afnorCorpus,
-            model = model,
-            logger = logger
-        )
-        val planned = LifecycleAdapter.toPlanned(
-            plan = plan,
-            intention = state.intention,
-            compositeContext = state.compositeContext,
-            afnorCorpus = state.afnorCorpus
-        )
+        val plan =
+            plan(
+                intention = state.intention,
+                context = context,
+                specContents = specContents,
+                eagerContext = state.compositeContext,
+                ragContext = "",
+                graphifyContext = "",
+                docsContext = state.afnorCorpus,
+                model = model,
+                logger = logger,
+            )
+        val planned =
+            LifecycleAdapter.toPlanned(
+                plan = plan,
+                intention = state.intention,
+                compositeContext = state.compositeContext,
+                afnorCorpus = state.afnorCorpus,
+            )
         return planned ?: AgentState.Planned(
             intention = state.intention,
             compositeContext = state.compositeContext,
             afnorCorpus = state.afnorCorpus,
-            epics = plan.epics
+            epics = plan.epics,
         )
     }
 
@@ -113,19 +115,24 @@ object IntentionPlanner {
      * soon as a `Right` is produced. The single `IllegalStateException` remains at
      * the public boundary, with the historical `[FATAL]` marker.
      */
-    private fun callLlm(model: ChatModel, prompt: String, log: (String) -> Unit): Plan {
+    private fun callLlm(
+        model: ChatModel,
+        prompt: String,
+        log: (String) -> Unit,
+    ): Plan {
         val notAttempted: Either<PlanningError, Plan> =
             PlanningError.LlmFailure(attempt = 0, detail = "no attempt executed").left()
 
-        val outcome = (1..MAX_ATTEMPTS).fold(notAttempted) { previous, attempt ->
-            previous.fold(
-                ifLeft = {
-                    if (attempt > 1) log("[RETRY] Will retry — attempt $attempt/$MAX_ATTEMPTS")
-                    attemptLlm(model, prompt, attempt, log)
-                },
-                ifRight = { plan -> plan.right() },
-            )
-        }
+        val outcome =
+            (1..MAX_ATTEMPTS).fold(notAttempted) { previous, attempt ->
+                previous.fold(
+                    ifLeft = {
+                        if (attempt > 1) log("[RETRY] Will retry — attempt $attempt/$MAX_ATTEMPTS")
+                        attemptLlm(model, prompt, attempt, log)
+                    },
+                    ifRight = { plan -> plan.right() },
+                )
+            }
 
         return outcome.fold(
             ifLeft = { error ->
@@ -169,7 +176,11 @@ object IntentionPlanner {
                 },
             )
 
-    internal fun buildPrompt(intention: String, context: PlanningContext, specContents: List<SpecReader.SpecContent>): String {
+    internal fun buildPrompt(
+        intention: String,
+        context: PlanningContext,
+        specContents: List<SpecReader.SpecContent>,
+    ): String {
         val specsSection = SpecReader.toPromptContext(specContents)
         return buildPromptInternal(intention, specsSection)
     }
@@ -181,7 +192,7 @@ object IntentionPlanner {
         eagerContext: String,
         ragContext: String,
         graphifyContext: String,
-        docsContext: String
+        docsContext: String,
     ): String {
         val specsSection = SpecReader.toPromptContext(specContents)
         val eagerBlock = if (eagerContext.isNotBlank()) "\n\nEAGER CONTEXT (governance, EPIC status):\n$eagerContext" else ""
@@ -191,14 +202,21 @@ object IntentionPlanner {
         return buildPromptInternal(intention, specsSection, eagerBlock + ragBlock + graphifyBlock + docsBlock)
     }
 
-    private fun buildPromptInternal(intention: String, specsSection: String, extraContext: String = ""): String {
-        val specsBlock = if (specsSection.isNotEmpty()) {
-            """
+    private fun buildPromptInternal(
+        intention: String,
+        specsSection: String,
+        extraContext: String = "",
+    ): String {
+        val specsBlock =
+            if (specsSection.isNotEmpty()) {
+                """
             |
             |Existing specifications (use as context):
             |$specsSection
-            """.trimMargin()
-        } else ""
+                """.trimMargin()
+            } else {
+                ""
+            }
 
         val toolCatalog = ToolCatalog.toPromptSection()
 

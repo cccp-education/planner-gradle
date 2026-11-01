@@ -25,7 +25,6 @@ import java.io.File
  * with PlannerLlmHubSteps (pattern S-088).
  */
 class PlannerAdapterExtractSteps : En {
-
     init {
         Given("the planner source tree is scanned for LlmProviderChatModelAdapter") {
             // No-op — the file existence check happens in the Then step
@@ -33,10 +32,11 @@ class PlannerAdapterExtractSteps : En {
 
         Then("the codebase.koog.llm.adapter.LlmProviderChatModelAdapter import should be present") {
             val sourceRoot = File("src/main/kotlin")
-            val serviceFile = sourceRoot
-                .resolve("planning")
-                .resolve("llm")
-                .resolve("PlanningLlmService.kt")
+            val serviceFile =
+                sourceRoot
+                    .resolve("planning")
+                    .resolve("llm")
+                    .resolve("PlanningLlmService.kt")
             assertThat(serviceFile.exists()).isTrue()
             assertThat(serviceFile.readText())
                 .contains("import codebase.koog.llm.adapter.LlmProviderChatModelAdapter")
@@ -46,10 +46,12 @@ class PlannerAdapterExtractSteps : En {
             val sourceRoot = File("src/main/kotlin")
             val planningLlmDir = sourceRoot.resolve("planning").resolve("llm")
             if (planningLlmDir.exists()) {
-                val adapterFiles = planningLlmDir.walkTopDown()
-                    .filter { it.isFile && it.extension == "kt" }
-                    .filter { it.readText().contains("class LlmProviderChatModelAdapter") }
-                    .toList()
+                val adapterFiles =
+                    planningLlmDir
+                        .walkTopDown()
+                        .filter { it.isFile && it.extension == "kt" }
+                        .filter { it.readText().contains("class LlmProviderChatModelAdapter") }
+                        .toList()
                 assertThat(adapterFiles).isEmpty()
             }
         }
@@ -65,12 +67,13 @@ class PlannerAdapterExtractSteps : En {
         }
 
         When("adapter extract resolves a model with a mock URL") {
-            val project = freshProject(
-                mapOf(
-                    "ollama.baseUrl" to "http://localhost:1",
-                    "ollama.modelName" to "smollm:135m",
+            val project =
+                freshProject(
+                    mapOf(
+                        "ollama.baseUrl" to "http://localhost:1",
+                        "ollama.modelName" to "smollm:135m",
+                    ),
                 )
-            )
             hubResolvedModel = project.resolveModel("ollama", hubServiceProvider!!)
         }
 
@@ -96,14 +99,17 @@ class PlannerAdapterExtractSteps : En {
         }
 
         When("the planner calls the adapter with a decompose intention prompt") {
-            val provider = LlmProvider { _ ->
-                PlannerScenarioState.hubFakeInvokeCount++
-                """{"title":"Mock Plan","epics":[],"totalPoints":0,"estimatedSessions":0}"""
-            }
+            val provider =
+                LlmProvider { _ ->
+                    PlannerScenarioState.hubFakeInvokeCount++
+                    """{"title":"Mock Plan","epics":[],"totalPoints":0,"estimatedSessions":0}"""
+                }
             val adapter = LlmProviderChatModelAdapter(provider)
-            val request = ChatRequest.builder()
-                .messages(UserMessage.from("Decompose intention: build a planner plugin"))
-                .build()
+            val request =
+                ChatRequest
+                    .builder()
+                    .messages(UserMessage.from("Decompose intention: build a planner plugin"))
+                    .build()
             val response = adapter.doChat(request)
             PlannerScenarioState.rawJson = response.aiMessage().text()
         }

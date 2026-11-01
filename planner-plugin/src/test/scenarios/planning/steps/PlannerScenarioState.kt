@@ -1,11 +1,11 @@
 package planning.steps
 
+import codebase.koog.llm.service.LlmBuildService
 import contracts.agent.Plan
 import dev.langchain4j.model.chat.ChatModel
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
-import codebase.koog.llm.service.LlmBuildService
 import planning.budget.RelevanceContext
 
 /**
@@ -28,7 +28,6 @@ import planning.budget.RelevanceContext
  * process-wide singleton, hence the explicit reset.
  */
 object PlannerScenarioState {
-
     var rawJson: String = ""
     var parsedPlan: Plan? = null
     var parsingException: Throwable? = null

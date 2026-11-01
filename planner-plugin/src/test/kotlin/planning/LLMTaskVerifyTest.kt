@@ -10,9 +10,9 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class LLMTaskVerifyTest {
-
-    private val mapper = jacksonObjectMapper()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    private val mapper =
+        jacksonObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     @Test
     fun `LLMTask parses expectedOutput when provided`() {
@@ -64,10 +64,11 @@ class LLMTaskVerifyTest {
 
     @Test
     fun `toTask preserves all three verify metadata when provided together`() {
-        val json = """
+        val json =
+            """
             {"description":"Generate slides","gradleTask":"./gradlew generateSlides",
              "expectedOutput":"Slides generated","maxRetries":2,"verifyHook":"scripts/verify-decks.sh"}
-        """.trimIndent()
+            """.trimIndent()
         val llmTask = mapper.readValue<LLMTask>(json)
         val task = llmTask.toTask()
         assertEquals("Generate slides", task.description)

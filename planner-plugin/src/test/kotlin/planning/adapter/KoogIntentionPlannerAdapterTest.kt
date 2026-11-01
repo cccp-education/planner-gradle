@@ -13,22 +13,23 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class KoogIntentionPlannerAdapterTest {
+    private fun sampleContext(): CompositeContext =
+        CompositeContext(
+            eagerSection = "EAGER rules",
+            ragSection = "RAG docs",
+            graphifySection = "GRAPH relations",
+            docsSection = "DOCS manuals",
+            config = CompositeContextConfig(),
+        )
 
-    private fun sampleContext(): CompositeContext = CompositeContext(
-        eagerSection = "EAGER rules",
-        ragSection = "RAG docs",
-        graphifySection = "GRAPH relations",
-        docsSection = "DOCS manuals",
-        config = CompositeContextConfig()
-    )
-
-    private fun planJson(title: String = "Test"): String = """
+    private fun planJson(title: String = "Test"): String =
+        """
         {"title":"$title","epics":[{"name":"T-0","description":"desc","points":1,
         "userStories":[{"description":"us","tasks":[{"description":"task",
         "gradleTask":"./gradlew test","toolType":"GRADLE","target":"",
         "expectedOutput":"BUILD SUCCESSFUL","maxRetries":3,"verifyHook":null}]}]}],
         "totalPoints":1,"estimatedSessions":"1"}
-    """.trimIndent()
+        """.trimIndent()
 
     @Test
     fun `adapter implements PlannerPort and returns a PlanState carrying the plan`() {
@@ -88,15 +89,24 @@ class KoogIntentionPlannerAdapterTest {
     }
 }
 
-class FakeChatModel(private val response: String) : ChatModel {
-    override fun doChat(request: ChatRequest): ChatResponse =
-        ChatResponse.builder().aiMessage(AiMessage.from(response)).build()
+class FakeChatModel(
+    private val response: String,
+) : ChatModel {
+    override fun doChat(request: ChatRequest): ChatResponse = ChatResponse.builder().aiMessage(AiMessage.from(response)).build()
 }
 
-class RecordingChatModel(private val onChat: (String) -> Unit) : ChatModel {
+class RecordingChatModel(
+    private val onChat: (String) -> Unit,
+) : ChatModel {
     override fun doChat(request: ChatRequest): ChatResponse {
-        onChat(request.messages().filterIsInstance<dev.langchain4j.data.message.UserMessage>()
-            .firstOrNull()?.singleText().orEmpty())
+        onChat(
+            request
+                .messages()
+                .filterIsInstance<dev.langchain4j.data.message.UserMessage>()
+                .firstOrNull()
+                ?.singleText()
+                .orEmpty(),
+        )
         return ChatResponse.builder().aiMessage(AiMessage.from("{}")).build()
     }
 }

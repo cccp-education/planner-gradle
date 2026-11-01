@@ -6,7 +6,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ToolCatalogTest {
-
     @Test
     fun `ToolCatalog exposes the seven vibecoding tools`() {
         val names = ToolCatalog.toolNames()
@@ -50,10 +49,16 @@ class ToolCatalogTest {
 
     @Test
     fun `ToolCatalog toolNames matches the seven tools from vibecoding-contracts registry`() {
-        val expected = listOf(
-            "read_file", "write_file", "edit_file", "list_directory",
-            "exit", "exec_shell", "exec_gradle"
-        )
+        val expected =
+            listOf(
+                "read_file",
+                "write_file",
+                "edit_file",
+                "list_directory",
+                "exit",
+                "exec_shell",
+                "exec_gradle",
+            )
         assertEquals(expected, ToolCatalog.toolNames())
     }
 }

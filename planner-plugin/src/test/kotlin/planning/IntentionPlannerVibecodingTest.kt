@@ -4,11 +4,9 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class IntentionPlannerVibecodingTest {
-
     private val context = PlanningContext(intention = "vibecode a feature")
 
-    private fun prompt(): String =
-        IntentionPlanner.buildPrompt("vibecode a feature", context, emptyList())
+    private fun prompt(): String = IntentionPlanner.buildPrompt("vibecode a feature", context, emptyList())
 
     @Test
     fun `buildPrompt exposes the vibecoding tool catalogue`() {
@@ -50,7 +48,7 @@ class IntentionPlannerVibecodingTest {
         val p = prompt()
         assertTrue(
             p.contains("default") && p.contains("GRADLE"),
-            "prompt should state GRADLE is the default toolType"
+            "prompt should state GRADLE is the default toolType",
         )
     }
 }

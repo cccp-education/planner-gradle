@@ -1,18 +1,12 @@
 package planning.steps
 
-import codebase.koog.llm.LlmProvider
-import dev.langchain4j.data.message.AiMessage
-import dev.langchain4j.data.message.ChatMessage
-import dev.langchain4j.data.message.UserMessage
+import codebase.koog.llm.adapter.LlmProviderChatModelAdapter
 import dev.langchain4j.model.chat.ChatModel
-import dev.langchain4j.model.chat.request.ChatRequest
-import dev.langchain4j.model.chat.response.ChatResponse
 import io.cucumber.java8.En
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.logging.Logging
 import planning.IntentionPlanner
 import planning.PlanningContext
-import codebase.koog.llm.adapter.LlmProviderChatModelAdapter
 import planning.llm.PlanningLlmService.aiProvider
 import planning.llm.PlanningLlmService.registerLlmBuildService
 import planning.llm.PlanningLlmService.resolveModel
@@ -50,7 +44,6 @@ import planning.steps.PlannerScenarioState.parsedPlan
  * shared [PlannerScenarioState] "World" object.
  */
 class PlannerLlmHubSteps : En {
-
     init {
 
         // -------------------------------------------------------------------------
@@ -78,13 +71,14 @@ class PlannerLlmHubSteps : En {
         }
 
         Given("a fake ChatModel that returns a valid plan JSON") {
-            val json = """
+            val json =
+                """
                 {"title":"LLM Hub Plan","epics":[{"name":"H-0","description":"hub epic",
                 "points":1,"userStories":[{"description":"us","tasks":[
                 {"description":"task","gradleTask":"./gradlew test","toolType":"GRADLE",
                 "target":"","expectedOutput":"BUILD SUCCESSFUL","maxRetries":3,
                 "verifyHook":null}]}]}],"totalPoints":1,"estimatedSessions":"1"}
-            """.trimIndent()
+                """.trimIndent()
             hubFakeModel = FakeChatModel(json)
             hubFakeInvokeCount = 0
         }
@@ -112,13 +106,14 @@ class PlannerLlmHubSteps : En {
         When("the planner decomposes the intention using the injected model") {
             val fake = requireNotNull(hubFakeModel)
             val logger = Logging.getLogger("planner-llm-hub-cucumber")
-            parsedPlan = IntentionPlanner.plan(
-                intention = "test llm hub integration",
-                context = PlanningContext(intention = "test llm hub integration"),
-                specContents = emptyList(),
-                model = fake,
-                logger = logger
-            )
+            parsedPlan =
+                IntentionPlanner.plan(
+                    intention = "test llm hub integration",
+                    context = PlanningContext(intention = "test llm hub integration"),
+                    specContents = emptyList(),
+                    model = fake,
+                    logger = logger,
+                )
             hubFakeInvokeCount = fake.invokeCount
         }
 

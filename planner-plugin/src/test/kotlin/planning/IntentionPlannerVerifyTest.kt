@@ -4,11 +4,9 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class IntentionPlannerVerifyTest {
-
     private val context = PlanningContext(intention = "verify a feature")
 
-    private fun prompt(): String =
-        IntentionPlanner.buildPrompt("verify a feature", context, emptyList())
+    private fun prompt(): String = IntentionPlanner.buildPrompt("verify a feature", context, emptyList())
 
     @Test
     fun `buildPrompt exposes expectedOutput in the task JSON schema`() {
@@ -33,7 +31,7 @@ class IntentionPlannerVerifyTest {
         val p = prompt()
         assertTrue(
             p.contains("BUILD SUCCESSFUL"),
-            "prompt should state the default expectedOutput"
+            "prompt should state the default expectedOutput",
         )
     }
 
@@ -42,7 +40,7 @@ class IntentionPlannerVerifyTest {
         val p = prompt()
         assertTrue(
             p.contains("default") && p.contains("3"),
-            "prompt should state the default maxRetries is 3"
+            "prompt should state the default maxRetries is 3",
         )
     }
 
@@ -52,7 +50,7 @@ class IntentionPlannerVerifyTest {
         assertTrue(
             p.contains("expectedOutput", ignoreCase = true) &&
                 p.contains("required", ignoreCase = true),
-            "prompt should state that expectedOutput is required"
+            "prompt should state that expectedOutput is required",
         )
     }
 
@@ -62,7 +60,7 @@ class IntentionPlannerVerifyTest {
         assertTrue(
             p.contains("verifyHook", ignoreCase = true) &&
                 (p.contains("rare", ignoreCase = true) || p.contains("optional", ignoreCase = true)),
-            "prompt should state that verifyHook is optional/rare"
+            "prompt should state that verifyHook is optional/rare",
         )
     }
 }

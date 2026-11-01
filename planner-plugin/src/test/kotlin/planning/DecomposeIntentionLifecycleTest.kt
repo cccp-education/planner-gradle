@@ -18,28 +18,28 @@ import kotlin.test.assertTrue
  * assertion on stdout is valid either way.
  */
 class DecomposeIntentionLifecycleTest {
-
     @Test
     @Tag("integration")
     fun `generatePlan with agent lifecycle true emits LIFECYCLE header before LLM call`() {
         val projectDir = createTestProject()
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withArguments(
-                "generatePlan",
-                "-Pintention=test lifecycle on",
-                "-PeagerContext=eager governance data",
-                "-Pagent.lifecycle=true",
-                "-PollamaBaseUrl=http://localhost:1"
-            )
-            .withPluginClasspath()
-            .build()
+        val result =
+            GradleRunner
+                .create()
+                .withProjectDir(projectDir)
+                .withArguments(
+                    "generatePlan",
+                    "-Pintention=test lifecycle on",
+                    "-PeagerContext=eager governance data",
+                    "-Pagent.lifecycle=true",
+                    "-PollamaBaseUrl=http://localhost:1",
+                ).withPluginClasspath()
+                .build()
 
         val output = result.output
         assertTrue(
             output.contains("[LIFECYCLE]"),
-            "Lifecycle header should be emitted when -Pagent.lifecycle=true: $output"
+            "Lifecycle header should be emitted when -Pagent.lifecycle=true: $output",
         )
     }
 
@@ -48,21 +48,22 @@ class DecomposeIntentionLifecycleTest {
     fun `generatePlan without agent lifecycle does not emit LIFECYCLE header`() {
         val projectDir = createTestProject()
 
-        val result = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .withArguments(
-                "generatePlan",
-                "-Pintention=test lifecycle off",
-                "-PeagerContext=eager governance data",
-                "-PollamaBaseUrl=http://localhost:1"
-            )
-            .withPluginClasspath()
-            .build()
+        val result =
+            GradleRunner
+                .create()
+                .withProjectDir(projectDir)
+                .withArguments(
+                    "generatePlan",
+                    "-Pintention=test lifecycle off",
+                    "-PeagerContext=eager governance data",
+                    "-PollamaBaseUrl=http://localhost:1",
+                ).withPluginClasspath()
+                .build()
 
         val output = result.output
         assertFalse(
             output.contains("[LIFECYCLE]"),
-            "Lifecycle header should NOT be emitted by default (backward compat): $output"
+            "Lifecycle header should NOT be emitted by default (backward compat): $output",
         )
     }
 
@@ -70,15 +71,19 @@ class DecomposeIntentionLifecycleTest {
         val projectDir = File(System.getProperty("java.io.tmpdir"), "test-lifecycle-${System.nanoTime()}")
         projectDir.mkdirs()
 
-        projectDir.resolve("settings.gradle.kts").writeText("""
+        projectDir.resolve("settings.gradle.kts").writeText(
+            """
             rootProject.name = "test-lifecycle"
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
-        projectDir.resolve("build.gradle.kts").writeText("""
+        projectDir.resolve("build.gradle.kts").writeText(
+            """
             plugins {
                 id("education.cccp.planner")
             }
-        """.trimIndent())
+            """.trimIndent(),
+        )
 
         return projectDir
     }

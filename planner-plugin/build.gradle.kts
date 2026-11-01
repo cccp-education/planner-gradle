@@ -5,11 +5,15 @@ plugins {
     id("education.cccp.build.gradle-plugin") version "0.0.7"
     id("education.cccp.build.publishing") version "0.0.7"
     id("education.cccp.build.cucumber") version "0.0.7"
+    id("education.cccp.build.lint") version "0.0.7"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
 }
 
 group = "education.cccp"
-version = libs.plugins.planner.get().version
+version =
+    libs.plugins.planner
+        .get()
+        .version
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
@@ -65,24 +69,28 @@ tasks.named<Test>("test") {
 // scenarios requiring a real Ollama instance). Excluded from `check`; run on demand
 // via `./gradlew :planner-plugin:integrationTest`. The cucumber engine is excluded
 // so the CucumberTestRunner suite is not picked up.
-val integrationTest = tasks.register<Test>("integrationTest") {
-    group = "verification"
-    description = "Runs integration tests (requires real Ollama)."
-    testClassesDirs = sourceSets.test.get().output.classesDirs
-    classpath = sourceSets.test.get().runtimeClasspath
-    shouldRunAfter(tasks.test)
-    useJUnitPlatform {
-        includeTags("integration")
-        excludeEngines("cucumber")
+val integrationTest =
+    tasks.register<Test>("integrationTest") {
+        group = "verification"
+        description = "Runs integration tests (requires real Ollama)."
+        testClassesDirs =
+            sourceSets.test
+                .get()
+                .output.classesDirs
+        classpath = sourceSets.test.get().runtimeClasspath
+        shouldRunAfter(tasks.test)
+        useJUnitPlatform {
+            includeTags("integration")
+            excludeEngines("cucumber")
+        }
+        filter {
+            excludeTestsMatching("planning.steps.CucumberTestRunner")
+        }
+        jvmArgs("-XX:+EnableDynamicAgentLoading")
+        testLogging {
+            exceptionFormat = FULL
+        }
     }
-    filter {
-        excludeTestsMatching("planning.steps.CucumberTestRunner")
-    }
-    jvmArgs("-XX:+EnableDynamicAgentLoading")
-    testLogging {
-        exceptionFormat = FULL
-    }
-}
 
 gradlePlugin {
     website.set("https://github.com/cheroliv/planner-gradle/")
@@ -90,14 +98,18 @@ gradlePlugin {
 
     plugins {
         create("planner") {
-            id = libs.plugins.planner.get().pluginId
+            id =
+                libs.plugins.planner
+                    .get()
+                    .pluginId
             implementationClass = "planning.PlanningPlugin"
             displayName = "Planner Plugin"
-            description = """
+            description =
+                """
                 Planning Expert — decomposes a high-level intention (natural language)
                 into a structured execution plan (EPICs → User Stories → Gradle tasks)
                 via LLM (LangChain4j + DeepSeek-v4-pro). Outputs structured stdout.
-            """.trimIndent()
+                """.trimIndent()
             tags.set(listOf("planning", "llm", "langchain4j", "agile", "backlog"))
         }
     }

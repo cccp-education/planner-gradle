@@ -2,18 +2,13 @@ package planning.steps
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import contracts.agent.Epic
 import contracts.agent.GradleTask
 import contracts.agent.Plan
 import contracts.agent.UserStory
 import io.cucumber.java8.En
 import org.assertj.core.api.Assertions.assertThat
-import planning.IntentionPlanner
-import planning.LLMResponse
-import planning.PlanningContext
 import planning.StdoutFormatter
-import planning.toPlan
 import planning.steps.PlannerScenarioState.parsedPlan
 import planning.steps.PlannerScenarioState.prompt
 import planning.steps.PlannerScenarioState.rawJson
@@ -43,9 +38,9 @@ import planning.steps.PlannerScenarioState.stdout
  * duplicate step definitions across glue classes).
  */
 class PlannerVerifySteps : En {
-
-    private val mapper = jacksonObjectMapper()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    private val mapper =
+        jacksonObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     init {
 
@@ -54,7 +49,8 @@ class PlannerVerifySteps : En {
         // -------------------------------------------------------------------------
 
         Given("a raw LLM JSON response with one task carrying all three verify metadata") {
-            rawJson = """
+            rawJson =
+                """
                 {
                   "title": "Verify plan",
                   "epics": [
@@ -77,11 +73,12 @@ class PlannerVerifySteps : En {
                   "totalPoints": 2,
                   "estimatedSessions": "1"
                 }
-            """.trimIndent()
+                """.trimIndent()
         }
 
         Given("a raw LLM JSON response with one legacy task without verify metadata") {
-            rawJson = """
+            rawJson =
+                """
                 {
                   "title": "Legacy plan",
                   "epics": [
@@ -102,30 +99,34 @@ class PlannerVerifySteps : En {
                   "totalPoints": 1,
                   "estimatedSessions": "1"
                 }
-            """.trimIndent()
+                """.trimIndent()
         }
 
         Given("a plan with one task carrying custom expectedOutput {string}") { expectedOutput: String ->
-            val task = GradleTask(
-                description = "Generate slides",
-                gradleTask = "./gradlew generateSlides",
-                expectedOutput = expectedOutput
-            )
-            parsedPlan = Plan(
-                title = "stdout plan",
-                epics = listOf(
-                    Epic(
-                        name = "S-0",
-                        description = "Slides",
-                        points = 1,
-                        userStories = listOf(
-                            UserStory(description = "generate", tasks = listOf(task))
-                        )
-                    )
-                ),
-                totalPoints = 1,
-                estimatedSessions = "1"
-            )
+            val task =
+                GradleTask(
+                    description = "Generate slides",
+                    gradleTask = "./gradlew generateSlides",
+                    expectedOutput = expectedOutput,
+                )
+            parsedPlan =
+                Plan(
+                    title = "stdout plan",
+                    epics =
+                        listOf(
+                            Epic(
+                                name = "S-0",
+                                description = "Slides",
+                                points = 1,
+                                userStories =
+                                    listOf(
+                                        UserStory(description = "generate", tasks = listOf(task)),
+                                    ),
+                            ),
+                        ),
+                    totalPoints = 1,
+                    estimatedSessions = "1",
+                )
         }
 
         // -------------------------------------------------------------------------
@@ -201,5 +202,9 @@ class PlannerVerifySteps : En {
     }
 
     private fun firstTask(): GradleTask =
-        parsedPlan!!.epics.flatMap { it.userStories }.flatMap { it.tasks }.first()
+        parsedPlan!!
+            .epics
+            .flatMap { it.userStories }
+            .flatMap { it.tasks }
+            .first()
 }

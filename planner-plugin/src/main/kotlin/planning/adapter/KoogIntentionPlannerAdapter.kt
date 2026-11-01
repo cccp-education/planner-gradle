@@ -26,10 +26,12 @@ import planning.PlanningContext
 class KoogIntentionPlannerAdapter(
     private val model: ChatModel,
 ) : PlannerPort {
-
     private val log = LoggerFactory.getLogger(KoogIntentionPlannerAdapter::class.java)
 
-    override fun plan(intention: String, compositeContext: CompositeContext): PlanState {
+    override fun plan(
+        intention: String,
+        compositeContext: CompositeContext,
+    ): PlanState {
         log.info(
             "KoogIntentionPlannerAdapter: planning intention '{}' (EAGER={}B, RAG={}B, Graphify={}B, Docs={}B)",
             intention.take(80),
@@ -40,19 +42,22 @@ class KoogIntentionPlannerAdapter(
         )
         return try {
             val ctx = PlanningContext(intention = intention)
-            val plan = IntentionPlanner.plan(
-                intention = intention,
-                context = ctx,
-                specContents = emptyList(),
-                eagerContext = compositeContext.eagerSection,
-                ragContext = compositeContext.ragSection,
-                graphifyContext = compositeContext.graphifySection,
-                docsContext = compositeContext.docsSection,
-                model = model,
-            )
+            val plan =
+                IntentionPlanner.plan(
+                    intention = intention,
+                    context = ctx,
+                    specContents = emptyList(),
+                    eagerContext = compositeContext.eagerSection,
+                    ragContext = compositeContext.ragSection,
+                    graphifyContext = compositeContext.graphifySection,
+                    docsContext = compositeContext.docsSection,
+                    model = model,
+                )
             log.info(
                 "KoogIntentionPlannerAdapter: plan OK — {} EPICs, {} pts, {} sessions",
-                plan.epics.size, plan.totalPoints, plan.estimatedSessions,
+                plan.epics.size,
+                plan.totalPoints,
+                plan.estimatedSessions,
             )
             PlanState(
                 intention = intention,

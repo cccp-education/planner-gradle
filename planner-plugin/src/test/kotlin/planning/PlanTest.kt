@@ -8,27 +8,29 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class PlanTest {
-
     @Test
     fun `stdout formatter produces structured output`() {
-        val plan = Plan(
-            title = "test plugin",
-            epics = listOf(
-                Epic(
-                    name = "TST-0",
-                    description = "Bootstrap",
-                    points = 3,
-                    userStories = listOf(
-                        UserStory(
-                            description = "Setup project",
-                            tasks = listOf(GradleTask("Create files", "./gradlew init"))
-                        )
-                    )
-                )
-            ),
-            totalPoints = 3,
-            estimatedSessions = "1-2"
-        )
+        val plan =
+            Plan(
+                title = "test plugin",
+                epics =
+                    listOf(
+                        Epic(
+                            name = "TST-0",
+                            description = "Bootstrap",
+                            points = 3,
+                            userStories =
+                                listOf(
+                                    UserStory(
+                                        description = "Setup project",
+                                        tasks = listOf(GradleTask("Create files", "./gradlew init")),
+                                    ),
+                                ),
+                        ),
+                    ),
+                totalPoints = 3,
+                estimatedSessions = "1-2",
+            )
 
         val output = StdoutFormatter.format(plan)
         val lines = output.trim().lines()

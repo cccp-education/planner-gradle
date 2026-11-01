@@ -7,7 +7,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class BudgetWiringTest {
-
     private val intention = "planifier formation afnor qualite"
     private val eager = "afnor formation qualite ".repeat(200)
     private val rag = "gastronomie italienne recette ".repeat(200)
@@ -16,13 +15,14 @@ class BudgetWiringTest {
 
     @Test
     fun `returns a RelevanceContext with the four channels budgeted`() {
-        val result = BudgetWiring.resolveBudgetedContexts(
-            intention = intention,
-            eagerCtx = eager,
-            ragCtx = rag,
-            graphifyCtx = graphify,
-            docsCtx = docs
-        )
+        val result =
+            BudgetWiring.resolveBudgetedContexts(
+                intention = intention,
+                eagerCtx = eager,
+                ragCtx = rag,
+                graphifyCtx = graphify,
+                docsCtx = docs,
+            )
         assertTrue(result.eager.length <= eager.length, "EAGER should be truncated to budget")
         assertTrue(result.rag.length <= rag.length, "RAG should be truncated to budget")
         assertTrue(result.graphify.length <= graphify.length, "GRAPHIFY should be truncated to budget")
@@ -31,13 +31,14 @@ class BudgetWiringTest {
 
     @Test
     fun `returns blank context when all channels are blank`() {
-        val result = BudgetWiring.resolveBudgetedContexts(
-            intention = intention,
-            eagerCtx = "",
-            ragCtx = "",
-            graphifyCtx = "",
-            docsCtx = ""
-        )
+        val result =
+            BudgetWiring.resolveBudgetedContexts(
+                intention = intention,
+                eagerCtx = "",
+                ragCtx = "",
+                graphifyCtx = "",
+                docsCtx = "",
+            )
         assertEquals("", result.eager)
         assertEquals("", result.rag)
         assertEquals("", result.graphify)
@@ -53,7 +54,7 @@ class BudgetWiringTest {
             ragCtx = rag,
             graphifyCtx = graphify,
             docsCtx = docs,
-            log = { logs.add(it) }
+            log = { logs.add(it) },
         )
         assertEquals(1, logs.size, "should log exactly one budget line")
         val line = logs.first()
@@ -74,7 +75,7 @@ class BudgetWiringTest {
             ragCtx = "",
             graphifyCtx = "",
             docsCtx = "",
-            log = { logs.add(it) }
+            log = { logs.add(it) },
         )
         assertTrue(logs.isEmpty(), "should not log budget when no multi-channel: $logs")
     }
@@ -82,14 +83,15 @@ class BudgetWiringTest {
     @Test
     fun `log token counts reflect the estimated tokens of the budgeted content`() {
         val logs = mutableListOf<String>()
-        val result = BudgetWiring.resolveBudgetedContexts(
-            intention = intention,
-            eagerCtx = eager,
-            ragCtx = rag,
-            graphifyCtx = graphify,
-            docsCtx = docs,
-            log = { logs.add(it) }
-        )
+        val result =
+            BudgetWiring.resolveBudgetedContexts(
+                intention = intention,
+                eagerCtx = eager,
+                ragCtx = rag,
+                graphifyCtx = graphify,
+                docsCtx = docs,
+                log = { logs.add(it) },
+            )
         val line = logs.first()
         val eagerTokens = ContextChannel.estimateTokens(result.eager)
         val ragTokens = ContextChannel.estimateTokens(result.rag)

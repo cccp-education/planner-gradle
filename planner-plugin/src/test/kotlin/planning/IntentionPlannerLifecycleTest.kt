@@ -22,30 +22,32 @@ import kotlin.test.assertTrue
  * `LifecycleAdapter.toPlanned` into an `AgentState.Planned` (N0).
  */
 class IntentionPlannerLifecycleTest {
-
     private val logger: Logger = Logging.getLogger("test")
 
     @Test
     fun `plan with ContextReady returns Planned with epics parsed from LLM`() {
-        val fakeModel = FakeChatModel(
-            """{"title":"Lifecycle plan","epics":[{"name":"LF-0","description":"desc","points":3,
+        val fakeModel =
+            FakeChatModel(
+                """{"title":"Lifecycle plan","epics":[{"name":"LF-0","description":"desc","points":3,
             "userStories":[{"description":"us","tasks":[{"description":"task",
             "gradleTask":"./gradlew build","toolType":"GRADLE","target":"",
             "expectedOutput":"BUILD SUCCESSFUL","maxRetries":3,"verifyHook":null}]}]}],
-            "totalPoints":3,"estimatedSessions":"2"}"""
-        )
-        val state = AgentState.ContextReady(
-            intention = "planifier formation afnor",
-            compositeContext = "eager + rag + graphify merged",
-            afnorCorpus = "afnor corpus content"
-        )
+            "totalPoints":3,"estimatedSessions":"2"}""",
+            )
+        val state =
+            AgentState.ContextReady(
+                intention = "planifier formation afnor",
+                compositeContext = "eager + rag + graphify merged",
+                afnorCorpus = "afnor corpus content",
+            )
 
-        val planned = IntentionPlanner.plan(
-            state = state,
-            specContents = emptyList(),
-            model = fakeModel,
-            logger = logger
-        )
+        val planned =
+            IntentionPlanner.plan(
+                state = state,
+                specContents = emptyList(),
+                model = fakeModel,
+                logger = logger,
+            )
 
         assertEquals(1, planned.epics.size)
         assertEquals("LF-0", planned.epics.first().name)
@@ -54,18 +56,20 @@ class IntentionPlannerLifecycleTest {
     @Test
     fun `plan with ContextReady preserves intention in Planned`() {
         val fakeModel = FakeChatModel(validJson())
-        val state = AgentState.ContextReady(
-            intention = "intention lifecycle",
-            compositeContext = "composite",
-            afnorCorpus = "afnor"
-        )
+        val state =
+            AgentState.ContextReady(
+                intention = "intention lifecycle",
+                compositeContext = "composite",
+                afnorCorpus = "afnor",
+            )
 
-        val planned = IntentionPlanner.plan(
-            state = state,
-            specContents = emptyList(),
-            model = fakeModel,
-            logger = logger
-        )
+        val planned =
+            IntentionPlanner.plan(
+                state = state,
+                specContents = emptyList(),
+                model = fakeModel,
+                logger = logger,
+            )
 
         assertEquals("intention lifecycle", planned.intention)
     }
@@ -73,18 +77,20 @@ class IntentionPlannerLifecycleTest {
     @Test
     fun `plan with ContextReady preserves compositeContext and afnorCorpus in Planned`() {
         val fakeModel = FakeChatModel(validJson())
-        val state = AgentState.ContextReady(
-            intention = "test preserve",
-            compositeContext = "merged composite context",
-            afnorCorpus = "afnor reac corpus"
-        )
+        val state =
+            AgentState.ContextReady(
+                intention = "test preserve",
+                compositeContext = "merged composite context",
+                afnorCorpus = "afnor reac corpus",
+            )
 
-        val planned = IntentionPlanner.plan(
-            state = state,
-            specContents = emptyList(),
-            model = fakeModel,
-            logger = logger
-        )
+        val planned =
+            IntentionPlanner.plan(
+                state = state,
+                specContents = emptyList(),
+                model = fakeModel,
+                logger = logger,
+            )
 
         assertEquals("merged composite context", planned.compositeContext)
         assertEquals("afnor reac corpus", planned.afnorCorpus)
@@ -93,18 +99,20 @@ class IntentionPlannerLifecycleTest {
     @Test
     fun `plan with ContextReady sets phase to EXECUTE`() {
         val fakeModel = FakeChatModel(validJson())
-        val state = AgentState.ContextReady(
-            intention = "test phase",
-            compositeContext = "",
-            afnorCorpus = ""
-        )
+        val state =
+            AgentState.ContextReady(
+                intention = "test phase",
+                compositeContext = "",
+                afnorCorpus = "",
+            )
 
-        val planned = IntentionPlanner.plan(
-            state = state,
-            specContents = emptyList(),
-            model = fakeModel,
-            logger = logger
-        )
+        val planned =
+            IntentionPlanner.plan(
+                state = state,
+                specContents = emptyList(),
+                model = fakeModel,
+                logger = logger,
+            )
 
         assertEquals(AgentPhase.EXECUTE, planned.phase)
     }
@@ -112,23 +120,24 @@ class IntentionPlannerLifecycleTest {
     @Test
     fun `plan with ContextReady invokes ChatModel and prompt contains compositeContext`() {
         val fakeModel = FakeChatModel(validJson())
-        val state = AgentState.ContextReady(
-            intention = "test prompt delegation",
-            compositeContext = "delegated composite block",
-            afnorCorpus = "afnor docs"
-        )
+        val state =
+            AgentState.ContextReady(
+                intention = "test prompt delegation",
+                compositeContext = "delegated composite block",
+                afnorCorpus = "afnor docs",
+            )
 
         IntentionPlanner.plan(
             state = state,
             specContents = emptyList(),
             model = fakeModel,
-            logger = logger
+            logger = logger,
         )
 
         assertTrue(fakeModel.invoked, "ChatModel.chat() should be called")
         assertTrue(
             fakeModel.lastPrompt!!.contains("delegated composite block"),
-            "Prompt should contain the compositeContext from ContextReady"
+            "Prompt should contain the compositeContext from ContextReady",
         )
     }
 
@@ -139,7 +148,9 @@ class IntentionPlannerLifecycleTest {
         "expectedOutput":"BUILD SUCCESSFUL","maxRetries":3,"verifyHook":null}]}]}],
         "totalPoints":1,"estimatedSessions":"1"}"""
 
-    private class FakeChatModel(private val response: String) : ChatModel {
+    private class FakeChatModel(
+        private val response: String,
+    ) : ChatModel {
         var invoked = false
         var lastPrompt: String? = null
 
@@ -149,11 +160,12 @@ class IntentionPlannerLifecycleTest {
             return ChatResponse.builder().aiMessage(AiMessage.from(response)).build()
         }
 
-        private fun dev.langchain4j.data.message.ChatMessage.text(): String = when (this) {
-            is UserMessage ->
-                if (hasSingleText()) singleText() else contents().joinToString { it.toString() }
-            is AiMessage -> text()
-            else -> toString()
-        }
+        private fun dev.langchain4j.data.message.ChatMessage.text(): String =
+            when (this) {
+                is UserMessage ->
+                    if (hasSingleText()) singleText() else contents().joinToString { it.toString() }
+                is AiMessage -> text()
+                else -> toString()
+            }
     }
 }

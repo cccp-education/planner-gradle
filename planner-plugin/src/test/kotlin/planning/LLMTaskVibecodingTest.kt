@@ -1,19 +1,20 @@
 package planning
 
-import contracts.agent.TaskType
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import contracts.agent.TaskType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class LLMTaskVibecodingTest {
+    private val mapper =
+        jacksonObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-    private val mapper = jacksonObjectMapper()
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-
-    private val fullJson = """
+    private val fullJson =
+        """
         {
           "title": "Vibecoding plan",
           "epics": [
@@ -36,7 +37,7 @@ class LLMTaskVibecodingTest {
           "totalPoints": 3,
           "estimatedSessions": "1-2"
         }
-    """.trimIndent()
+        """.trimIndent()
 
     @Test
     fun `LLMTask parses legacy JSON without toolType or target`() {

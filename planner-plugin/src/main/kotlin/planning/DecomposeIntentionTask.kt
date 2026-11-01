@@ -1,19 +1,18 @@
 package planning
 
 import codebase.koog.llm.service.LlmBuildService
-import contracts.agent.AgentState
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.services.ServiceReference
 import org.gradle.work.DisableCachingByDefault
 import planning.budget.BudgetWiring
 import planning.lifecycle.LifecycleAdapter
@@ -30,7 +29,6 @@ import planning.llm.PlanningLlmService.resolveModel
  */
 @DisableCachingByDefault(because = "LLM output is probabilistic — never cache")
 abstract class DecomposeIntentionTask : DefaultTask() {
-
     @get:Input
     abstract val intention: Property<String>
 
@@ -73,11 +71,12 @@ abstract class DecomposeIntentionTask : DefaultTask() {
     @TaskAction
     fun decompose() {
         val intent = intention.get()
-        val specContents = if (specsDir.isPresent) {
-            SpecReader.read(specsDir.get().asFile.toPath())
-        } else {
-            emptyList()
-        }
+        val specContents =
+            if (specsDir.isPresent) {
+                SpecReader.read(specsDir.get().asFile.toPath())
+            } else {
+                emptyList()
+            }
         val context = PlanningContext(intention = intent)
 
         val eagerCtx = eagerContext.orNull ?: ""
@@ -85,65 +84,75 @@ abstract class DecomposeIntentionTask : DefaultTask() {
         val graphifyCtx = graphifyContext.orNull ?: ""
         val docsCtx = docsContext.orNull ?: ""
 
-        val hasMultiChannel = eagerCtx.isNotBlank() || ragCtx.isNotBlank()
-            || graphifyCtx.isNotBlank() || docsCtx.isNotBlank()
+        val hasMultiChannel =
+            eagerCtx.isNotBlank() ||
+                ragCtx.isNotBlank() ||
+                graphifyCtx.isNotBlank() ||
+                docsCtx.isNotBlank()
 
-        val budgeted = BudgetWiring.resolveBudgetedContexts(
-            intention = intent,
-            eagerCtx = eagerCtx,
-            ragCtx = ragCtx,
-            graphifyCtx = graphifyCtx,
-            docsCtx = docsCtx,
-            log = { msg -> logger.lifecycle(msg) }
-        )
+        val budgeted =
+            BudgetWiring.resolveBudgetedContexts(
+                intention = intent,
+                eagerCtx = eagerCtx,
+                ragCtx = ragCtx,
+                graphifyCtx = graphifyCtx,
+                docsCtx = docsCtx,
+                log = { msg -> logger.lifecycle(msg) },
+            )
 
         val provider = aiProvider.get()
         val serviceProvider: Provider<LlmBuildService> = llmService
         val model = project.resolveModel(provider, serviceProvider)
 
-        val plan = if (hasMultiChannel) {
-            IntentionPlanner.plan(
-                intention = intent,
-                context = context,
-                specContents = specContents,
-                eagerContext = budgeted.eager,
-                ragContext = budgeted.rag,
-                graphifyContext = budgeted.graphify,
-                docsContext = budgeted.docs,
-                model = model,
-                logger = logger
-            )
-        } else {
-            IntentionPlanner.plan(
-                intention = intent,
-                context = context,
-                specContents = specContents,
-                model = model,
-                logger = logger
-            )
-        }
+        val plan =
+            if (hasMultiChannel) {
+                IntentionPlanner.plan(
+                    intention = intent,
+                    context = context,
+                    specContents = specContents,
+                    eagerContext = budgeted.eager,
+                    ragContext = budgeted.rag,
+                    graphifyContext = budgeted.graphify,
+                    docsContext = budgeted.docs,
+                    model = model,
+                    logger = logger,
+                )
+            } else {
+                IntentionPlanner.plan(
+                    intention = intent,
+                    context = context,
+                    specContents = specContents,
+                    model = model,
+                    logger = logger,
+                )
+            }
 
         // EPIC PLN-LIFECYCLE US-2 — opt-in lifecycle-aware path.
         // When -Pagent.lifecycle=true, wrap the Plan into an AgentState.Planned (N0)
         // via LifecycleAdapter and emit the agent lifecycle header. Backward compat:
         // default false preserves the legacy stdout contract.
-        val lifecycleEnabled = project.providers.gradleProperty("agent.lifecycle")
-            .orElse("false").get() == "true"
+        val lifecycleEnabled =
+            project.providers
+                .gradleProperty("agent.lifecycle")
+                .orElse("false")
+                .get() == "true"
         if (lifecycleEnabled) {
-            val contextReady = LifecycleAdapter.toContextReady(
-                context = context,
-                eagerContext = budgeted.eager,
-                ragContext = budgeted.rag,
-                graphifyContext = budgeted.graphify,
-                docsContext = budgeted.docs
-            )
-            if (contextReady != null) {
-                val planned = LifecycleAdapter.toPlanned(
-                    plan = plan,
-                    intention = intent,
-                    compositeContext = contextReady.compositeContext,
-                    afnorCorpus = contextReady.afnorCorpus
+            val contextReady =
+                LifecycleAdapter.toContextReady(
+                    context = context,
+                    eagerContext = budgeted.eager,
+                    ragContext = budgeted.rag,
+                    graphifyContext = budgeted.graphify,
+                    docsContext = budgeted.docs,
                 )
+            if (contextReady != null) {
+                val planned =
+                    LifecycleAdapter.toPlanned(
+                        plan = plan,
+                        intention = intent,
+                        compositeContext = contextReady.compositeContext,
+                        afnorCorpus = contextReady.afnorCorpus,
+                    )
                 if (planned != null) {
                     println("[LIFECYCLE] phase=${planned.phase} intention=${planned.intention}")
                 }

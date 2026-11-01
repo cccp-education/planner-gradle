@@ -8,10 +8,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertSame
 
 class PlannerPortBuildServiceTest {
-
-    private fun stub(name: String) = PlannerPort { intention, _ ->
-        PlanState(intention = intention, error = name)
-    }
+    private fun stub(name: String) =
+        PlannerPort { intention, _ ->
+            PlanState(intention = intention, error = name)
+        }
 
     @Test
     fun `service exposes the port registered in the registry`() {
@@ -34,14 +34,17 @@ class PlannerPortBuildServiceTest {
     fun `delegates to the port contract`() {
         PlannerPortRegistry.register(stub("delegate"))
         val service = testService()
-        val state = service.port().plan(
-            "intention",
-            CompositeContext(
-                eagerSection = "e", ragSection = "r",
-                graphifySection = "g", docsSection = "d",
-                config = contracts.context.CompositeContextConfig(),
+        val state =
+            service.port().plan(
+                "intention",
+                CompositeContext(
+                    eagerSection = "e",
+                    ragSection = "r",
+                    graphifySection = "g",
+                    docsSection = "d",
+                    config = contracts.context.CompositeContextConfig(),
+                ),
             )
-        )
         assertEquals("intention", state.intention)
         assertEquals("delegate", state.error)
     }
