@@ -156,7 +156,7 @@ class IntentionPlannerLifecycleTest {
 
         override fun doChat(request: ChatRequest): ChatResponse {
             invoked = true
-            lastPrompt = request.messages().joinToString("\n") { it.text() ?: "" }
+            lastPrompt = request.messages().joinToString("\n") { it.text() }
             return ChatResponse.builder().aiMessage(AiMessage.from(response)).build()
         }
 

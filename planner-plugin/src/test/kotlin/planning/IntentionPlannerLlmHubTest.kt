@@ -105,7 +105,7 @@ class IntentionPlannerLlmHubTest {
         override fun doChat(request: ChatRequest): ChatResponse {
             invoked = true
             invokeCount++
-            lastPrompt = request.messages().joinToString("\n") { it.text() ?: "" }
+            lastPrompt = request.messages().joinToString("\n") { it.text() }
             return ChatResponse.builder().aiMessage(AiMessage.from(response)).build()
         }
 

@@ -30,15 +30,15 @@ class KoogIntentionPlannerAdapter(
 
     override fun plan(
         intention: String,
-        compositeContext: CompositeContext,
+        context: CompositeContext,
     ): PlanState {
         log.info(
             "KoogIntentionPlannerAdapter: planning intention '{}' (EAGER={}B, RAG={}B, Graphify={}B, Docs={}B)",
             intention.take(80),
-            compositeContext.eagerSection.length,
-            compositeContext.ragSection.length,
-            compositeContext.graphifySection.length,
-            compositeContext.docsSection.length,
+            context.eagerSection.length,
+            context.ragSection.length,
+            context.graphifySection.length,
+            context.docsSection.length,
         )
         return try {
             val ctx = PlanningContext(intention = intention)
@@ -47,10 +47,10 @@ class KoogIntentionPlannerAdapter(
                     intention = intention,
                     context = ctx,
                     specContents = emptyList(),
-                    eagerContext = compositeContext.eagerSection,
-                    ragContext = compositeContext.ragSection,
-                    graphifyContext = compositeContext.graphifySection,
-                    docsContext = compositeContext.docsSection,
+                    eagerContext = context.eagerSection,
+                    ragContext = context.ragSection,
+                    graphifyContext = context.graphifySection,
+                    docsContext = context.docsSection,
                     model = model,
                 )
             log.info(
@@ -61,7 +61,7 @@ class KoogIntentionPlannerAdapter(
             )
             PlanState(
                 intention = intention,
-                compositeContext = compositeContext,
+                compositeContext = context,
                 classification = if (intention.length > 80) "complexe" else "simple",
                 planJson = "",
                 plan = plan,
@@ -71,7 +71,7 @@ class KoogIntentionPlannerAdapter(
             log.error("KoogIntentionPlannerAdapter: plan failed — {}", e.message)
             PlanState(
                 intention = intention,
-                compositeContext = compositeContext,
+                compositeContext = context,
                 error = "IntentionPlanner failed: ${e.message}",
             )
         }
