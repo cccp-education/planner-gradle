@@ -31,7 +31,7 @@ dependencies {
     implementation("education.cccp:codebase-contracts:0.0.1")
 
     // N0 agent contracts — source unique de vérité (Plan, Epic, UserStory, GradleTask, TaskType, AgentState)
-    implementation("education.cccp:agent-contracts:0.0.3")
+    implementation("education.cccp:agent-contracts:0.0.4")
 
     // N1 codebase — LLM socle (EPIC PLN-LLM-HUB): LlmBuildService + LlmProvider
     implementation(libs.codebase.plugin)
