@@ -7,6 +7,7 @@ langchain4j = "1.16.3"
 jackson = "2.18.2"
 codebase = "0.0.17"
 koog = "0.8.0"
+arrow = "2.3.0"
 
 [libraries]
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
@@ -17,6 +18,8 @@ jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", ver
 jackson-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 koog-agents = { module = "ai.koog:koog-agents", version.ref = "koog" }
 codebase-plugin = { module = "education.cccp:codebase-plugin", version.ref = "codebase" }
+arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+arrow-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -24,3 +27,7 @@ publish = { id = "com.gradle.plugin-publish", version.ref = "plugin-publish" }
 planner = { id = "education.cccp.planner", version.ref = "planner" }
 
 [bundles]
+arrow = [
+    "arrow-core",
+    "arrow-coroutines",
+]
