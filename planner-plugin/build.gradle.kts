@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.jackson.kotlin)
     implementation(libs.koog.agents)
+    implementation(libs.bundles.arrow)
 
     // N0 codebase contracts — source unique de vérité (ContextChannel, ChannelBudget, CompositeContext, CompositeContextConfig)
     implementation("education.cccp:codebase-contracts:0.0.1")

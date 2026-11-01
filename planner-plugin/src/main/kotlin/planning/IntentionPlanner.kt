@@ -1,5 +1,8 @@
 package planning
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -103,30 +106,68 @@ object IntentionPlanner {
         )
     }
 
+    /**
+     * XB-FP-4 (arrow-kt): bounded retry as a pure `fold` over the attempt range.
+     * Each attempt captures its failure as a value (`Either.catch` →
+     * [PlanningError]); the loop carries no mutable state and stops retrying as
+     * soon as a `Right` is produced. The single `IllegalStateException` remains at
+     * the public boundary, with the historical `[FATAL]` marker.
+     */
     private fun callLlm(model: ChatModel, prompt: String, log: (String) -> Unit): Plan {
-        var lastError: Exception? = null
-        for (attempt in 1..MAX_ATTEMPTS) {
-            try {
-                val response = model.chat(UserMessage.from(prompt))
-                val raw = response.aiMessage().text()
-                log("[LLM] Attempt $attempt/$MAX_ATTEMPTS — ${raw.length} chars received")
+        val notAttempted: Either<PlanningError, Plan> =
+            PlanningError.LlmFailure(attempt = 0, detail = "no attempt executed").left()
 
-                val parsed = mapper.readValue<LLMResponse>(raw)
-                log("[LLM] Parsed: ${parsed.epics.size} EPICs, ${parsed.totalPoints} points")
-                return parsed.toPlan()
-            } catch (e: Exception) {
-                lastError = e
-                log("[ERROR] Parsing attempt $attempt failed: ${e.message}")
-                if (attempt < MAX_ATTEMPTS) {
-                    log("[RETRY] Will retry — attempt ${attempt + 1}/$MAX_ATTEMPTS")
-                }
-            }
+        val outcome = (1..MAX_ATTEMPTS).fold(notAttempted) { previous, attempt ->
+            previous.fold(
+                ifLeft = {
+                    if (attempt > 1) log("[RETRY] Will retry — attempt $attempt/$MAX_ATTEMPTS")
+                    attemptLlm(model, prompt, attempt, log)
+                },
+                ifRight = { plan -> plan.right() },
+            )
         }
-        throw IllegalStateException(
-            "[FATAL] Failed to parse LLM response after $MAX_ATTEMPTS attempts",
-            lastError
+
+        return outcome.fold(
+            ifLeft = { error ->
+                throw IllegalStateException(
+                    "[FATAL] Failed to parse LLM response after $MAX_ATTEMPTS attempts (${error.detail})",
+                    error.cause,
+                )
+            },
+            ifRight = { plan -> plan },
         )
     }
+
+    /** One LLM call + parse, as a value — no exception escapes. */
+    private fun attemptLlm(
+        model: ChatModel,
+        prompt: String,
+        attempt: Int,
+        log: (String) -> Unit,
+    ): Either<PlanningError, Plan> =
+        Either
+            .catch { model.chat(UserMessage.from(prompt)).aiMessage().text() }
+            .fold(
+                ifLeft = { throwable ->
+                    log("[ERROR] LLM attempt $attempt failed: ${throwable.message}")
+                    PlanningError.LlmFailure(attempt, throwable.message, throwable).left()
+                },
+                ifRight = { raw ->
+                    log("[LLM] Attempt $attempt/$MAX_ATTEMPTS — ${raw.length} chars received")
+                    Either
+                        .catch { mapper.readValue<LLMResponse>(raw) }
+                        .fold(
+                            ifLeft = { throwable ->
+                                log("[ERROR] Parsing attempt $attempt failed: ${throwable.message}")
+                                PlanningError.ParseFailure(attempt, throwable.message, throwable).left()
+                            },
+                            ifRight = { parsed ->
+                                log("[LLM] Parsed: ${parsed.epics.size} EPICs, ${parsed.totalPoints} points")
+                                parsed.toPlan().right()
+                            },
+                        )
+                },
+            )
 
     internal fun buildPrompt(intention: String, context: PlanningContext, specContents: List<SpecReader.SpecContent>): String {
         val specsSection = SpecReader.toPromptContext(specContents)

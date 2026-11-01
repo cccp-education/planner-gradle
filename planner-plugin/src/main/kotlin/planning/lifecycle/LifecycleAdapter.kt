@@ -1,5 +1,6 @@
 package planning.lifecycle
 
+import arrow.core.Either
 import contracts.agent.AgentPhase
 import contracts.agent.AgentState
 import contracts.agent.Plan
@@ -22,11 +23,9 @@ object LifecycleAdapter {
         }
     ): AgentState.ContextReady? {
         val composite = buildCompositeContext(eagerContext, ragContext, graphifyContext, docsContext)
-        return try {
+        return Either.catch {
             factory(context.intention, composite, docsContext)
-        } catch (e: Exception) {
-            null
-        }
+        }.fold({ null }, { it })
     }
 
     fun toPlanned(
@@ -49,11 +48,9 @@ object LifecycleAdapter {
             )
         }
     ): AgentState.Planned? {
-        return try {
+        return Either.catch {
             factory(intention, compositeContext, afnorCorpus, classification, modelChoice, plan.title, plan.epics)
-        } catch (e: Exception) {
-            null
-        }
+        }.fold({ null }, { it })
     }
 
     private fun buildCompositeContext(
