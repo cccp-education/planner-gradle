@@ -2,10 +2,10 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 
 plugins {
     alias(libs.plugins.publish)
-    id("education.cccp.build.gradle-plugin") version "0.0.12"
-    id("education.cccp.build.publishing") version "0.0.12"
-    id("education.cccp.build.cucumber") version "0.0.12"
-    id("education.cccp.build.lint") version "0.0.12"
+    id("education.cccp.build.gradle-plugin") version "0.0.13"
+    id("education.cccp.build.publishing") version "0.0.13"
+    id("education.cccp.build.cucumber") version "0.0.13"
+    id("education.cccp.build.lint") version "0.0.13"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.4.10"
 }
 
