@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+import org.gradle.plugin.compatibility.compatibility
 
 plugins {
     alias(libs.plugins.publish)
@@ -111,6 +112,12 @@ gradlePlugin {
                 via LLM (LangChain4j + DeepSeek-v4-pro). Outputs structured stdout.
                 """.trimIndent()
             tags.set(listOf("planning", "llm", "langchain4j", "agile", "backlog"))
+            compatibility {
+                features {
+                    configurationCache.set(false)
+                    isolatedProjects.set(false)
+                }
+            }
         }
     }
 }
