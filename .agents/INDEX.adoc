@@ -543,3 +543,7 @@ de `Task` doit rester compatible — ajouter `toolType` avec defaut `GRADLE` +
 |===
 
 Voir aussi : `TAXONOMIE_WORKSPACE.adoc` (racine workspace) pour l'ontologie complete.
+
+== Session 083 — JitPack mirror (CNV-16)
+
+Publication JitPack de planner-plugin 0.0.2. JitPack : 0.0.2 — POM HTTP 200.

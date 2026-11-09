@@ -52,3 +52,9 @@
 | 001 | 2026-05-07 | feat | PLN-4 — RAG sur specs existantes : SpecReader, SpecContent, token budget 2000, spec injection dans buildPrompt
 | 000 | 2026-05-07 | init+feat | Bootstrap + PLN-0→PLN-3 : skeleton, data classes, stub, LangChain4j+DeepSeek-v4-pro, OllamaBridge
 |===
+
+== Session 083 — JitPack mirror (CNV-16) — 2026-11-09
+
+Publication JitPack de planner-plugin 0.0.2. JitPack : 0.0.2 — POM HTTP 200. Shim `useModule` pour
+`education.cccp.build.*` (tag JitPack `0.0.15`). Rapport
+`.agents/sessions/083-jitpack-mirror.adoc`.
