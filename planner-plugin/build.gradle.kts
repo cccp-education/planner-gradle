@@ -29,10 +29,10 @@ dependencies {
     implementation(libs.bundles.arrow)
 
     // N0 codebase contracts — source unique de vérité (ContextChannel, ChannelBudget, CompositeContext, CompositeContextConfig)
-    implementation("education.cccp:codebase-contracts:0.0.1")
+    implementation("com.github.cccp-education.workspace-bom:codebase-contracts:0.0.136")
 
     // N0 agent contracts — source unique de vérité (Plan, Epic, UserStory, GradleTask, TaskType, AgentState)
-    implementation("education.cccp:agent-contracts:0.0.4")
+    implementation("com.github.cccp-education.workspace-bom:agent-contracts:0.0.136")
 
     // N1 codebase — LLM socle (EPIC PLN-LLM-HUB): LlmBuildService + LlmProvider
     implementation(libs.codebase.plugin)

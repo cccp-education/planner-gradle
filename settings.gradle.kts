@@ -16,7 +16,7 @@ pluginManagement {
 pluginManagement.repositories.maven("https://jitpack.io")
 pluginManagement.resolutionStrategy.eachPlugin {
     if (requested.id.id.startsWith("education.cccp.build.")) {
-        useModule("com.github.cccp-education.conventions-gradle:conventions-plugin:0.0.16")
+        useModule("com.github.cccp-education.conventions-gradle:conventions-plugin:v0.0.17")
     }
 }
 
@@ -31,3 +31,5 @@ plugins { id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0"
 
 rootProject.name = "planner-gradle"
 include(":planner-plugin")
+
+dependencyResolutionManagement.repositories.maven("https://jitpack.io")
