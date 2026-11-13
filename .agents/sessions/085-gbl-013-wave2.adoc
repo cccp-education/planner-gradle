@@ -1,0 +1,20 @@
+= Session 085 — GBL-013 vague 2 : gate CI sur l'image de runtime
+:date: 2026-11-14
+:borough: Manhattan (planner-gradle)
+
+== Livré
+
+* `ci/run.sh` — `fast`/`test` = `./gradlew :planner-plugin:build`.
+* `.github/workflows/test.yml` migré : `container:` épinglé sur
+  `cccpeducation/cccp-ci-base@sha256:4722c1bc…`, `setup-java` supprimé,
+  `ci/run.sh test`.
+* Run `43501424995` **VERT** (commit `a8cd68a`).
+
+== Notes
+
+`decompose.yml` reste sur l'hôte (dispatch LLM avec Ollama et clés). Aucune
+publication.
+
+== Suivant
+
+US-5 se poursuit sur les dépôts restants de la vague 2.

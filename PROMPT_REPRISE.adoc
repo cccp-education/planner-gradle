@@ -1,6 +1,14 @@
-= PROMPT_REPRISE — planner-gradle (Session 084 terminée — CNV-17/JitPack)
-:session: 085
+= PROMPT_REPRISE — planner-gradle (Session 085 terminée — GBL-013 vague 2)
+:session: 086
 :date: 2026-11-14
+
+== Session 085 accomplie — GBL-013 vague 2 : CI sur l'image de runtime
+
+* `ci/run.sh` (`fast`/`test` = `:planner-plugin:build`).
+* `test.yml` épinglé sur `cccpeducation/cccp-ci-base@sha256:4722c1bc…` ;
+  `setup-java` supprimé ; `decompose.yml` reste hôte (Ollama + clés).
+* Run `43501424995` **VERT** (commit `a8cd68a`). Rapport
+  `.agents/sessions/085-gbl-013-wave2.adoc`.
 
 == Session 084 accomplie — CNV-17 : JitPack canal unique
 

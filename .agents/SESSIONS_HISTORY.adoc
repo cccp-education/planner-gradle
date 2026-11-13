@@ -59,3 +59,11 @@
 Publication JitPack de planner-plugin 0.0.2. JitPack : 0.0.2 — POM HTTP 200. Shim `useModule` pour
 `education.cccp.build.*` (tag JitPack `0.0.15`). Rapport
 `.agents/sessions/083-jitpack-mirror.adoc`.
+
+== Session 085 — GBL-013 vague 2 : gate CI sur l'image de runtime — 2026-11-14
+
+`ci/run.sh` (`fast`/`test` = `:planner-plugin:build`) et `test.yml` épinglé sur
+`cccpeducation/cccp-ci-base@sha256:4722c1bc…` ; `setup-java` supprimé.
+Run `43501424995` **VERT** (commit `a8cd68a`). Rapport
+`.agents/sessions/085-gbl-013-wave2.adoc`.
+
