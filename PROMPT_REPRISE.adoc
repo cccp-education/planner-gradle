@@ -1,54 +1,64 @@
-= PROMPT_REPRISE — planner-gradle (Session 082 terminée — PLN-REVIEW-2 bloqué)
-:session: 083
-:date: 2026-10-26
+= PROMPT_REPRISE — planner-gradle (Session 084 terminée — CNV-17/JitPack)
+:session: 085
+:date: 2026-11-14
 
-== Session 082 accomplie (audit + revert)
+== Session 084 accomplie — CNV-17 : JitPack canal unique
 
-* **PLN-REVIEW-2 tenté puis bloqué** : `ToolCatalog` devait consommer
-  `vibecoding-contracts:0.0.1` (Central). Le JAR `codebase-plugin:0.0.17`
-  **embarque** une version plus récente de
-  `contracts.vibecoding.registry.ToolRegistry` (API 4 paramètres), alors que le
-  contrat Central 0.0.1 est l'API 2 paramètres → `NoSuchMethodError` au runtime.
-* **Revert** `f4231f5` : catalogue manuel des 7 outils restauré, dépendance et
-  settings restaurés. **CI verte `40267950103`**.
-* **Aucun workaround réflexion** ; le correctif propre est cross-borough :
-  codebase ne doit pas shader `contracts.vibecoding`, puis publier
-  `vibecoding-contracts 0.0.2` (API courante) et re-pin planner.
+Décision pilote 2026-11-13 : JitPack devient le **canal unique** des artefacts
+publics `education.cccp` (un artefact = un canal = un nom = une version).
+Central (quota Sonatype jusqu'au 2026-12-01) et le Portal ne sont plus ciblés
+pour `foundry/public/**`.
 
-== Session 083 — Mission proposée
+* **Contrats N0** : `education.cccp:codebase-contracts:0.0.1` /
+  `education.cccp:agent-contracts:0.0.4` →
+  `com.github.cccp-education.workspace-bom:{codebase,agent}-contracts:0.0.136`
+  (versions N0 unifiées au tag, D5).
+* **`codebase-plugin 0.0.17 → 0.0.18`** : `0.0.17` n'est pas servi par JitPack.
+  Coordonnée `com.github.cccp-education.codebase-gradle:codebase-plugin:0.0.18`.
+* **Shim** : `education.cccp.build.*` → tag JitPack
+  `conventions-plugin:0.0.17` (correctif : sans préfixe `v`).
+* **JitPack** ajouté à `dependencyResolutionManagement` (racine + sous-build).
+* Zéro code métier modifié, zéro test local. **CI verte** `43469704793`
+  (`Test`, commit `89531b8`) et `43463706127` (`Test`, commit `e7271ac`).
 
-Ordre recommandé (P2 actionnables, sans blocage) :
+Rapport : `.agents/sessions/084-cnv-17-jitpack-channel.adoc`.
+Cadrage : `conventions-gradle/conventions-plugin/.agents/CADRAGE_EPIC_CNV_17_JITPACK_PRIMARY.adoc`.
+
+== État du code (sortie de session)
+
+* Version locale `0.0.2` ; publication par tag JitPack (`vX.Y.Z`).
+* Contrats N0 et `codebase` en coordonnées JitPack uniquement (zéro
+  `education.cccp:<x>` résiduel dans les catalogues du build).
+* `codebase = 0.0.18`, `koog = 0.8.0` (stale vs BOM 1.3.0).
+* `PlannerExtension` : `aiProvider`, `intention`, `specsDir`, `planOutputDir`.
+* `generatePlan` : stdout + `plan.json`/`metadata.json`/`plan.adoc`.
+* Working tree propre ; CI verte au dernier commit.
+
+== Mission session 085 — maintenance
+
+Ordre recommandé (aucun blocage CNV-17) :
 
 . **PLN-REVIEW-5** (1 pt) — `PlannerExtension.lifecycleEnabled` +
    `DecomposeIntentionTask.lifecycleEnabled` `@Input` (défaut false),
-   `-Pagent.lifecycle` mappé ; suppression de la lecture directe de propriété
-   dans l'action.
-. **PLN-REVIEW-6** (1 pt) — purge des commentaires français (4 fichiers prod),
-   anglais only.
-3. **PLN-REVIEW-3** (2 pts) — câbler la surcharge lifecycle dans la tâche
-   (un seul chemin testé).
-4. **PLN-REVIEW-4** (1 pt) — koog `0.8.0 → 1.3.0` ou suppression dépendance morte.
-5. **PLN-DEP-ALIGN US-2/US-3** — koog 1.3.0 + publication 0.0.3 (accord).
-6. **PLN-REVIEW-2** 🔴 bloqué cross-borough (codebase unshading + contracts 0.0.2).
-7. **SVO-4/5** côté Queens — planner en attente de demande.
-
-== État du code
-
-* Version `0.0.2` (Central) ; `codebase` catalog `0.0.17`, `agent-contracts`
-  `0.0.3`, `vibecoding-contracts` **non dépendu** (catalogue manuel), `koog`
-  local `0.8.0` (stale vs BOM 1.3.0).
-* `PlannerExtension` : `aiProvider`, `intention`, `specsDir`, `planOutputDir`.
-* `generatePlan` : stdout + `plan.json`/`metadata.json`/`plan.adoc`.
-* CI planner **verte** (run `40267950103`, JDK 25 + nmcp optionnel).
+   `-Pagent.lifecycle` mappé ; suppression de la lecture directe de propriété.
+. **PLN-REVIEW-6** (1 pt) — purge des commentaires français (4 fichiers prod).
+. **PLN-REVIEW-3** (2 pts) — câbler la surcharge lifecycle dans la tâche.
+. **PLN-REVIEW-4** (1 pt) — koog `0.8.0 → 1.3.0` ou suppression dépendance morte.
+. **PLN-DEP-ALIGN US-2/US-3** — koog 1.3.0 + publication (tag JitPack).
+. **PLN-REVIEW-2** 🔴 bloqué cross-borough (codebase unshading + contracts 0.0.2).
+. **SVO-4/5** côté Queens — planner en attente de demande.
 
 == Rappels
 
 * **Local = Build, Tests = CI** : compiler/builder uniquement ; jamais
   `test`/`check` local.
-* **Ne pas publier localement 0.0.2** : version déjà Central (split-brain) ;
-  prochaine release 0.0.3, sur accord pilote.
-* **Zéro Python** ; English only code/tests/features (gouvernance `.adoc` FR).
-* Commit/push autorisés (2026-09-17) ; indexer explicitement les fichiers de sa
-  session (jamais `git add -A` en cas de session parallèle).
-* Pièges : un JAR N1 peut **shader** un contrat N0 (PLN-REVIEW-2) ; ne pas
-  « corriger » par réflexion, corriger la source du shade.
+* **Un artefact = un canal = un nom = une version** : ne jamais réintroduire une
+  coordonnée Central dans un catalogue publié.
+* Version = tag : bump **avant** le tag `vX.Y.Z`, build
+  `-Pversion="${VERSION#v}"`, version servie `X.Y.Z` sans préfixe.
+* Shim : tag `conventions-plugin:0.0.17` (sans `v`).
+* Zéro Python ; English only code/tests/features (gouvernance `.adoc` FR).
+* Commit/push autorisés ; indexer explicitement les fichiers de sa session
+  (jamais `git add -A` en cas de session parallèle).
+* Piège : un JAR N1 peut **shader** un contrat N0 (PLN-REVIEW-2) ; corriger la
+  source du shade, jamais par réflexion.

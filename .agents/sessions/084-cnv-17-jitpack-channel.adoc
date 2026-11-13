@@ -1,0 +1,58 @@
+= Session 084 — CNV-17 : JitPack canal unique
+:toc: left
+:icons: font
+
+:session: 084
+:date: 2026-11-14
+:type: build / publication (cross-borough)
+:statut: TERMINÉE
+
+== Contexte
+
+Décision pilote du 2026-11-13 (EPIC CNV-17, `conventions-gradle`) : JitPack
+devient le **canal unique** des artefacts publics `education.cccp` — un
+artefact = un canal = un nom = une version. Central (quota Sonatype jusqu'au
+2026-12-01) et le Portal ne sont plus ciblés pour `foundry/public/**` ;
+`foundry/private/**` et `office/**` restent inchangés. Cadrage :
+`conventions-gradle/conventions-plugin/.agents/CADRAGE_EPIC_CNV_17_JITPACK_PRIMARY.adoc`.
+
+== Changements
+
+* **Contrats N0** : `education.cccp:codebase-contracts:0.0.1` /
+  `agent-contracts:0.0.4` →
+  `com.github.cccp-education.workspace-bom:{codebase,agent}-contracts:0.0.136`
+  (versions N0 unifiées au tag, D5).
+* **`codebase-plugin 0.0.17 → 0.0.18`** : `0.0.17` n'est pas servi par JitPack ;
+  coordonnée `com.github.cccp-education.codebase-gradle:codebase-plugin:0.0.18`.
+* **Shim** : `education.cccp.build.*` →
+  `conventions-gradle:conventions-plugin:0.0.17` (tag **sans** préfixe `v`).
+* **JitPack** ajouté à `dependencyResolutionManagement` (racine + sous-build).
+* Les plugins du build restent déclarés `0.0.14` : le shim absorbe la
+  coordonnée (D7). Zéro code métier, zéro test local (Local = Build, Tests = CI).
+
+== Preuves CI
+
+[cols="3,2,2", options="header"]
+|===
+| Commit | Workflow | Résultat
+| `e7271ac` — catalogues JitPack + workspace 0.0.136 | `Test` `43463706127` | ✅ success
+| `89531b8` — shim `0.0.17` sans préfixe `v` | `Test` `43469704793` | ✅ success
+|===
+
+== Fichiers touchés
+
+* `settings.gradle.kts` + `planner-plugin/settings.gradle.kts` — shim + JitPack.
+* `planner-plugin/gradle/libs.versions.toml` — `codebase 0.0.18`, groupe JitPack.
+* `planner-plugin/build.gradle.kts` — contrats N0 JitPack `0.0.136`.
+* `jitpack.yml` inchangé (recette CNV-16 valide : JDK 25, `CI=true`,
+  `./gradlew -p planner-plugin publishToMavenLocal`).
+
+== État et suite
+
+* Version locale `0.0.2` ; publication par tag JitPack (`vX.Y.Z`).
+* CI verte, working tree propre en sortie de session.
+* **Suite : maintenance.** Chantiers disponibles : `PLN-REVIEW-5/6`, `PLN-REVIEW-3/4`,
+  `PLN-DEP-ALIGN US-2/3` ; `PLN-REVIEW-2` reste bloqué cross-borough (shading
+  `codebase-plugin`).
+* Détail transversal : rapports CNV-17 de `conventions-gradle` (S-045) et
+  `workspace-bom` (N0 `0.0.136`).

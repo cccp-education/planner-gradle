@@ -4,10 +4,10 @@
 _Regles absolues_ : voir `AGENT.adoc`
 _DAG_ : N2 — Plugin Gradle de planification (Regle 4bis)
 
-_Derniere mise a jour_ : 2026-10-26 (S-082 — **PLN-REVIEW-2 BLOQUÉ** : `codebase-plugin:0.0.17` **shade** `contracts.vibecoding.registry.ToolRegistry` (API 4 paramètres) dans son JAR, tandis que `vibecoding-contracts:0.0.1` Central est l'API 2 paramètres → `NoSuchMethodError` au runtime. Tentative revertée (`f4231f5`), baseline verte run `40267950103`. Correctif cross-borough : codebase unshading + publication `vibecoding-contracts 0.0.2` + re-pin planner ; aucun workaround réflexion. S-081 : PLN-REVIEW-1 ✅, CI `40242776506` verte.)
-_Session terminee_ : 082 — PLN-REVIEW-2 audit de blocage (codebase-plugin shading), rapport `.agents/sessions/082-pln-review-2-blocked-codebase-shading.adoc`.
-_Sessions precedent_ : 081/080/079/078/077/076/075/074/073/072/071/070/069/068/067/066/065/064/063/062/061/060/059/058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
-_Prochaine session_ : 083 — sur demande pilote — **PLN-REVIEW-5** (flag `agent.lifecycle` extension + inputs) OU **PLN-REVIEW-6** (purge FR) OU **PLN-REVIEW-3** (câblage lifecycle) OU **PLN-REVIEW-4** (koog 1.3.0) OU **PLN-DEP-ALIGN US-2/3**. **PLN-REVIEW-2 : bloqué cross-borough.** Voir PROMPT_REPRISE.
+_Derniere mise a jour_ : 2026-11-14 (S-084 — **CNV-17 JitPack canal unique** : contrats N0 en coordonnées `com.github.cccp-education.workspace-bom:*:0.0.136`, `codebase-plugin 0.0.17 → 0.0.18` (0.0.17 absent de JitPack), shim `conventions-plugin:0.0.17` sans préfixe `v`, JitPack en résolution de dépendances. CI verte `43469704793` / `43463706127`. Antérieur S-082 : PLN-REVIEW-2 bloqué (shading `codebase-plugin`), revert `f4231f5`, CI `40267950103`.)
+_Session terminee_ : 084 — CNV-17 JitPack canal unique, rapport `.agents/sessions/084-cnv-17-jitpack-channel.adoc`.
+_Sessions precedent_ : 083/082/081/080/079/078/077/076/075/074/073/072/071/070/069/068/067/066/065/064/063/062/061/060/059/058/057/056/053/052/051/050/049/048/019/011/010/009/008/007/006/005 ✅
+_Prochaine session_ : 085 — sur demande pilote — **maintenance** (CNV-17 clos côté planner). Chantiers disponibles : **PLN-REVIEW-5** (flag `agent.lifecycle`), **PLN-REVIEW-6** (purge FR), **PLN-REVIEW-3** (câblage lifecycle), **PLN-REVIEW-4** (koog 1.3.0), **PLN-DEP-ALIGN US-2/3**. **PLN-REVIEW-2 : bloqué cross-borough** (shading `codebase-plugin`). Voir PROMPT_REPRISE.
 
 '''
 == REGLES ABSOLUES
